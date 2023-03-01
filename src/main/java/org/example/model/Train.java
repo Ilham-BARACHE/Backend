@@ -6,7 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Entity
@@ -16,70 +23,130 @@ public class Train {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @JsonProperty("Num_train")
+    private  Integer numTrain;
+    @Column(columnDefinition = "Varchar")
+    private String fileName;
+    @Column(name = "date_fichier")
+    @Temporal(TemporalType.DATE)
+    private java.util.Date dateFichier;
+
+    @Column(name = "heure_fichier")
+    @Temporal(TemporalType.TIME)
+    private java.util.Date heureFichier;
 
 
-    private  Integer Nb_Essieux;
 
 
 
 
+    public void loadFilenamesStartingWithTrain() {
 
+        String path = "C:\\Users\\Ilham Barache\\Documents\\input";
+        File directory = new File(path);
+        List<File> files = List.of(directory.listFiles())
+                .stream()
+                .filter(f -> f.getName().startsWith("TRAIN") && f.getName().endsWith(".json"))
+                .collect(Collectors.toList());
 
+        List<String> filenames = new ArrayList<>();
+        for (File file : files) {
+            String filename = file.getName();
+            filenames.add(filename);
+        }
 
-    @Column(name = "ville_depart")
-    private String villeDepart;
-
-    @Column(name = "ville_arrivee")
-    private String villeArrivee;
-
-    public Train() {
-
-    }
-
-    public Integer getNb_Essieux() {
-        return Nb_Essieux;
-    }
-
-    public void setNb_Essieux(Integer nb_Essieux) {
-        Nb_Essieux = nb_Essieux;
-    }
-
-    public M_50592 getM_50592() {
-        return m_50592;
-    }
-
-    public void setM_50592(M_50592 m_50592) {
-        this.m_50592 = m_50592;
-    }
-
-    public String getVilleDepart() {
-        return villeDepart;
-    }
-
-    public void setVilleDepart(String villeDepart) {
-        this.villeDepart = villeDepart;
-    }
-
-    public String getVilleArrivee() {
-        return villeArrivee;
-    }
-
-    public void setVilleArrivee(String villeArrivee) {
-        this.villeArrivee = villeArrivee;
-    }
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "m_50592_id", referencedColumnName = "id")
-    private M_50592 m_50592;
-
-    @OneToOne(mappedBy = "train", cascade = CascadeType.ALL)
-    private Sam sam;
-    @PreUpdate
-    public void updateNbEssieux() {
-        if (sam != null) {
-            Nb_Essieux = sam.getNbEssieux();
+        for (String filename : filenames) {
+            this.setFileName(filename);
         }
     }
+    public void loadStartingWithTrain(String fileName) {
+        int index = fileName.indexOf("_");
+        if (index > 0) { // Vérifier si le nom de fichier contient au moins un "_"
+            // Trouver l'index du 2ème "_" en partant de la droite
+            int lastIndex = fileName.lastIndexOf("_");
+            if (lastIndex > index) {
+                String dateTimePart = fileName.substring(index+1, fileName.length()-5); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
+
+                System.out.println("dateTimePart: " + dateTimePart);
+
+                String[] dateTimeParts = dateTimePart.split("[_ .hms]+");
+                System.out.println("dateTimeParts: " + Arrays.toString(dateTimeParts));
+
+                if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
+                    String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
+                    String heurePart = dateTimeParts[3] + "h" + dateTimeParts[4] + "m" + dateTimeParts[5]+ "s"; // Concaténer les parties pour former l'heure
+                    System.out.println("datePart: " + datePart); // Ajouter un log pour afficher la partie date
+                    System.out.println("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
+
+                    // Convertir la date et l'heure en objets Date et Time
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+                        java.util.Date parsedDate = dateFormat.parse(datePart);
+                        java.sql.Date date = new java.sql.Date(parsedDate.getTime());
+
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("hh'h'mm'm'ss's'");
+                        java.util.Date parsedTime = timeFormat.parse(heurePart);
+                        java.sql.Time time = new java.sql.Time(parsedTime.getTime());
+
+                        // Mettre à jour les champs dateFichier et heureFichier de l'objet M_50592
+                        this.setDateFichier(date);
+                        this.setHeureFichier(time);
+                        this.setFileName(fileName);
+                    } catch (ParseException e) {
+                        // Gérer l'exception si la date ou l'heure ne peut pas être analysée
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
+    }
+
+
+    public Integer getNumTrain() {
+        return numTrain;
+    }
+
+    public void setNumTrain(Integer numTrain) {
+        this.numTrain = numTrain;
+    }
+
+    public Train() {
+        loadFilenamesStartingWithTrain();
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public Date getDateFichier() {
+        return dateFichier;
+    }
+
+    public void setDateFichier(Date dateFichier) {
+        this.dateFichier = dateFichier;
+    }
+
+    public Date getHeureFichier() {
+        return heureFichier;
+    }
+
+    public void setHeureFichier(Date heureFichier) {
+        this.heureFichier = heureFichier;
+    }
+
+
+
+
+
+
+
+
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -88,18 +155,11 @@ public class Train {
         return id;
     }
 
-    public Train(Long id, Integer nb_Essieux, String villeDepart, String villeArrivee, M_50592 m_50592) {
+    public Train(Long id, M_50592 m_50592) {
         this.id = id;
-        Nb_Essieux = nb_Essieux;
-        this.villeDepart = villeDepart;
-        this.villeArrivee = villeArrivee;
-        this.m_50592 = m_50592;
+
+
     }
 
-    public void setVillesNomFromM50592() {
-        if (m_50592 != null) {
-            villeDepart = m_50592.getVilleDepart();
-            villeArrivee = m_50592.getVilleArrivee();
-        }
-    }
+
 }

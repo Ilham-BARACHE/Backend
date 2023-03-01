@@ -34,14 +34,7 @@ public class TrainService {
         trainRepository.saveAll(trains);
     }
 
-    public void updateVillesNomFromM50592() {
-        Iterable<Train> trains = trainRepository.findAll();
-        for (Train train : trains) {
-            train.setVillesNomFromM50592();
-            trainRepository.save(train);
-        }
-        trainRepository.saveAll(trains);
-    }
+
 
 
 

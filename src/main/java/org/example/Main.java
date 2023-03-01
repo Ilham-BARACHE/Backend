@@ -49,14 +49,10 @@ public class Main {
                     System.out.println("Le fichier " + samFile.getName() + " a été traité avec succès !");
 
                     for (Sam sam : sams) {
-                        Train train = new Train();
-                        train.setNb_Essieux(sam.getNbEssieux());
-                        train.setId(sam.getId());
-                        trainService.save(train);
-                        sam.setTrain(train);
-                        samService.save(sam);
-                        train.setSam(sam);
+
+
                         sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        sam.loadStartingWithSam(samFile.getName());
                         samService.save(sam);
                     }
 
@@ -65,9 +61,9 @@ public class Main {
 
                     // Déplacer le fichier traité dans le dossier 'output'
                     //Path sourceFilePath = samFile.toPath();
-                  //  Path targetFilePath = outputFolder.toPath().resolve(samFile.getName());
-                  //  Files.move(sourceFilePath, targetFilePath);
-                   // System.out.println("Le fichier " + samFile.getName() + " a été déplacé dans le dossier 'output'.");
+                    //  Path targetFilePath = outputFolder.toPath().resolve(samFile.getName());
+                    //  Files.move(sourceFilePath, targetFilePath);
+                    // System.out.println("Le fichier " + samFile.getName() + " a été déplacé dans le dossier 'output'.");
                 } catch (IOException e) {
                     System.err.println("Erreur lors de la lecture du fichier " + samFile.getName() + " : " + e.getMessage());
                 }
@@ -77,46 +73,84 @@ public class Main {
 
             // Lire tous les fichiers commençant par '50592'
             File[] m50592Files = inputFolder.listFiles((dir, name) -> name.startsWith("50592"));
-            for (File myClassFile : m50592Files) {
-                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {};
-                try (InputStream m50592Stream = new FileInputStream(myClassFile)) {
+            for (File m50592File : m50592Files) {
+                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {
+                };
+                try (InputStream m50592Stream = new FileInputStream(m50592File)) {
                     List<M_50592> m_50592s = mapper.readValue(m50592Stream, m50592TypeRef);
                     m50592Service.save(m_50592s);
-                    System.out.println("Le fichier " + myClassFile.getName() + " a été traité avec succès !");
+                    System.out.println("Le fichier " + m50592File.getName() + " a été traité avec succès !");
 
 
                     for (M_50592 m_50592 : m_50592s) {
 
-                        m_50592.setFileName(myClassFile.getName()); // Définir le nom de fichier dans l'objet M_50592
-                        String filename = myClassFile.getName();
-                        String[] parts = filename.split("_");
-                        if (parts.length > 1) {
-                            String dateTimePart = parts[1];
-                            String[] dateTimeParts = dateTimePart.split("[HhMmSs]");
-                            if (dateTimeParts.length == 6) {
-                                String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2];
-                                String heurePart = dateTimeParts[3] + ":" + dateTimeParts[4] + ":" + dateTimeParts[5];
-                                // Mettre à jour la date et l'heure dans l'objet M_50592
-                                m_50592.setDateFichier(java.sql.Date.valueOf(datePart));
-                                m_50592.setHeureFichier(Time.valueOf(heurePart));
-                            }
-                        }
+                        m_50592.setFileName(m50592File.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        m_50592.loadStartingWith50592(m50592File.getName());
+
 
                         m50592Service.save(m_50592);
 
 
                     }
 
+
+
+
                     // Déplacer le fichier traité dans le dossier 'output'
-                   // Path sourceFilePath = myClassFile.toPath();
+                    // Path sourceFilePath = myClassFile.toPath();
                     //Path targetFilePath = outputFolder.toPath().resolve(myClassFile.getName());
-                   // Files.move(sourceFilePath, targetFilePath);
+                    // Files.move(sourceFilePath, targetFilePath);
                     //System.out.println("Le fichier " + myClassFile.getName() + " a été déplacé dans le dossier 'output'.");
                 } catch (IOException e) {
-                    System.err.println("Erreur lors de la lecture du fichier " + myClassFile.getName() + " : " + e.getMessage());
+                    System.err.println("Erreur lors de la lecture du fichier " + m50592File.getName() + " : " + e.getMessage());
                 }
             }
+
+            // Lire tous les fichiers commençant par 'TRAIN'
+            File[] trainFiles = inputFolder.listFiles((dir, name) -> name.startsWith("TRAIN"));
+            for (File trainFile : trainFiles) {
+                TypeReference<List<Train>> trainTypeRef = new TypeReference<List<Train>>() {
+                };
+                try (InputStream trainStream = new FileInputStream(trainFile)) {
+                    List<Train> trains = mapper.readValue(trainStream, trainTypeRef);
+                    trainService.save(trains);
+                    System.out.println("Le fichier " + trainFile.getName() + " a été traité avec succès !");
+
+
+                    for (Train train : trains) {
+
+                        train.setFileName(trainFile.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        train.loadStartingWithTrain(trainFile.getName());
+
+
+                        trainService.save(train);
+
+
+                    }
+
+
+
+
+                    // Déplacer le fichier traité dans le dossier 'output'
+                    // Path sourceFilePath = myClassFile.toPath();
+                    //Path targetFilePath = outputFolder.toPath().resolve(myClassFile.getName());
+                    // Files.move(sourceFilePath, targetFilePath);
+                    //System.out.println("Le fichier " + myClassFile.getName() + " a été déplacé dans le dossier 'output'.");
+                } catch (IOException e) {
+                    System.err.println("Erreur lors de la lecture du fichier " + trainFile.getName() + " : " + e.getMessage());
+                }
+            }
+
+
+
+
+
         };
+
+
+
+
+
     }
 
 

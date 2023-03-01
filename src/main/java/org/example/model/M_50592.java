@@ -11,10 +11,7 @@ import java.io.File;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"BE_R1","BE_R2","BL_R1","BL_R2","FFT_R1","FFT_R2","ParametresBL","ParametresBE"})
@@ -85,7 +82,7 @@ public class M_50592 {
     public M_50592() {
         loadFilenamesStartingWith50592();
 
-loadStartingWith50592(fileName);
+
     }
 
     public M_50592(Long id, String fileName, Date dateFichier, Date heureFichier) {
@@ -116,33 +113,44 @@ loadStartingWith50592(fileName);
     }
 
     public void loadStartingWith50592(String fileName) {
-        String[] parts = fileName.split("_"); // Diviser le nom de fichier en parties en utilisant le caractère '_'
-        if (parts.length > 1) { // Vérifier si le nom de fichier a été correctement divisé
-            String dateTimePart = parts[1]; // Récupérer la partie qui contient la date et l'heure
-            String[] dateTimeParts = dateTimePart.split("[HhMmSs]"); // Diviser la partie date-heure en parties en utilisant les caractères 'HhMmSs' comme séparateurs
-            if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
-                String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
-                String heurePart = dateTimeParts[3] + ":" + dateTimeParts[4] + ":" + dateTimeParts[5]; // Concaténer les parties pour former l'heure
+        int index = fileName.indexOf("_");
+        if (index > 0) { // Vérifier si le nom de fichier contient au moins un "_"
+            // Trouver l'index du 2ème "_" en partant de la droite
+            int lastIndex = fileName.lastIndexOf("_");
+            if (lastIndex > index) {
+                String dateTimePart = fileName.substring(index+1, fileName.length()-5); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
 
-                // Convertir la date et l'heure en objets Date et Time
-                try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
-                    java.util.Date parsedDate = dateFormat.parse(datePart);
-                    java.sql.Date date = new java.sql.Date(parsedDate.getTime());
+                System.out.println("dateTimePart: " + dateTimePart);
 
-                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-                    java.util.Date parsedTime = timeFormat.parse(heurePart);
-                    java.sql.Time time = new java.sql.Time(parsedTime.getTime());
+                String[] dateTimeParts = dateTimePart.split("[_ .hms]+");
+                System.out.println("dateTimeParts: " + Arrays.toString(dateTimeParts));
 
-                    // Mettre à jour les champs dateFichier et heureFichier de l'objet M_50592
-                    this.setDateFichier(date);
-                    this.setHeureFichier(time);
-                    this.setFileName(fileName);
-                } catch (ParseException e) {
-                    // Gérer l'exception si la date ou l'heure ne peut pas être analysée
-                    e.printStackTrace();
+                if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
+                    String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
+                    String heurePart = dateTimeParts[3] + "h" + dateTimeParts[4] + "m" + dateTimeParts[5]+ "s"; // Concaténer les parties pour former l'heure
+                    System.out.println("datePart: " + datePart); // Ajouter un log pour afficher la partie date
+                    System.out.println("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
+
+                    // Convertir la date et l'heure en objets Date et Time
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+                        java.util.Date parsedDate = dateFormat.parse(datePart);
+                        java.sql.Date date = new java.sql.Date(parsedDate.getTime());
+
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("hh'h'mm'm'ss's'");
+                        java.util.Date parsedTime = timeFormat.parse(heurePart);
+                        java.sql.Time time = new java.sql.Time(parsedTime.getTime());
+
+                        // Mettre à jour les champs dateFichier et heureFichier de l'objet M_50592
+                        this.setDateFichier(date);
+                        this.setHeureFichier(time);
+                        this.setFileName(fileName);
+                    } catch (ParseException e) {
+                        // Gérer l'exception si la date ou l'heure ne peut pas être analysée
+                        e.printStackTrace();
+                    }
+
                 }
-
             }
         }
     }
@@ -160,9 +168,7 @@ loadStartingWith50592(fileName);
     @Embedded
     private Environnement environnement;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "train_id", referencedColumnName = "id")
-    private Train train;
+
 
     @JsonIgnore
     @Embedded

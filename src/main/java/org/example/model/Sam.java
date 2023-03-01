@@ -14,7 +14,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,17 +43,21 @@ public class Sam {
 
     @Column(columnDefinition = "Varchar")
     private String fileName;
+    @Column(name = "date_fichier")
+    @Temporal(TemporalType.DATE)
+    private java.util.Date dateFichier;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "train_id", referencedColumnName = "id")
-    private Train train;
+    @Column(name = "heure_fichier")
+    @Temporal(TemporalType.TIME)
+    private java.util.Date heureFichier;
 
-    public Sam(Long id, Integer nb_Essieux, List<Integer> nbOccultations, String fileName, Train train, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+
+    public Sam(Long id, Integer nb_Essieux, List<Integer> nbOccultations, String fileName, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
         this.id = id;
         Nb_Essieux = nb_Essieux;
         NbOccultations = nbOccultations;
         this.fileName = fileName;
-        this.train = train;
+
         this.vitesse1_7 = vitesse1_7;
         this.vitesse2_8 = vitesse2_8;
         this.vitesse_moy = vitesse_moy;
@@ -87,6 +95,65 @@ public class Sam {
             this.setFileName(filename);
         }
     }
+    public void loadStartingWithSam(String fileName) {
+        int index = fileName.indexOf("_");
+        if (index > 0) { // Vérifier si le nom de fichier contient au moins un "_"
+            // Trouver l'index du 2ème "_" en partant de la droite
+            int lastIndex = fileName.lastIndexOf("_");
+            if (lastIndex > index) {
+                String dateTimePart = fileName.substring(index+1, fileName.length()-5); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
+
+                System.out.println("dateTimePart: " + dateTimePart);
+
+                String[] dateTimeParts = dateTimePart.split("[_ .hms]+");
+                System.out.println("dateTimeParts: " + Arrays.toString(dateTimeParts));
+
+                if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
+                    String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
+                    String heurePart = dateTimeParts[3] + "h" + dateTimeParts[4] + "m" + dateTimeParts[5]+ "s"; // Concaténer les parties pour former l'heure
+                    System.out.println("datePart: " + datePart); // Ajouter un log pour afficher la partie date
+                    System.out.println("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
+
+                    // Convertir la date et l'heure en objets Date et Time
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+                        java.util.Date parsedDate = dateFormat.parse(datePart);
+                        java.sql.Date date = new java.sql.Date(parsedDate.getTime());
+
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("hh'h'mm'm'ss's'");
+                        java.util.Date parsedTime = timeFormat.parse(heurePart);
+                        java.sql.Time time = new java.sql.Time(parsedTime.getTime());
+
+                        // Mettre à jour les champs dateFichier et heureFichier de l'objet M_50592
+                        this.setDateFichier(date);
+                        this.setHeureFichier(time);
+                        this.setFileName(fileName);
+                    } catch (ParseException e) {
+                        // Gérer l'exception si la date ou l'heure ne peut pas être analysée
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
+    }
+
+    public Date getDateFichier() {
+        return dateFichier;
+    }
+
+    public void setDateFichier(Date dateFichier) {
+        this.dateFichier = dateFichier;
+    }
+
+    public Date getHeureFichier() {
+        return heureFichier;
+    }
+
+    public void setHeureFichier(Date heureFichier) {
+        this.heureFichier = heureFichier;
+    }
+
 
 
     public Integer getNb_Essieux() {
