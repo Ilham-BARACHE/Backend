@@ -41,6 +41,10 @@ public class M_50592 {
     @Column(name = "site")
     private String site;
 
+
+    @Column(name = "Statut")
+    private String Statut;
+
     public void loadSite(String fileName) {
         String[] tokens = fileName.split("_");
         if (tokens.length >= 2) {
@@ -51,6 +55,16 @@ public class M_50592 {
             this.setSite(site);
         }
     }
+
+
+    public String getStatut() {
+        return Statut;
+    }
+
+    public void setStatut(String statut) {
+        Statut = statut;
+    }
+
     public Long getId() {
         return id;
     }
