@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 
 
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"VitesseSortie_km/h","VitesseEntree_km/h","TempsMesure_sec","Voie_2 Active?","CompteurDeMarche","Meteo","AcquisitionAmbiante","DetecteurEntree","DetecteurSortie","CheminCorrectionCapteur"})
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"VitesseSortie_km/h","VitesseEntree_km/h","TempsMesure_sec","Voie_2 Active?","CompteurDeMarche","AcquisitionAmbiante","DetecteurEntree","DetecteurSortie","CheminCorrectionCapteur"})
 
 @Data
 @Embeddable
@@ -49,7 +49,7 @@ public class Environnement {
 
 
 
-    @JsonIgnore
+    @JsonProperty("Meteo")
     @Embedded
     private Meteo meteo;
 
@@ -98,14 +98,21 @@ public class Environnement {
         this.villeArrivee = villeArrivee;
     }
 
+    public String getSens() {
+        return Sens;
+    }
+
+    public void setSens(String sens) {
+        Sens = sens;
+    }
 
     public Environnement (){}
     public Environnement(String Sens) {
-        this.Sens = Sens;
-        extraireVilles();
+
+        extraireVilles(Sens);
     }
 
-    public String[] extraireVilles() {
+    public String[] extraireVilles(String Sens) {
         if (this.Sens != null) {
             String[] villes = this.Sens.split("-");
             String villeDepart = villes[1].trim().split("vers")[0].trim();

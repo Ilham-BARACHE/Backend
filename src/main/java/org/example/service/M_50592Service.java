@@ -29,14 +29,8 @@ public class M_50592Service {
 
 
     public void save(List<M_50592> m_50592s) {
-        for (M_50592 m50592 : m_50592s) {
-            Environnement env = m50592.getEnvironnement();
-            String[] villes = env.extraireVilles();
-            if (villes != null) {
-                env.setVilleDepart(villes[0]);
-                env.setVilleArrivee(villes[1]);
-            }
-        }
+
+
         m50592Repository.saveAll(m_50592s);
     }
 }

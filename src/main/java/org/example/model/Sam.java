@@ -3,9 +3,12 @@ package org.example.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.example.repository.SamRepository;
+
 import org.w3c.dom.Text;
 
 import javax.persistence.*;
@@ -13,36 +16,54 @@ import java.io.File;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"Temps_ms"})
 @Entity
 @Data
 @Table(name = "SAM005")
-public class Sam {
+public class Sam  {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.AUTO )
+    @GeneratedValue( strategy = GenerationType.IDENTITY )
     private Long id;
 
 
     @JsonProperty("NbEssieux")
-    private  Integer Nb_Essieux;
+    private  Integer NbEssieux;
 
     @ElementCollection
     @JsonProperty("NbOccultations")
     private List<Integer> NbOccultations;
+    @Column(name = "Statut")
+    private String Statut;
+    @JsonIgnore
+    @Embedded
+    private Enveloppes enveloppes;
+    @Column(name = "url")
+    private String url;
 
-
+    @Column(name = "site")
+    private String site;
     @Column(columnDefinition = "Varchar")
     private String fileName;
+
+
+
+
     @Column(name = "date_fichier")
     @Temporal(TemporalType.DATE)
     private java.util.Date dateFichier;
@@ -52,31 +73,76 @@ public class Sam {
     private java.util.Date heureFichier;
 
 
-    public Sam(Long id, Integer nb_Essieux, List<Integer> nbOccultations, String fileName, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
-        this.id = id;
-        Nb_Essieux = nb_Essieux;
-        NbOccultations = nbOccultations;
-        this.fileName = fileName;
+    @JsonProperty("Vitesses_1-7_km/h")
+    private Double vitesse1_7 ;
+    @JsonProperty("Vitesses_2-8_km/h")
+    private Double vitesse2_8;
+    @JsonProperty("Vitesse_moyenne_km/h")
+    private Double vitesse_moy;
 
-        this.vitesse1_7 = vitesse1_7;
-        this.vitesse2_8 = vitesse2_8;
-        this.vitesse_moy = vitesse_moy;
+    @JsonIgnore
+    @Embedded
+    private  Temps_ms temps_ms;
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public Integer getNbEssieux() {
+        return NbEssieux;
     }
+
+
 
     public List<Integer> getNbOccultations() {
         return NbOccultations;
     }
 
-    public void setNbOccultations(List<Integer> nbOccultations) {
-        NbOccultations = nbOccultations;
+
+
+    public String getStatut() {
+        return Statut;
     }
+
+    public void setStatut(String statut) {
+        Statut = statut;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+
 
     public Sam() {
-        loadFilenamesStartingWith50592();
+        loadFilenamesStartingWithSAM();
 
 
     }
-    public void loadFilenamesStartingWith50592() {
+
+    public String checkOccultations() {
+        if (NbOccultations.stream().allMatch(n -> n.equals(NbEssieux))) {
+            Statut = "OK";
+        } else {
+            Statut = "NOTOK";
+        }
+        return Statut;
+
+    }
+
+    public void loadFilenamesStartingWithSAM() {
 
         String path = "C:\\Users\\Ilham Barache\\Documents\\input";
         File directory = new File(path);
@@ -86,15 +152,37 @@ public class Sam {
                 .collect(Collectors.toList());
 
         List<String> filenames = new ArrayList<>();
+
         for (File file : files) {
             String filename = file.getName();
             filenames.add(filename);
+
         }
 
         for (String filename : filenames) {
             this.setFileName(filename);
         }
+
     }
+
+
+
+
+
+
+    public void loadSite(String fileName) {
+        String[] tokens = fileName.split("_");
+        if (tokens.length >= 2) {
+            String name = tokens[0];
+            String [] nom = name.split("-");
+            String site = nom[1];
+
+            this.setSite(site);
+        }
+    }
+
+
+
     public void loadStartingWithSam(String fileName) {
         int index = fileName.indexOf("_");
         if (index > 0) { // Vérifier si le nom de fichier contient au moins un "_"
@@ -103,16 +191,14 @@ public class Sam {
             if (lastIndex > index) {
                 String dateTimePart = fileName.substring(index+1, fileName.length()-5); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
 
-                System.out.println("dateTimePart: " + dateTimePart);
+
 
                 String[] dateTimeParts = dateTimePart.split("[_ .hms]+");
-                System.out.println("dateTimeParts: " + Arrays.toString(dateTimeParts));
+
 
                 if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
                     String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
                     String heurePart = dateTimeParts[3] + "h" + dateTimeParts[4] + "m" + dateTimeParts[5]+ "s"; // Concaténer les parties pour former l'heure
-                    System.out.println("datePart: " + datePart); // Ajouter un log pour afficher la partie date
-                    System.out.println("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
 
                     // Convertir la date et l'heure en objets Date et Time
                     try {
@@ -154,11 +240,15 @@ public class Sam {
         this.heureFichier = heureFichier;
     }
 
-
-
-    public Integer getNb_Essieux() {
-        return Nb_Essieux;
+    public String getSite() {
+        return site;
     }
+
+    public void setSite(String site) {
+        this.site = site;
+    }
+
+
 
     public String getFileName() {
         return fileName;
@@ -167,26 +257,6 @@ public class Sam {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-
-    public Integer getNbEssieux() {
-        return Nb_Essieux;
-    }
-
-    public void setNb_Essieux(Integer nbEssieux) {
-        Nb_Essieux = nbEssieux;
-    }
-
-    @JsonProperty("Vitesses_1-7_km/h")
-    private Double vitesse1_7 ;
-    @JsonProperty("Vitesses_2-8_km/h")
-    private Double vitesse2_8;
-    @JsonProperty("Vitesse_moyenne_km/h")
-    private Double vitesse_moy;
-
-    @JsonIgnore
-    @Embedded
-    private  Temps_ms temps_ms;
-
 
 
 
@@ -227,12 +297,7 @@ public class Sam {
 
 
 
-    public Sam(Long id, Double vitesse1_7, double vitesse2_8, double vitesse_moy) {
-        this.id = id;
-        this.vitesse1_7 = vitesse1_7;
-        this.vitesse2_8 = vitesse2_8;
-        this.vitesse_moy = vitesse_moy;
-    }
+
 
     public Long getId() {
         return id;
@@ -242,7 +307,16 @@ public class Sam {
         this.id = id;
     }
 
-    public Sam(Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statut, String url, String site, String fileName, Date dateFichier, Time heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+        this.id = id;
+        NbEssieux = nbEssieux;
+        NbOccultations = nbOccultations;
+        Statut = statut;
+        this.url = url;
+        this.site = site;
+        this.fileName = fileName;
+        this.dateFichier = dateFichier;
+        this.heureFichier = heureFichier;
         this.vitesse1_7 = vitesse1_7;
         this.vitesse2_8 = vitesse2_8;
         this.vitesse_moy = vitesse_moy;

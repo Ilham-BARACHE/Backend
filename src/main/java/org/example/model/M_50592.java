@@ -38,6 +38,43 @@ public class M_50592 {
     @Column(name = "ville_arrivee", insertable = false, updatable = false)
     private String villeArrivee;
 
+    @Column(name = "site")
+    private String site;
+
+    public void loadSite(String fileName) {
+        String[] tokens = fileName.split("_");
+        if (tokens.length >= 2) {
+            String name = tokens[0];
+            String [] nom = name.split("-");
+            String site = nom[1];
+
+            this.setSite(site);
+        }
+    }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDateFichier(Date dateFichier) {
+        this.dateFichier = dateFichier;
+    }
+
+    public void setHeureFichier(Date heureFichier) {
+        this.heureFichier = heureFichier;
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public void setSite(String site) {
+        this.site = site;
+    }
+
     public String getFileName() {
         return fileName;
     }
@@ -47,21 +84,11 @@ public class M_50592 {
     }
 
 
-    public java.util.Date getDateFichier() {
-        return dateFichier;
-    }
 
-    public void setDateFichier(java.sql.Date dateFichier) {
-        this.dateFichier = dateFichier;
-    }
 
-    public java.util.Date getHeureFichier() {
-        return heureFichier;
-    }
 
-    public void setHeureFichier(Time heureFichier) {
-        this.heureFichier = heureFichier;
-    }
+
+
 
     public String getVilleDepart() {
         return villeDepart;
@@ -170,11 +197,11 @@ public class M_50592 {
 
 
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private BE_R1 be ;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private BE_R2 beR22;
 
@@ -182,23 +209,23 @@ public class M_50592 {
     @Embedded
     private BL_R1 blR1;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private BL_R2 blR2;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private FFT_R1 fftR1;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private FFT_R2 fftR2;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private ParametresBL parametresBL;
 
-    @JsonIgnore
+    @Transient
     @Embedded
     private ParametresBE parametresBE;
 
