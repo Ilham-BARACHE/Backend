@@ -48,8 +48,8 @@ public class Sam  {
     @ElementCollection
     @JsonProperty("NbOccultations")
     private List<Integer> NbOccultations;
-    @Column(name = "Statut")
-    private String Statut;
+    @Column(name = "statutSAM")
+    private String statutSAM;
     @JsonIgnore
     @Embedded
     private Enveloppes enveloppes;
@@ -109,11 +109,11 @@ public class Sam  {
 
 
     public String getStatut() {
-        return Statut;
+        return statutSAM;
     }
 
-    public void setStatut(String statut) {
-        Statut = statut;
+    public void setStatut(String statutSAM) {
+        statutSAM = statutSAM;
     }
 
     public String getUrl() {
@@ -134,11 +134,11 @@ public class Sam  {
 
     public String checkOccultations() {
         if (NbOccultations.stream().allMatch(n -> n.equals(NbEssieux))) {
-            Statut = "OK";
+            statutSAM = "OK";
         } else {
-            Statut = "NOTOK";
+            statutSAM = "NOTOK";
         }
-        return Statut;
+        return statutSAM;
 
     }
 
@@ -307,11 +307,11 @@ public class Sam  {
         this.id = id;
     }
 
-    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statut, String url, String site, String fileName, Date dateFichier, Time heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String url, String site, String fileName, Date dateFichier, Time heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
         this.id = id;
         NbEssieux = nbEssieux;
         NbOccultations = nbOccultations;
-        Statut = statut;
+        this.statutSAM = statutSAM;
         this.url = url;
         this.site = site;
         this.fileName = fileName;

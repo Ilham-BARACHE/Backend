@@ -274,17 +274,17 @@ sam.checkOccultations();
                                     }
                                 }
 
-                                m_50592.setStatut("OK");
+                                m_50592.setStatut50592("OK");
                                 m50592Service.save(m_50592);
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-                                m_50592.setStatut("NOTOK");
+                                m_50592.setStatut50592("NOTOK");
                                 m50592Service.save(m_50592);
 
                             }
                         } else {
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
-                            m_50592.setStatut("NOTOK");
+                            m_50592.setStatut50592("NOTOK");
                             m50592Service.save(m_50592);
                         }
 
