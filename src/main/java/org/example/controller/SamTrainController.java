@@ -87,7 +87,7 @@ public class SamTrainController {
                 trainMap.put("id", sam.getId());
                 trainMap.put("NbEssieux", sam.getNbEssieux());
                 trainMap.put("url", sam.getUrl());
-                trainMap.put("Statut", sam.getStatut());
+                trainMap.put("statutSAM", sam.getStatutSAM());
                 trainMap.put("NbOccultations", sam.getNbOccultations());
 
 
@@ -176,7 +176,7 @@ public class SamTrainController {
                     trainMap.put("id", sam.getId());
                     trainMap.put("NbEssieux", sam.getNbEssieux());
                     trainMap.put("url", sam.getUrl());
-                    trainMap.put("statutSAM", sam.getStatut());
+                    trainMap.put("statutSAM", sam.getStatutSAM());
                     trainMap.put("NbOccultations", sam.getNbOccultations());
 
 

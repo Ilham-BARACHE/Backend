@@ -107,13 +107,12 @@ public class Sam  {
     }
 
 
-
-    public String getStatut() {
+    public String getStatutSAM() {
         return statutSAM;
     }
 
-    public void setStatut(String statutSAM) {
-        statutSAM = statutSAM;
+    public void setStatutSAM(String statutSAM) {
+        this.statutSAM = statutSAM;
     }
 
     public String getUrl() {
@@ -307,7 +306,7 @@ public class Sam  {
         this.id = id;
     }
 
-    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String url, String site, String fileName, Date dateFichier, Time heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String url, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
         this.id = id;
         NbEssieux = nbEssieux;
         NbOccultations = nbOccultations;

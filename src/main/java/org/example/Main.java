@@ -151,7 +151,7 @@ sam.checkOccultations();
                          sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         sam.loadStartingWithSam(samFile.getName());
                         sam.loadSite(samFile.getName());
-                        if (sam.getStatut().equals("OK")) {
+                        if (sam.getStatutSAM().equals("OK")) {
                             sam.setUrl(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier

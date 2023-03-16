@@ -44,6 +44,8 @@ public class M_50592 {
 
     @Column(name = "statut50592")
     private String statut50592;
+
+
     public void loadSite(String fileName) {
         String[] tokens = fileName.split("_");
         if (tokens.length >= 2) {
