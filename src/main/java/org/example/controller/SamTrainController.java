@@ -76,40 +76,46 @@ public class SamTrainController {
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Sam sam : sams) {
-            Map<String, Object> samMap = new HashMap<>();
-            samMap.put("id", sam.getId());
-            samMap.put("NbEssieux", sam.getNbEssieux());
-            samMap.put("url", sam.getUrl());
-            samMap.put("Statut", sam.getStatut());
-            samMap.put("NbOccultations", sam.getNbOccultations());
-            samMap.put("vitesse_moy", sam.getVitesse_moy());
-            result.add(samMap);
-        }
-
-        for (Train train : trains) {
-            Map<String, Object> trainMap = new HashMap<>();
-            trainMap.put("id", train.getId());
-            trainMap.put("numTrain", train.getNumTrain());
-
-            Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
-            if (mr != null) {
-                trainMap.put("mr", mr.getMr());
-            }
-
-            result.add(trainMap);
-        }
-
         for (M_50592 m50592 : m_50592s) {
-            Map<String, Object> m50592Map = new HashMap<>();
-            m50592Map.put("id", m50592.getId());
-            m50592Map.put("villeArrivee", m50592.getEnvironnement().getVilleArrivee());
-            m50592Map.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
-            m50592Map.put("meteo", m50592.getEnvironnement().getMeteo());
+        for (Sam sam : sams) {
+
+            for (Train train : trains) {
+                Map<String, Object> trainMap = new HashMap<>();
+                trainMap.put("id", train.getId());
+                trainMap.put("numTrain", train.getNumTrain());
+                trainMap.put("dateFichier", train.getDateFichier());
+                trainMap.put(("heureFichier"), train.getHeureFichier());
+
+                trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                trainMap.put("id", sam.getId());
+                trainMap.put("NbEssieux", sam.getNbEssieux());
+                trainMap.put("url", sam.getUrl());
+                trainMap.put("Statut", sam.getStatut());
+                trainMap.put("NbOccultations", sam.getNbOccultations());
 
 
-            result.add(m50592Map);
+
+                trainMap.put("id", m50592.getId());
+                trainMap.put("villeArrivee", m50592.getEnvironnement().getVilleArrivee());
+                trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
+                trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+
+
+
+                Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+                if (mr != null) {
+                    trainMap.put("mr", mr.getMr());
+                }
+
+                result.add(trainMap);
+            }
+        }
+
+
+
+
+
+
         }
 
 
