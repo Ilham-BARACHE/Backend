@@ -197,13 +197,7 @@ sam.checkOccultations();
 
 
 
-                        // Récupération de l'instance de T_Passage correspondante en utilisant l'ID stocké dans l'objet Sam
-                       // T_Passage passage = passageService.findById(sam.getPassage().getId());
 
-                        // Affectation de l'instance de T_Passage à la propriété passage de l'objet Sam
-                        //sam.setPassage(passage);
-
-                        // Mise à jour de l'objet Sam dans la base de données
 
 
 

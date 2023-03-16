@@ -211,4 +211,75 @@ public class SamTrainController {
 
     }
 
+
+    @GetMapping("/dataBetweenDate")
+    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichier(
+            @RequestParam("site") String site,
+            @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
+            @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate endDate) {
+
+        Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start,end);
+        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start , end);
+        List<M_50592> m_50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start,end);
+
+
+        if (sams.isEmpty() && trains.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (M_50592 m50592 : m_50592s) {
+            for (Sam sam : sams) {
+
+                for (Train train : trains) {
+                    Map<String, Object> trainMap = new HashMap<>();
+                    trainMap.put("id", train.getId());
+                    trainMap.put("numTrain", train.getNumTrain());
+                    trainMap.put("dateFichier", train.getDateFichier());
+                    trainMap.put("heureFichier", train.getHeureFichier());
+                    trainMap.put("url",train.getStatut());
+
+                    trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                    trainMap.put("id", sam.getId());
+                    trainMap.put("NbEssieux", sam.getNbEssieux());
+                    trainMap.put("url", sam.getUrl());
+                    trainMap.put("statutSAM", sam.getStatutSAM());
+                    trainMap.put("NbOccultations", sam.getNbOccultations());
+
+
+
+                    trainMap.put("id", m50592.getId());
+                    trainMap.put("villeArrivee", m50592.getEnvironnement().getVilleArrivee());
+                    trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
+                    trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                    trainMap.put("statut50592",m50592.getStatut50592());
+                    trainMap.put("url",m50592.getUrl());
+
+
+
+                    Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+                    if (mr != null) {
+                        trainMap.put("mr", mr.getMr());
+                    }
+
+                    result.add(trainMap);
+                }
+            }
+
+
+
+
+
+
+        }
+
+
+        return ResponseEntity.ok(result);
+    }
+
+
+
 }

@@ -20,4 +20,7 @@ public interface SamRepository extends JpaRepository<Sam, Long> {
 
     List<Sam> findBySiteAndDateFichier(String site, Date dateFichier);
 
+    List<Sam> findBySiteAndDateFichierBetween(String site, Date dateFichier , Date dateF);
+
+
 }
