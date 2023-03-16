@@ -41,10 +41,20 @@ public class M_50592 {
     @Column(name = "site")
     private String site;
 
+    @Column(name = "url")
+    private String url;
 
     @Column(name = "statut50592")
     private String statut50592;
 
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public void loadSite(String fileName) {
         String[] tokens = fileName.split("_");

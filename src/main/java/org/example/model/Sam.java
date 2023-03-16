@@ -135,7 +135,7 @@ public class Sam  {
         if (NbOccultations.stream().allMatch(n -> n.equals(NbEssieux))) {
             statutSAM = "OK";
         } else {
-            statutSAM = "NOTOK";
+            statutSAM = "NOK";
         }
         return statutSAM;
 

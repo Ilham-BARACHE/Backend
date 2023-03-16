@@ -37,7 +37,7 @@ public class TrainController {
     }
 
     @GetMapping("/train")
-    public ResponseEntity<?> getAllConf() {
+    public ResponseEntity<?> getAllTrain() {
         try {
             List<EntityModel<Train>> confs = trainRepository.findAll().stream()
                     .map(trainAssembler::toModel)
@@ -56,7 +56,7 @@ public class TrainController {
 
 
     @GetMapping("/train/{id}")
-    public ResponseEntity<EntityModel<Train>> getConfById(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<EntityModel<Train>> getTrainById(@PathVariable(value = "id") Long id) {
         Train conf = trainRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver la configuration des marques habilitées par activité " + id));
         return new ResponseEntity<>(trainAssembler.toModel(conf), HttpStatus.OK);
@@ -80,6 +80,18 @@ public class TrainController {
             return new ResponseEntity<>(trainModels, HttpStatus.OK);
         }
     }
+
+    @GetMapping("/trainSites")
+    public ResponseEntity<List<String>> getTrainSites() {
+        List<Train> trains = trainRepository.findAll();
+        List<String> sites = trains.stream()
+                .map(Train::getSite)
+                .distinct()
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(sites);
+    }
+
+
 
 
 

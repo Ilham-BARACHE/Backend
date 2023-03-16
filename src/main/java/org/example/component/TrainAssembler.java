@@ -23,8 +23,11 @@ public class TrainAssembler implements RepresentationModelAssembler<Train, Entit
     public EntityModel<Train> toModel(Train entity) {
 
         return  EntityModel.of(entity,
-                WebMvcLinkBuilder.linkTo(methodOn(TrainController.class).getConfById(entity.getId())).withSelfRel(),
-                linkTo(methodOn(TrainController.class).getAllConf()).withRel("TRAIN"));
+                WebMvcLinkBuilder.linkTo(methodOn(TrainController.class).getTrainById(entity.getId())).withSelfRel(),
+                linkTo(methodOn(TrainController.class).getAllTrain()).withRel("TRAIN"));
 
     }
+
+
+
 }

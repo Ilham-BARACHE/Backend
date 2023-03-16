@@ -81,7 +81,8 @@ public class SamTrainController {
                 trainMap.put("id", train.getId());
                 trainMap.put("numTrain", train.getNumTrain());
                 trainMap.put("dateFichier", train.getDateFichier());
-                trainMap.put(("heureFichier"), train.getHeureFichier());
+                trainMap.put("heureFichier", train.getHeureFichier());
+                trainMap.put("url",train.getStatut());
 
                 trainMap.put("vitesse_moy", sam.getVitesse_moy());
                 trainMap.put("id", sam.getId());
@@ -97,6 +98,7 @@ public class SamTrainController {
                 trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
                 trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                 trainMap.put("statut50592",m50592.getStatut50592());
+                trainMap.put("url",m50592.getUrl());
 
 
 
