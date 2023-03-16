@@ -152,11 +152,11 @@ sam.checkOccultations();
                         sam.loadStartingWithSam(samFile.getName());
                         sam.loadSite(samFile.getName());
                         if (sam.getStatutSAM().equals("OK")) {
-                            sam.setUrl(null); // Définir l'URL à null
+                            sam.setUrlSam(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier
                             String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
-                            sam.setUrl(url);
+                            sam.setUrlSam(url);
                         }
 
 
@@ -269,13 +269,13 @@ sam.checkOccultations();
                                 }
 
                                 m_50592.setStatut50592("OK");
-                                m_50592.setUrl("null");
+                                m_50592.setUrl50592("null");
                                 m50592Service.save(m_50592);
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
                                 m_50592.setStatut50592("NOK");
                                 String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
-                                m_50592.setUrl(url);
+                                m_50592.setUrl50592(url);
                                 m50592Service.save(m_50592);
 
                             }
@@ -283,7 +283,7 @@ sam.checkOccultations();
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
                             m_50592.setStatut50592("NOK");
                             String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
-                            m_50592.setUrl(url);
+                            m_50592.setUrl50592(url);
                             m50592Service.save(m_50592);
                         }
 

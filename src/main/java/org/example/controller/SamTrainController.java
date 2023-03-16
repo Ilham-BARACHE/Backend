@@ -82,12 +82,12 @@ public class SamTrainController {
                 trainMap.put("numTrain", train.getNumTrain());
                 trainMap.put("dateFichier", train.getDateFichier());
                 trainMap.put("heureFichier", train.getHeureFichier());
-                trainMap.put("url",train.getStatut());
+                trainMap.put("url",train.getUrl());
 
                 trainMap.put("vitesse_moy", sam.getVitesse_moy());
                 trainMap.put("id", sam.getId());
                 trainMap.put("NbEssieux", sam.getNbEssieux());
-                trainMap.put("url", sam.getUrl());
+                trainMap.put("urlSam", sam.getUrlSam());
                 trainMap.put("statutSAM", sam.getStatutSAM());
                 trainMap.put("NbOccultations", sam.getNbOccultations());
 
@@ -98,7 +98,7 @@ public class SamTrainController {
                 trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
                 trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                 trainMap.put("statut50592",m50592.getStatut50592());
-                trainMap.put("url",m50592.getUrl());
+                trainMap.put("url50592",m50592.getUrl50592());
 
 
 
@@ -177,7 +177,7 @@ public class SamTrainController {
                     trainMap.put("vitesse_moy", sam.getVitesse_moy());
                     trainMap.put("id", sam.getId());
                     trainMap.put("NbEssieux", sam.getNbEssieux());
-                    trainMap.put("url", sam.getUrl());
+                    trainMap.put("url", sam.getUrlSam());
                     trainMap.put("statutSAM", sam.getStatutSAM());
                     trainMap.put("NbOccultations", sam.getNbOccultations());
 
@@ -245,7 +245,7 @@ public class SamTrainController {
                     trainMap.put("vitesse_moy", sam.getVitesse_moy());
                     trainMap.put("id", sam.getId());
                     trainMap.put("NbEssieux", sam.getNbEssieux());
-                    trainMap.put("url", sam.getUrl());
+                    trainMap.put("url", sam.getUrlSam());
                     trainMap.put("statutSAM", sam.getStatutSAM());
                     trainMap.put("NbOccultations", sam.getNbOccultations());
 
@@ -256,7 +256,7 @@ public class SamTrainController {
                     trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
                     trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                     trainMap.put("statut50592",m50592.getStatut50592());
-                    trainMap.put("url",m50592.getUrl());
+                    trainMap.put("url",m50592.getUrl50592());
 
 
 

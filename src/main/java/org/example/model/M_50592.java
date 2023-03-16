@@ -41,19 +41,18 @@ public class M_50592 {
     @Column(name = "site")
     private String site;
 
-    @Column(name = "url")
-    private String url;
+    @Column(name = "url50592")
+    private String url50592;
 
     @Column(name = "statut50592")
     private String statut50592;
 
-
-    public String getUrl() {
-        return url;
+    public String getUrl50592() {
+        return url50592;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrl50592(String url50592) {
+        this.url50592 = url50592;
     }
 
     public void loadSite(String fileName) {

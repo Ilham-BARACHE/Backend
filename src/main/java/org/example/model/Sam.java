@@ -53,8 +53,8 @@ public class Sam  {
     @JsonIgnore
     @Embedded
     private Enveloppes enveloppes;
-    @Column(name = "url")
-    private String url;
+    @Column(name = "urlSam")
+    private String urlSam;
 
     @Column(name = "site")
     private String site;
@@ -115,15 +115,13 @@ public class Sam  {
         this.statutSAM = statutSAM;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUrlSam() {
+        return urlSam;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrlSam(String urlSam) {
+        this.urlSam = urlSam;
     }
-
-
 
     public Sam() {
         loadFilenamesStartingWithSAM();
@@ -306,12 +304,12 @@ public class Sam  {
         this.id = id;
     }
 
-    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String url, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String urlSam, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
         this.id = id;
         NbEssieux = nbEssieux;
         NbOccultations = nbOccultations;
         this.statutSAM = statutSAM;
-        this.url = url;
+        this.urlSam = urlSam;
         this.site = site;
         this.fileName = fileName;
         this.dateFichier = dateFichier;
