@@ -18,4 +18,6 @@ public interface M_50592Repository extends JpaRepository<M_50592, Long> {
     boolean existsByfileName(String nomFichier);
 
 
+
+
 }
