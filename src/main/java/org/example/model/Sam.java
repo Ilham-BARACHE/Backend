@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"Temps_ms"})
 @Entity
 @Data
-@Table(name = "SAM005")
+@Table(name = "T_SAM005")
 public class Sam  {
 
     @Id
@@ -48,27 +48,27 @@ public class Sam  {
     @ElementCollection
     @JsonProperty("NbOccultations")
     private List<Integer> NbOccultations;
-    @Column(name = "statutSAM")
+    @Column(name = "statut_Sam")
     private String statutSAM;
     @JsonIgnore
     @Embedded
     private Enveloppes enveloppes;
-    @Column(name = "urlSam")
+    @Column(name = "url_Sam")
     private String urlSam;
 
     @Column(name = "site")
     private String site;
-    @Column(columnDefinition = "Varchar")
+    @Column(columnDefinition = "Varchar",name = "file_Name")
     private String fileName;
 
 
 
 
-    @Column(name = "date_fichier")
+    @Column(name = "date_Fichier")
     @Temporal(TemporalType.DATE)
     private java.util.Date dateFichier;
 
-    @Column(name = "heure_fichier")
+    @Column(name = "heure_Fichier")
     @Temporal(TemporalType.TIME)
     private java.util.Date heureFichier;
 

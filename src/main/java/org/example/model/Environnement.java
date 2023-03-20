@@ -38,7 +38,7 @@ public class Environnement {
 
 
 
-    @Column(columnDefinition = "VARCHAR")
+
     @JsonProperty("Sens")
     private String Sens;
 
@@ -76,10 +76,10 @@ public class Environnement {
     private String CheminCorrectionCapteur;
 
 
-    @Column(name = "ville_depart")
+    @Column(name = "ville_Depart")
     private String villeDepart;
 
-    @Column(name = "ville_arrivee")
+    @Column(name = "ville_Arrivee")
     private String villeArrivee;
 
     public String getVilleDepart() {

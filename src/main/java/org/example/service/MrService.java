@@ -11,6 +11,13 @@ import java.util.List;
 @Service
 public class MrService {
 
+    public List<Mr> findAll() {
+        return mrRepository.findAll();
+    }
+
+    public Mr findById(Long id) {
+        return mrRepository.findById(id).orElse(null);
+    }
 
     private final MrRepository mrRepository ;
 

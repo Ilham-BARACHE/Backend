@@ -44,7 +44,9 @@ public class TrainService {
         return trainRepository.findById(id).orElse(null);
     }
 
-
+    public boolean existsByfileName(String nomFichier) {
+        return trainRepository.existsByfileName(nomFichier);
+    }
 
 
     public void loadTrains() {

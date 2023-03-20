@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Data
-@Table(name = "TRAIN")
+@Table(name = "T_TRAIN")
 public class Train {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,19 +31,19 @@ public class Train {
     private String Statut;
 
     @JsonProperty("Num_train")
-    @Column(columnDefinition = "Varchar")
+    @Column(columnDefinition = "Varchar",name = "num_train")
     private  String numTrain;
 
     @Column(name = "site")
     private String site;
-    @Column(columnDefinition = "Varchar")
+    @Column(columnDefinition = "Varchar",name = "file_Name")
     private String fileName;
 
-    @Column(name = "date_fichier")
+    @Column(name = "date_Fichier")
     @Temporal(TemporalType.DATE)
     private java.util.Date dateFichier;
 
-    @Column(name = "heure_fichier")
+    @Column(name = "heure_Fichier")
     @Temporal(TemporalType.TIME)
     private java.util.Date heureFichier;
 

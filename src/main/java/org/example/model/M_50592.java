@@ -17,25 +17,25 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"BE_R1","BE_R2","BL_R1","BL_R2","FFT_R1","FFT_R2","ParametresBL","ParametresBE"})
 @Entity
 @Data
-@Table(name = "M50592")
+@Table(name = "T_50592")
 public class M_50592 {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     private Long id;
 
-    @Column(columnDefinition = "Varchar")
+    @Column(columnDefinition = "Varchar",name = "file_Name")
     private String fileName;
-    @Column(name = "date_fichier")
+    @Column(name = "date_Fichier")
     @Temporal(TemporalType.DATE)
     private java.util.Date dateFichier;
 
-    @Column(name = "heure_fichier")
+    @Column(name = "heure_Fichier")
     @Temporal(TemporalType.TIME)
     private java.util.Date heureFichier;
-    @Column(name = "ville_depart", insertable = false, updatable = false)
+    @Column(name = "ville_Depart", insertable = false, updatable = false)
     private String villeDepart;
 
-    @Column(name = "ville_arrivee", insertable = false, updatable = false)
+    @Column(name = "ville_Arrivee", insertable = false, updatable = false)
     private String villeArrivee;
 
     @Column(name = "site")
@@ -46,6 +46,10 @@ public class M_50592 {
 
     @Column(name = "statut50592")
     private String statut50592;
+
+    @JsonProperty("Environnement")
+    @Embedded
+    private Environnement environnement;
 
     public String getUrl50592() {
         return url50592;
@@ -215,9 +219,7 @@ public class M_50592 {
 
 
 
-    @JsonProperty("Environnement")
-    @Embedded
-    private Environnement environnement;
+
 
 
 

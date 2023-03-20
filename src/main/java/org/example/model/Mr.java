@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Entity
 @Data
-@Table(name = "MR")
+@Table(name = "T_TYPEMR")
 
 public class Mr {
 
@@ -17,9 +17,18 @@ public class Mr {
     private String mr;
 
 
-    @Column(name = "numTrain",columnDefinition = "Varchar")
+    @Column(name = "num_train",columnDefinition = "Varchar")
     private  String  numTrain;
 
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getMr() {
         return mr;

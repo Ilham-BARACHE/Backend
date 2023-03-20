@@ -24,4 +24,6 @@ public interface TrainRepository extends JpaRepository<Train, Long> {
 
     List<Train> findBySiteAndDateFichierBetween(String site, Date dateFichier , Date dateF);
 
+    boolean existsByfileName(String nomFichier);
+
 }

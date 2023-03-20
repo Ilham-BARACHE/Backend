@@ -10,4 +10,8 @@ import java.util.List;
 public interface MrRepository extends JpaRepository<Mr,Long> {
 
     Mr findByNumTrain(String numTrain);
+
+    List<Mr> findByNumTrainIn(List<String> numTrains);
+
+
 }

@@ -26,7 +26,9 @@ public class M_50592Service {
     public M_50592 save(M_50592 m50592) {
         return m50592Repository.save(m50592);
     }
-
+    public boolean existsByfileName(String nomFichier) {
+        return m50592Repository.existsByfileName(nomFichier);
+    }
 
     public void save(List<M_50592> m_50592s) {
 

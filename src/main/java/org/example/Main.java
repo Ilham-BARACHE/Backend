@@ -31,10 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Time;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -52,9 +49,42 @@ public class Main {
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
             File inputFolder = new File("C:\\Users\\Ilham Barache\\Documents\\input");
             File outputFolder = new File("C:\\Users\\Ilham Barache\\Documents\\output");
+
+
+
+            File[] files = inputFolder.listFiles();
+            for (File file : files) {
+                if (file.getName().endsWith(".json") || file.getName().endsWith(".xlsx")) {
+                    try {
+                        Thread.sleep(1000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
+
+                        File targetFile = new File(outputFolder, file.getName());
+                        if (targetFile.exists()) {
+                            System.err.println("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
+                        } else {
+                            try {
+                                Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                System.out.println("Le fichier a été déplacé avec succès !");
+                            } catch (IOException e) {
+                                System.err.println("Erreur lors du déplacement du fichier : " + e.getMessage());
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+// Liste pour stocker les noms de fichiers traités
+            List<String> processedFiles = new ArrayList<>();
             // Lire tous les fichiers commençant par 'TRAIN'
-            File[] trainFiles = inputFolder.listFiles((dir, name) -> name.startsWith("TRAIN"));
+            File[] trainFiles = outputFolder.listFiles((dir, name) -> name.startsWith("TRAIN") & name.endsWith(".json"));
             for (File trainFile : trainFiles) {
+                String fileName = trainFile.getName();
+                if (processedFiles.contains(fileName)|| trainService.existsByfileName(trainFile.getName()) ){
+                    // Le fichier a déjà été traité, passer au suivant
+                    continue;
+                }
                 TypeReference<List<Train>> trainTypeRef = new TypeReference<List<Train>>() {
                 };
                 try (InputStream trainStream = new FileInputStream(trainFile)) {
@@ -68,6 +98,7 @@ public class Main {
                         train.setUrl(url);
                         trainService.save(train);
                     }
+                    processedFiles.add(fileName);
                 } catch (IOException e) {
                     System.err.println("Erreur lors de la lecture du fichier " + trainFile.getName() + " pour la table T_Passage : " + e.getMessage());
                 }
@@ -75,13 +106,21 @@ public class Main {
 
 
 
+// Liste pour stocker les numéros de train traités
+            List<String> processedTrainNumbers = new ArrayList<>();
+
+// Lire les données de la base de données pour la comparaison avec les nouvelles données
+            List<Mr> allMrData = mrService.findAll();
+            for (Mr mr : allMrData) {
+                processedTrainNumbers.add(mr.getNumTrain());
+            }
+
 // Lire les fichiers Excel et mettre à jour les données des trains correspondants
-            File[] excelFiles = inputFolder.listFiles((dir, name) -> name.endsWith(".xlsx"));
+            File[] excelFiles = outputFolder.listFiles((dir, name) -> name.endsWith(".xlsx"));
             for (File excelFile : excelFiles) {
                 try (FileInputStream excelStream = new FileInputStream(excelFile)) {
                     Workbook workbook = new XSSFWorkbook(excelStream);
                     Sheet sheet = workbook.getSheetAt(0);
-                    HashMap<String, Boolean> trainNums = new HashMap<>(); // HashMap pour stocker les numéros de train uniques
                     for (Row row : sheet) {
                         if (row.getRowNum() > 0) {
                             Cell numTrainCell = row.getCell(0);
@@ -91,32 +130,21 @@ public class Main {
                             } else if (numTrainCell.getCellType() == CellType.NUMERIC) {
                                 numTrain = String.valueOf((int) numTrainCell.getNumericCellValue());
                             }
-                            if (!trainNums.containsKey(numTrain)) { // Vérifier si le numéro de train a déjà été traité
-                                trainNums.put(numTrain, true); // Ajouter le numéro de train à la HashMap
-                                Mr mr = new Mr();
-                                mr.setMr(row.getCell(1).getStringCellValue());
-                                mr.setNumTrain(numTrain);
-                                mrService.save(mr);
+                            String mr = row.getCell(1).getStringCellValue();
+                            if (!processedTrainNumbers.contains(numTrain)) {
+                                // Vérifier si le numéro de train a déjà été traité
+                                // Si le numéro de train n'a pas encore été traité, ajouter une nouvelle entrée dans la base de données
+                                Mr newMr = new Mr();
+                                newMr.setMr(mr);
+                                newMr.setNumTrain(numTrain);
+                                mrService.save(newMr);
+                                // Ajouter le numéro de train traité à la liste des numéros de train traités
+                                processedTrainNumbers.add(numTrain);
                             }
                         }
                     }
-
-                    // Déplacer le fichier Excel traité dans le dossier output
-                    File targetFile = new File(outputFolder, excelFile.getName());
-                    System.out.println("Fichier source: " + excelFile.getAbsolutePath());
-                    System.out.println("Fichier cible: " + targetFile.getAbsolutePath());
-                    try {
-                        Files.move(excelFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        System.out.println("Le fichier a été déplacé avec succès !");
-                    } catch (IOException e) {
-                        System.err.println("Erreur lors du déplacement du fichier : " + e.getMessage());
-                    }
-
-
-
-
                 } catch (IOException e) {
-                    System.err.println("Erreur lors de la lecture du fichier " + excelFile.getName() + " : " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
@@ -127,28 +155,26 @@ public class Main {
 
 
 
-
-
-
-
-
-            // Lire tous les fichiers commençant par 'Sam'
-            File[] samFiles = inputFolder.listFiles((dir, name) -> name.startsWith("SAM"));
+// Liste pour stocker les noms de fichiers traités
+            List<String> processedFilessam = new ArrayList<>();
+           // Lire tous les fichiers commençant par 'Sam'
+            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM") & name.endsWith(".json"));
             for (File samFile : samFiles) {
 
-                TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
+                if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
+                    // Le fichier a déjà été traité, passer au suivant
+                    continue;
+                }
 
-                 try (InputStream samStream = new FileInputStream(samFile)) {
+                System.out.println(processedFilessam);
+                TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
+                try (InputStream samStream = new FileInputStream(samFile)) {
                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
-                    samService.save(sams);
 
                     for (Sam sam : sams) {
+                        sam.checkOccultations();
 
-sam.checkOccultations();
-
-
-
-                         sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         sam.loadStartingWithSam(samFile.getName());
                         sam.loadSite(samFile.getName());
                         if (sam.getStatutSAM().equals("OK")) {
@@ -160,39 +186,43 @@ sam.checkOccultations();
                         }
 
 
-                          samService.save(sam);
+                        samService.save(sam);
 
-                            // Vérifier si le nom du fichier correspond au format JSON attendu
-                            if (samFile.getName().endsWith(".json")) {
-                                // Extraire le nom du fichier JSON
-                                String jsonFileName = samFile.getName().substring(0, samFile.getName().lastIndexOf('.'));
-                                // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
-                                File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
-                                        && (name.endsWith(".png") || name.endsWith(".bmp")));
-                                if (imageFiles.length > 0) {
-                                    // Créer le dossier correspondant au nom du fichier JSON
-                                    File outputFolderFile = new File(outputFolder, jsonFileName);
-                                    if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
-                                        System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
-                                    } else {
-                                        System.out.println("Le dossier " + jsonFileName + " a été créé.");
-                                    }
+                        processedFilessam.add(samFile.getName());
 
-                                    // Déplacer les fichiers d'image correspondants dans le dossier créé
-                                    for (File imageFile : imageFiles) {
-                                        File targetFile = new File(outputFolderFile, imageFile.getName());
-                                        if (!imageFile.renameTo(targetFile)) {
-                                            System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
-                                        } else {
-                                            System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
-                                        }
-                                    }
+
+
+                        // Vérifier si le nom du fichier correspond au format JSON attendu
+                        if (samFile.getName().endsWith(".json")) {
+                            // Extraire le nom du fichier JSON
+                            String jsonFileName = samFile.getName().substring(0, samFile.getName().lastIndexOf('.'));
+                            // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
+                            File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
+                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
+                            if (imageFiles.length > 0) {
+                                // Créer le dossier correspondant au nom du fichier JSON
+                                File outputFolderFile = new File(outputFolder, jsonFileName);
+                                if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
+                                    System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
                                 } else {
-                                    System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
+                                    System.out.println("Le dossier " + jsonFileName + " a été créé.");
+                                }
+
+                                // Déplacer les fichiers d'image correspondants dans le dossier créé
+                                for (File imageFile : imageFiles) {
+                                    File targetFile = new File(outputFolderFile, imageFile.getName());
+                                    if (!imageFile.renameTo(targetFile)) {
+                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
+                                    } else {
+                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
+                                    }
                                 }
                             } else {
-                                System.err.println("Le fichier " + samFile.getName() + " ne correspond pas au format JSON attendu.");
+                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
                             }
+                        } else {
+                            System.err.println("Le fichier " + samFile.getName() + " ne correspond pas au format JSON attendu.");
+                        }
 
 
 
@@ -205,12 +235,6 @@ sam.checkOccultations();
 
 
 
-
-                    // Déplacer le fichier traité dans le dossier 'output'
-                    //Path sourceFilePath = samFile.toPath();
-                    //  Path targetFilePath = outputFolder.toPath().resolve(samFile.getName());
-                    //  Files.move(sourceFilePath, targetFilePath);
-                    // System.out.println("Le fichier " + samFile.getName() + " a été déplacé dans le dossier 'output'.");
                 } catch (IOException e) {
                     System.err.println("Erreur lors de la lecture du fichier " + samFile.getName() + " : " + e.getMessage());
                 }
@@ -218,22 +242,41 @@ sam.checkOccultations();
 
 
 
+// Liste pour stocker les noms de fichiers traités
+            List<String> processedFiles50592 = new ArrayList<>();
             // Lire tous les fichiers commençant par '50592'
-            File[] m50592Files = inputFolder.listFiles((dir, name) -> name.startsWith("50592"));
+            File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
             for (File m50592File : m50592Files) {
-                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {
-                };
-                try (InputStream m50592Stream = new FileInputStream(m50592File)) {
+                String fileName = m50592File.getName();
+                if (processedFiles50592.contains(fileName) ||   m50592Service.existsByfileName(m50592File.getName())) {
+                    // Le fichier a déjà été traité, passer au suivant
+                    continue;
+                }
+                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {  };
+
+                try {
+                    Thread.sleep(5000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // Déplacer le fichier SAM dans le dossier output
+                File outputFile = new File(outputFolder, m50592File.getName());
+                if (!m50592File.renameTo(outputFile)) {
+                    System.err.println("Erreur lors du déplacement du fichier " + m50592File.getName() + " dans le dossier output.");
+                    continue; // Passer au fichier suivant en cas d'erreur
+                }
+
+
+                try (InputStream m50592Stream = new FileInputStream(outputFile)) {
                     List<M_50592> m_50592s = mapper.readValue(m50592Stream, m50592TypeRef);
-                    m50592Service.save(m_50592s);
-                    System.out.println("Le fichier " + m50592File.getName() + " a été traité avec succès !");
 
 
                     for (M_50592 m_50592 : m_50592s) {
 
-                        m_50592.setFileName(m50592File.getName()); // Définir le nom de fichier dans l'objet M_50592
-                        m_50592.loadStartingWith50592(m50592File.getName());
-                        m_50592.loadSite(m50592File.getName());
+                        m_50592.setFileName(outputFile.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        m_50592.loadStartingWith50592(outputFile.getName());
+                        m_50592.loadSite(outputFile.getName());
                         Environnement env = m_50592.getEnvironnement();
                         String[] villes = env.extraireVilles(env.getSens());
                         if (villes != null) {
@@ -290,15 +333,10 @@ sam.checkOccultations();
 
                     }
 
+processedFiles50592.add(fileName);
 
 
-
-                    // Déplacer le fichier traité dans le dossier 'output'
-                    // Path sourceFilePath = myClassFile.toPath();
-                    //Path targetFilePath = outputFolder.toPath().resolve(myClassFile.getName());
-                    // Files.move(sourceFilePath, targetFilePath);
-                    //System.out.println("Le fichier " + myClassFile.getName() + " a été déplacé dans le dossier 'output'.");
-                } catch (IOException e) {
+                        } catch (IOException e) {
                     System.err.println("Erreur lors de la lecture du fichier " + m50592File.getName() + " : " + e.getMessage());
                 }
             }
