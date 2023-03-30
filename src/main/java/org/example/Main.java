@@ -197,21 +197,21 @@ public class Main {
 
 
 
-                // Charger les enveloppes à partir du fichier JSON
-                EnvloppeData enveloppeData = new EnvloppeData();
-                enveloppeData.loadFromJson(samFile);
-
-
-// Appel de la méthode saveSampledToJson
-                File outputFile = new File(samFile.getParent(), samFile.getName().replace(".json", "sampled.json"));
-                double step = 0.1; // step peut être changé selon vos besoins
-
-                try {
-                    enveloppeData.saveSampledToJson(outputFile, step);
-                    System.out.println(step);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                // Charger les enveloppes à partir du fichier JSON
+//                EnvloppeData enveloppeData = new EnvloppeData();
+//                enveloppeData.loadFromJson(samFile);
+//
+//
+//// Appel de la méthode saveSampledToJson
+//                File outputFile = new File(samFile.getParent(), samFile.getName().replace(".json", "sampled.json"));
+//                double step = 6.0; // step peut être changé selon vos besoins
+//
+//                try {
+//                    enveloppeData.saveSampledToJson(outputFile, step);
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
 //                // Récupérer les données à visualiser
 //                List<Double> xData = enveloppeData.getX();

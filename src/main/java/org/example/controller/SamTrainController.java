@@ -109,17 +109,13 @@ public class SamTrainController {
     @GetMapping("/data")
     public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichier(
             @RequestParam("site") String site,
-            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) throws IOException {
+            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-
-
-
         List<Sam> sams = samRepository.findBySiteAndDateFichier(site, dateFichier);
         List<Train> trains = trainRepository.findBySiteAndDateFichier(site, dateFichier);
-        List<M_50592> m_50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
-
+        List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
         List<JsonNode> tempsMsNodesList = getTempsMs(site,date);
 
         List<Map<String, Object>> result = new ArrayList<>();
@@ -128,39 +124,55 @@ public class SamTrainController {
             trainMap.put("numTrain", train.getNumTrain());
             trainMap.put("dateFichier", train.getDateFichier());
             trainMap.put("heureFichier", train.getHeureFichier());
-            trainMap.put("url",train.getUrl());
+            trainMap.put("url", train.getUrl());
 
+            boolean foundSam = false;
+            boolean found50592 = false;
 
+            for (Sam sam : sams) {
+                if (train.getHeureFichier().equals(sam.getHeureFichier())) {
+                    trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                    trainMap.put("NbEssieux", sam.getNbEssieux());
+                    trainMap.put("urlSam", sam.getUrlSam());
+                    trainMap.put("statutSAM", sam.getStatutSAM());
+                    trainMap.put("NbOccultations", sam.getNbOccultations());
+//                    trainMap.put("tempsMs", tempsMsNodesList);
+                    foundSam = true;
+                    break;
+                }
+            }
 
-            if (!sams.isEmpty()) {
-                Sam sam = sams.get(0);
-                trainMap.put("vitesse_moy", sam.getVitesse_moy());
-                trainMap.put("NbEssieux", sam.getNbEssieux());
-                trainMap.put("urlSam", sam.getUrlSam());
-                trainMap.put("statutSAM", sam.getStatutSAM());
-                trainMap.put("NbOccultations", sam.getNbOccultations());
-                trainMap.put("tempsMs", tempsMsNodesList);
-            } else {
+            for (M_50592 m50592 : m50592s) {
+                if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
+                    trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                    trainMap.put("statut50592", m50592.getStatut50592());
+                    trainMap.put("url50592", m50592.getUrl50592());
+//                    trainMap.put("BE_R1",m50592.getBE_R1());
+//                    trainMap.put("BE_R2",m50592.getBeR2());
+//                    trainMap.put("BL_R1",m50592.getBlR1());
+//                    trainMap.put("BL_R2",m50592.getBlR2());
+                    found50592 = true;
+                    break;
+                }
+            }
+
+            if (!foundSam) {
                 trainMap.put("vitesse_moy", null);
                 trainMap.put("NbEssieux", null);
                 trainMap.put("urlSam", null);
                 trainMap.put("statutSAM", null);
                 trainMap.put("NbOccultations", null);
+                trainMap.put("tempsMs", null);
             }
 
-            if (!m_50592s.isEmpty()) {
-                M_50592 m50592 = m_50592s.get(0);
-                trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                trainMap.put("statut50592", m50592.getStatut50592());
-                trainMap.put("url50592", m50592.getUrl50592());
-                trainMap.put("BE_R1",m50592.getBE_R1());
-                trainMap.put("BE_R2",m50592.getBeR2());
-                trainMap.put("BL_R1",m50592.getBlR1());
-                trainMap.put("BL_R2",m50592.getBlR2());
-            } else {
+            if (!found50592) {
                 trainMap.put("meteo", null);
-                trainMap.put("statut50592", null);
+                trainMap.put("statut50592",null);
                 trainMap.put("url50592", null);
+                trainMap.put("BE_R1",null);
+                trainMap.put("BE_R2",null);
+                trainMap.put("BL_R1",null);
+                trainMap.put("BL_R2",null);
             }
 
             Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
@@ -228,23 +240,19 @@ public class SamTrainController {
                     Map<String, Object> trainMap = new HashMap<>();
                     trainMap.put("id", train.getId());
                     trainMap.put("numTrain", train.getNumTrain());
-                    trainMap.put("dateFichier", train.getDateFichier());
-                    trainMap.put(("heureFichier"), train.getHeureFichier());
-
-                    trainMap.put("vitesse_moy", sam.getVitesse_moy());
-                    trainMap.put("id", sam.getId());
-                    trainMap.put("NbEssieux", sam.getNbEssieux());
-                    trainMap.put("url", sam.getUrlSam());
-                    trainMap.put("statutSAM", sam.getStatutSAM());
-                    trainMap.put("NbOccultations", sam.getNbOccultations());
 
 
+                    if (sam != null) {
+                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                    } else {
+                        trainMap.put("vitesse_moy", null);
+                    }
 
-                    trainMap.put("id", m50592.getId());
-                    trainMap.put("villeArrivee", m50592.getEnvironnement().getVilleArrivee());
-                    trainMap.put("villeDepart", m50592.getEnvironnement().getVilleDepart());
-                    trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                    trainMap.put("statut50592",m50592.getStatut50592());
+                    if (m50592 != null) {
+                        trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                    } else {
+                        trainMap.put("meteo", null);
+                    }
 
                     Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
                     if (mr != null) {

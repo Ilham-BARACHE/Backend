@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"FFT_R1","FFT_R2","ParametresBE"})
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"FFT_R1","FFT_R2","ParametresBE","ParametresBL"})
 @Entity
 @Data
 @Table(name = "T_50592")
@@ -27,20 +27,14 @@ public class M_50592 {
 
 
 
-    @JsonProperty("ParametresBL")
+    @JsonIgnore
     @Embedded
-    private ParametresBL parametres;
+    private ParametresBL ParametresBL;
 
 
 
 
-    public ParametresBL getParametres() {
-        return parametres;
-    }
 
-    public void setParametres(ParametresBL parametres) {
-        this.parametres = parametres;
-    }
 
 
 
@@ -210,9 +204,9 @@ public class M_50592 {
 
     }
 
-    public M_50592(Long id, ParametresBL parametres, String fileName, Date dateFichier, Date heureFichier, String site, String url50592, String statut50592, Environnement environnement, org.example.model.BE_R1 BE_R1, BE_R2 beR2, BL_R1 blR1, BL_R2 blR2) {
+    public M_50592(Long id, String fileName, Date dateFichier, Date heureFichier, String site, String url50592, String statut50592, Environnement environnement, org.example.model.BE_R1 BE_R1, BE_R2 beR2, BL_R1 blR1, BL_R2 blR2) {
         this.id = id;
-        this.parametres = parametres;
+
         this.fileName = fileName;
         this.dateFichier = dateFichier;
         this.heureFichier = heureFichier;
