@@ -81,7 +81,7 @@ public class TrainController {
         }
     }
 
-    @GetMapping("/trainSites")
+    @GetMapping(path = "/trainSites", produces = "application/json")
     public ResponseEntity<List<String>> getTrainSites() {
         List<Train> trains = trainRepository.findAll();
         List<String> sites = trains.stream()

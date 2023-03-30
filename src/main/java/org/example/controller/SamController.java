@@ -1,5 +1,8 @@
 package org.example.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.example.component.SamAssembler;
 import org.example.component.Utils;
@@ -15,16 +18,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/")
+
 
 
 public class SamController {
@@ -62,6 +69,27 @@ public class SamController {
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver la configuration des marques habilitées par activité " + id));
         return new ResponseEntity<>(samAssembler.toModel(conf), HttpStatus.OK);
     }
+
+
+    // Endpoint pour envoyer les temps_ms à une API externe
+//    @PostMapping("/envoyer_temps_ms")
+//    public ResponseEntity<String> envoyerTempsMs(@RequestBody List<Double> tempsMsList) {
+//        // Récupérer l'URL de l'API externe
+//        String apiUrl = "https://exemple.com/api";
+//
+//        // Envoyer les temps_ms à l'API externe
+//        try {
+//            HttpResponse response = Request.Post(apiUrl)
+//                    .bodyString(new Gson().toJson(tempsMsList), ContentType.APPLICATION_JSON)
+//                    .execute().returnResponse();
+//            return ResponseEntity.ok(response.toString());
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+//        }
+//    }
+//}
+
+
 
 
 //    @GetMapping("/SAM/Date")

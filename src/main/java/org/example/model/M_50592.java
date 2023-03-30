@@ -8,13 +8,15 @@ import org.example.repository.M_50592Repository;
 
 import javax.persistence.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"BE_R1","BE_R2","BL_R1","BL_R2","FFT_R1","FFT_R2","ParametresBL","ParametresBE"})
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"FFT_R1","FFT_R2","ParametresBE"})
 @Entity
 @Data
 @Table(name = "T_50592")
@@ -22,6 +24,25 @@ public class M_50592 {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     private Long id;
+
+
+
+    @JsonProperty("ParametresBL")
+    @Embedded
+    private ParametresBL parametres;
+
+
+
+
+    public ParametresBL getParametres() {
+        return parametres;
+    }
+
+    public void setParametres(ParametresBL parametres) {
+        this.parametres = parametres;
+    }
+
+
 
     @Column(columnDefinition = "Varchar",name = "file_Name")
     private String fileName;
@@ -50,6 +71,55 @@ public class M_50592 {
     @JsonProperty("Environnement")
     @Embedded
     private Environnement environnement;
+
+
+    @JsonProperty("BE_R1")
+    @Embedded
+    private BE_R1 BE_R1 ;
+
+    @JsonProperty("BE_R2")
+    @Embedded
+    private BE_R2 beR2;
+
+    @JsonProperty("BL_R1")
+    @Embedded
+    private BL_R1 blR1;
+
+    @JsonProperty("BL_R2")
+    @Embedded
+    private BL_R2 blR2;
+
+    public BE_R2 getBeR2() {
+        return beR2;
+    }
+
+    public void setBeR2(BE_R2 beR2) {
+        this.beR2 = beR2;
+    }
+
+    public BL_R1 getBlR1() {
+        return blR1;
+    }
+
+    public void setBlR1(BL_R1 blR1) {
+        this.blR1 = blR1;
+    }
+
+    public BL_R2 getBlR2() {
+        return blR2;
+    }
+
+    public void setBlR2(BL_R2 blR2) {
+        this.blR2 = blR2;
+    }
+
+    public org.example.model.BE_R1 getBE_R1() {
+        return BE_R1;
+    }
+
+    public void setBE_R1(org.example.model.BE_R1 BE_R1) {
+        this.BE_R1 = BE_R1;
+    }
 
     public String getUrl50592() {
         return url50592;
@@ -140,16 +210,34 @@ public class M_50592 {
 
     }
 
-    public M_50592(Long id, String fileName, Date dateFichier, Date heureFichier) {
+    public M_50592(Long id, ParametresBL parametres, String fileName, Date dateFichier, Date heureFichier, String site, String url50592, String statut50592, Environnement environnement, org.example.model.BE_R1 BE_R1, BE_R2 beR2, BL_R1 blR1, BL_R2 blR2) {
         this.id = id;
+        this.parametres = parametres;
         this.fileName = fileName;
         this.dateFichier = dateFichier;
         this.heureFichier = heureFichier;
+        this.site = site;
+        this.url50592 = url50592;
+        this.statut50592 = statut50592;
+        this.environnement = environnement;
+        this.BE_R1 = BE_R1;
+        this.beR2 = beR2;
+        this.blR1 = blR1;
+        this.blR2 = blR2;
     }
 
     public void loadFilenamesStartingWith50592() {
 
-        String path = "C:\\Users\\Ilham Barache\\Documents\\input";
+        Properties prop = new Properties();
+        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+        try {
+            prop.load(input);
+        } catch (IOException e) {
+            // Traitement de l'exception
+            e.printStackTrace();
+        }
+
+        String path = prop.getProperty("input.folder.path");
         File directory = new File(path);
         List<File> files = List.of(directory.listFiles())
                 .stream()
@@ -223,21 +311,8 @@ public class M_50592 {
 
 
 
-    @Transient
-    @Embedded
-    private BE_R1 be ;
 
-    @Transient
-    @Embedded
-    private BE_R2 beR22;
 
-    @JsonIgnore
-    @Embedded
-    private BL_R1 blR1;
-
-    @Transient
-    @Embedded
-    private BL_R2 blR2;
 
     @Transient
     @Embedded
@@ -247,13 +322,9 @@ public class M_50592 {
     @Embedded
     private FFT_R2 fftR2;
 
-    @Transient
-    @Embedded
-    private ParametresBL parametresBL;
 
-    @Transient
-    @Embedded
-    private ParametresBE parametresBE;
+
+
 
 
     public Environnement getEnvironnement() {

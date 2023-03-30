@@ -5,13 +5,12 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -137,7 +136,17 @@ public class Train {
 
     public void loadFilenamesStartingWithTRAIN() {
 
-        String path = "C:\\Users\\Ilham Barache\\Documents\\input";
+        Properties prop = new Properties();
+        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+        try {
+            prop.load(input);
+        } catch (IOException e) {
+            // Traitement de l'exception
+            e.printStackTrace();
+        }
+
+        String path = prop.getProperty("input.folder.path");
+
         File directory = new File(path);
         List<File> files = List.of(directory.listFiles())
                 .stream()

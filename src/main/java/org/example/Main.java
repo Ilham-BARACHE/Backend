@@ -2,36 +2,61 @@ package org.example;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.minidev.json.JSONArray;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.model.*;
-
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import org.example.service.M_50592Service;
 
 import org.example.service.MrService;
 import org.example.service.SamService;
 import org.example.service.TrainService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Time;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -45,11 +70,19 @@ public class Main {
     @Bean
     CommandLineRunner runner(SamService samService, M_50592Service m50592Service , TrainService trainService, MrService mrService) {
         return args -> {
+
+            Properties prop = new Properties();
+            InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+            prop.load(input);
+
+            String inputFolderPath = prop.getProperty("input.folder.path");
+            String outputFolderPath = prop.getProperty("output.folder.path");
+
+
+            File inputFolder = new File(inputFolderPath);
+            File outputFolder = new File(outputFolderPath);
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-            File inputFolder = new File("C:\\Users\\Ilham Barache\\Documents\\input");
-            File outputFolder = new File("C:\\Users\\Ilham Barache\\Documents\\output");
-
 
 
             File[] files = inputFolder.listFiles();
@@ -81,7 +114,7 @@ public class Main {
             File[] trainFiles = outputFolder.listFiles((dir, name) -> name.startsWith("TRAIN") & name.endsWith(".json"));
             for (File trainFile : trainFiles) {
                 String fileName = trainFile.getName();
-                if (processedFiles.contains(fileName)|| trainService.existsByfileName(trainFile.getName()) ){
+                if (processedFiles.contains(fileName) || trainService.existsByfileName(trainFile.getName())) {
                     // Le fichier a déjà été traité, passer au suivant
                     continue;
                 }
@@ -103,7 +136,6 @@ public class Main {
                     System.err.println("Erreur lors de la lecture du fichier " + trainFile.getName() + " pour la table T_Passage : " + e.getMessage());
                 }
             }
-
 
 
 // Liste pour stocker les numéros de train traités
@@ -149,29 +181,88 @@ public class Main {
             }
 
 
-
-
-
-
-
-
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFilessam = new ArrayList<>();
-           // Lire tous les fichiers commençant par 'Sam'
-            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM") & name.endsWith(".json"));
+
+            // Lire tous les fichiers commençant par 'Sam'
+            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM") && name.endsWith(".json"));
             for (File samFile : samFiles) {
+
+
 
                 if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
                     // Le fichier a déjà été traité, passer au suivant
                     continue;
                 }
 
-                System.out.println(processedFilessam);
+
+
+                // Charger les enveloppes à partir du fichier JSON
+                EnvloppeData enveloppeData = new EnvloppeData();
+                enveloppeData.loadFromJson(samFile);
+
+
+// Appel de la méthode saveSampledToJson
+                File outputFile = new File(samFile.getParent(), samFile.getName().replace(".json", "sampled.json"));
+                double step = 0.1; // step peut être changé selon vos besoins
+
+                try {
+                    enveloppeData.saveSampledToJson(outputFile, step);
+                    System.out.println(step);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+//                // Récupérer les données à visualiser
+//                List<Double> xData = enveloppeData.getX();
+//                List<Double> yData = enveloppeData.getY();
+//
+//                // Créer un objet XYSeriesCollection pour stocker les données
+//                XYSeriesCollection dataset = new XYSeriesCollection();
+//                XYSeries series = new XYSeries("Enveloppe");
+//                for (int i = 0; i < xData.size(); i++) {
+//                    series.add(xData.get(i), yData.get(i));
+//                }
+//                dataset.addSeries(series);
+//
+//                // Créer le graphe avec JFreeChart
+//                JFreeChart chart = ChartFactory.createXYLineChart(
+//                        "Enveloppe Data", // titre
+//                        "X", // axe X
+//                        "Y", // axe Y
+//                        dataset, // données
+//                        PlotOrientation.VERTICAL, // orientation du graphe
+//                        true, // légende
+//                        true, // tooltips
+//                        false // urls
+//                );
+//                // Personnaliser l'apparence du graphe
+//                XYPlot plot = chart.getXYPlot();
+//                plot.setBackgroundPaint(java.awt.Color.WHITE);
+//                plot.setRangeGridlinePaint(java.awt.Color.RED);
+//                plot.setDomainGridlinePaint(java.awt.Color.black);
+//                plot.getRenderer().setSeriesPaint(0, Color.RED);
+//                plot.getRenderer().setSeriesStroke(0, new BasicStroke(1.5f));
+//// Créer un panneau de graphique
+//                ChartPanel chartPanel = new ChartPanel(chart);
+//
+//// Ajouter le panneau de graphique à un conteneur Swing (par exemple, un JPanel)
+//                JPanel panel = new JPanel();
+//                panel.add(chartPanel);
+//
+//// Afficher le conteneur Swing
+//                JFrame frame = new JFrame("Enveloppe Data Graph");
+//                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//                frame.getContentPane().add(panel);
+//                frame.pack();
+//                frame.setVisible(true);
+
                 TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
                 try (InputStream samStream = new FileInputStream(samFile)) {
                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
 
                     for (Sam sam : sams) {
+
                         sam.checkOccultations();
 
                         sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
@@ -181,8 +272,8 @@ public class Main {
                             sam.setUrlSam(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier
-                            String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
-                            sam.setUrlSam(url);
+                            String urlsam = "C:\\Users\\Ilham Barache\\Documents\\output\\" + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
+                            sam.setUrlSam(urlsam);
                         }
 
 
@@ -247,6 +338,7 @@ public class Main {
             // Lire tous les fichiers commençant par '50592'
             File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
             for (File m50592File : m50592Files) {
+
                 String fileName = m50592File.getName();
                 if (processedFiles50592.contains(fileName) ||   m50592Service.existsByfileName(m50592File.getName())) {
                     // Le fichier a déjà été traité, passer au suivant
@@ -255,12 +347,12 @@ public class Main {
                 TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {  };
 
                 try {
-                    Thread.sleep(5000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
+                    Thread.sleep(1000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                // Déplacer le fichier SAM dans le dossier output
+                // Déplacer le fichier 50592 dans le dossier output
                 File outputFile = new File(outputFolder, m50592File.getName());
                 if (!m50592File.renameTo(outputFile)) {
                     System.err.println("Erreur lors du déplacement du fichier " + m50592File.getName() + " dans le dossier output.");
@@ -274,16 +366,22 @@ public class Main {
 
                     for (M_50592 m_50592 : m_50592s) {
 
+
                         m_50592.setFileName(outputFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         m_50592.loadStartingWith50592(outputFile.getName());
                         m_50592.loadSite(outputFile.getName());
                         Environnement env = m_50592.getEnvironnement();
                         String[] villes = env.extraireVilles(env.getSens());
+
                         if (villes != null) {
                             env.setVilleDepart(villes[0]);
                             env.setVilleArrivee(villes[1]);
                         }
-
+                        if (m_50592.getBE_R1().getxFond().contains("FF382A") || m_50592.getBE_R1().getyFond().contains("FF382A") || m_50592.getBE_R1().getzFond().contains("FF382A")|| m_50592.getBeR2().getxFond().contains("FF382A") || m_50592.getBeR2().getyFond().contains("FF382A") || m_50592.getBeR2().getzFond().contains("FF382A") || m_50592.getBlR1().getxFond().contains("FF382A") || m_50592.getBlR1().getyFond().contains("FF382A")|| m_50592.getBlR1().getzFond().contains("FF382A") || m_50592.getBlR2().getxFond().contains("FF382A") || m_50592.getBlR2().getyFond().contains("FF382A") || m_50592.getBlR2().getzFond().contains("FF382A")) {
+                            m_50592.setStatut50592("NOK") ;
+                        } else {
+                            m_50592.setStatut50592("OK") ;
+                        }
                         m50592Service.save(m_50592);
                         // Vérifier si le nom du fichier correspond au format JSON attendu
                         if (m50592File.getName().endsWith(".json")) {
@@ -311,12 +409,12 @@ public class Main {
                                     }
                                 }
 
-                                m_50592.setStatut50592("OK");
+
                                 m_50592.setUrl50592("null");
                                 m50592Service.save(m_50592);
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-                                m_50592.setStatut50592("NOK");
+
                                 String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
                                 m_50592.setUrl50592(url);
                                 m50592Service.save(m_50592);
@@ -324,7 +422,7 @@ public class Main {
                             }
                         } else {
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
-                            m_50592.setStatut50592("NOK");
+
                             String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
                             m_50592.setUrl50592(url);
                             m50592Service.save(m_50592);

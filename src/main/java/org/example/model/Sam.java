@@ -7,31 +7,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import lombok.Value;
 import org.example.repository.SamRepository;
 
 import org.w3c.dom.Text;
 
 import javax.persistence.*;
-import java.io.File;
+import java.io.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"Temps_ms"})
+
+
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"Meteo","Enveloppes"})
 @Entity
 @Data
 @Table(name = "T_SAM005")
@@ -43,11 +40,11 @@ public class Sam  {
 
 
     @JsonProperty("NbEssieux")
-    private  Integer NbEssieux;
+    private  Integer nb_Essieux;
 
     @ElementCollection
     @JsonProperty("NbOccultations")
-    private List<Integer> NbOccultations;
+    private List<Integer> nb_Occultations;
     @Column(name = "statut_Sam")
     private String statutSAM;
     @JsonIgnore
@@ -80,30 +77,50 @@ public class Sam  {
     @JsonProperty("Vitesse_moyenne_km/h")
     private Double vitesse_moy;
 
+
+
+
+
     @JsonIgnore
     @Embedded
-    private  Temps_ms temps_ms;
+    private Temps_ms Temps_Ms;
 
 
 
 
 
+    public Integer getNb_Essieux() {
+        return nb_Essieux;
+    }
 
+    public void setNb_Essieux(Integer nb_Essieux) {
+        this.nb_Essieux = nb_Essieux;
+    }
 
+    public List<Integer> getNb_Occultations() {
+        return nb_Occultations;
+    }
 
+    public void setNb_Occultations(List<Integer> nb_Occultations) {
+        this.nb_Occultations = nb_Occultations;
+    }
 
+    public org.example.model.Temps_ms getTemps_ms() {
+        return Temps_Ms;
+    }
 
-
-
+    public void setTemps_ms(org.example.model.Temps_ms temps_ms) {
+        Temps_Ms = temps_ms;
+    }
 
     public Integer getNbEssieux() {
-        return NbEssieux;
+        return nb_Essieux;
     }
 
 
 
     public List<Integer> getNbOccultations() {
-        return NbOccultations;
+        return nb_Occultations;
     }
 
 
@@ -129,8 +146,9 @@ public class Sam  {
 
     }
 
+
     public String checkOccultations() {
-        if (NbOccultations.stream().allMatch(n -> n.equals(NbEssieux))) {
+        if (nb_Occultations.stream().allMatch(n -> n.equals(nb_Essieux))) {
             statutSAM = "OK";
         } else {
             statutSAM = "NOK";
@@ -141,7 +159,16 @@ public class Sam  {
 
     public void loadFilenamesStartingWithSAM() {
 
-        String path = "C:\\Users\\Ilham Barache\\Documents\\input";
+        Properties prop = new Properties();
+        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+        try {
+            prop.load(input);
+        } catch (IOException e) {
+            // Traitement de l'exception
+            e.printStackTrace();
+        }
+
+        String path = prop.getProperty("input.folder.path");
         File directory = new File(path);
         List<File> files = List.of(directory.listFiles())
                 .stream()
@@ -161,8 +188,6 @@ public class Sam  {
         }
 
     }
-
-
 
 
 
@@ -304,10 +329,10 @@ public class Sam  {
         this.id = id;
     }
 
-    public Sam(Long id, Integer nbEssieux, List<Integer> nbOccultations, String statutSAM, String urlSam, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
+    public Sam(Long id, Integer nb_Essieux, List<Integer> nb_Occultations, String statutSAM, String urlSam, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy, org.example.model.Temps_ms temps_ms) {
         this.id = id;
-        NbEssieux = nbEssieux;
-        NbOccultations = nbOccultations;
+        this.nb_Essieux = nb_Essieux;
+        this.nb_Occultations = nb_Occultations;
         this.statutSAM = statutSAM;
         this.urlSam = urlSam;
         this.site = site;
@@ -317,5 +342,6 @@ public class Sam  {
         this.vitesse1_7 = vitesse1_7;
         this.vitesse2_8 = vitesse2_8;
         this.vitesse_moy = vitesse_moy;
+        Temps_Ms = temps_ms;
     }
 }
