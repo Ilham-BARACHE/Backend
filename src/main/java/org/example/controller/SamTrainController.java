@@ -83,6 +83,29 @@ public class SamTrainController {
         }
     }
 
+
+//    private File getFileBySiteAndDateFichierBetween(String site, Date datestartFichier,Date datefinFichier ) throws IOException {
+//        Properties prop = new Properties();
+//        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+//        prop.load(input);
+//
+//        String outputFolderPath = prop.getProperty("output.folder.path");
+//
+//        File outputFolder = new File(outputFolderPath);
+//        ObjectMapper mapper = new ObjectMapper();
+//        String datestartFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(datestartFichier);
+//        String datefinFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(datefinFichier);
+//
+//        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + datestartFichierStr) && name.endsWith(".json"));
+//        File[] samFiless = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + datefinFichierStr) && name.endsWith(".json"));
+//
+//        if (samFiles != null && samFiless != null && samFiles.length > 0 && samFiless.length > 0) {
+//            return samFiles[0], samFiless[0];
+//        } else {
+//            return null;
+//        }
+//    }
+
     @GetMapping("/temps")
     public List<JsonNode> getTempsMs(@RequestParam("site") String site, @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) throws IOException {
 
@@ -136,7 +159,7 @@ public class SamTrainController {
                     trainMap.put("urlSam", sam.getUrlSam());
                     trainMap.put("statutSAM", sam.getStatutSAM());
                     trainMap.put("NbOccultations", sam.getNbOccultations());
-//                    trainMap.put("tempsMs", tempsMsNodesList);
+                    trainMap.put("tempsMs", tempsMsNodesList);
                     foundSam = true;
                     break;
                 }
@@ -147,10 +170,10 @@ public class SamTrainController {
                     trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                     trainMap.put("statut50592", m50592.getStatut50592());
                     trainMap.put("url50592", m50592.getUrl50592());
-//                    trainMap.put("BE_R1",m50592.getBE_R1());
-//                    trainMap.put("BE_R2",m50592.getBeR2());
-//                    trainMap.put("BL_R1",m50592.getBlR1());
-//                    trainMap.put("BL_R2",m50592.getBlR2());
+                    trainMap.put("BE_R1",m50592.getBE_R1());
+                    trainMap.put("BE_R2",m50592.getBeR2());
+                    trainMap.put("BL_R1",m50592.getBlR1());
+                    trainMap.put("BL_R2",m50592.getBlR2());
                     found50592 = true;
                     break;
                 }
@@ -192,89 +215,175 @@ public class SamTrainController {
 
 
 
-    @GetMapping("/info")
-    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierheure(
-            @RequestParam("site") String site,
-            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+//    @GetMapping("/info")
+//    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierheure(
+//            @RequestParam("site") String site,
+//            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+//
+//        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//
+//        List<Sam> sams = samRepository.findBySiteAndDateFichier(site, dateFichier);
+//        List<Train> trains = trainRepository.findBySiteAndDateFichier(site, dateFichier);
+//        List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
+//
+//        // Créer un Set pour stocker toutes les heures des enregistrements
+//        Set<Date> heuresCommunes = new HashSet<>();
+//        for (Sam sam : sams) {
+//            heuresCommunes.add(sam.getHeureFichier());
+//        }
+//        for (Train train : trains) {
+//            heuresCommunes.add(train.getHeureFichier());
+//        }
+//        for (M_50592 m50592 : m50592s) {
+//            heuresCommunes.add(m50592.getHeureFichier());
+//        }
+//
+//        List<Map<String, Object>> result = new ArrayList<>();
+//
+//        // Itérer sur les heures communes et récupérer les enregistrements correspondants
+//        for (Date heureCommune : heuresCommunes) {
+//            List<Sam> samsHeureCommune = sams.stream()
+//                    .filter(sam -> sam.getHeureFichier().equals(heureCommune))
+//                    .collect(Collectors.toList());
+//            List<Train> trainsHeureCommune = trains.stream()
+//                    .filter(train -> train.getHeureFichier().equals(heureCommune))
+//                    .collect(Collectors.toList());
+//            List<M_50592> m50592sHeureCommune = m50592s.stream()
+//                    .filter(m50592 -> m50592.getHeureFichier().equals(heureCommune))
+//                    .collect(Collectors.toList());
+//
+//            // Ajouter les enregistrements correspondants dans la liste result
+//            for (Sam sam : samsHeureCommune) {
+//
+//
+//                ;for (M_50592 m50592 : m50592sHeureCommune) {
+//
+//
+//                for (Train train : trainsHeureCommune) {
+//                    Map<String, Object> trainMap = new HashMap<>();
+//                    trainMap.put("id", train.getId());
+//                    trainMap.put("numTrain", train.getNumTrain());
+//
+//
+//                    if (sam != null) {
+//                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
+//                    } else {
+//                        trainMap.put("vitesse_moy", null);
+//                    }
+//
+//                    if (m50592 != null) {
+//                        trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+//                    } else {
+//                        trainMap.put("meteo", null);
+//                    }
+//
+//                    Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+//                    if (mr != null) {
+//                        trainMap.put("mr", mr.getMr());
+//                    }
+//
+//                    result.add(trainMap);
+//                }
+//            }
+//
+//
+//
+//
+//
+//            }
+//
+//        }
+//
+//        return ResponseEntity.ok(result);
+//
+//
+//    }
+@GetMapping("/dataBetween")
+public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
+        @RequestParam("site") String site,
+        @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+) throws Exception{
 
-        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        List<Sam> sams = samRepository.findBySiteAndDateFichier(site, dateFichier);
-        List<Train> trains = trainRepository.findBySiteAndDateFichier(site, dateFichier);
-        List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
+    Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        // Créer un Set pour stocker toutes les heures des enregistrements
-        Set<Date> heuresCommunes = new HashSet<>();
+    List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
+    List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
+    List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start, end);
+    List<JsonNode> tempsMsNodesList = getTempsMs(site,startDate);
+
+    List<Map<String, Object>> result = new ArrayList<>();
+    for (Train train : trains) {
+        Map<String, Object> trainMap = new HashMap<>();
+        trainMap.put("numTrain", train.getNumTrain());
+        trainMap.put("dateFichier", train.getDateFichier());
+        trainMap.put("heureFichier", train.getHeureFichier());
+//        trainMap.put("url", train.getUrl());
+
+        boolean foundSam = false;
+        boolean found50592 = false;
+
         for (Sam sam : sams) {
-            heuresCommunes.add(sam.getHeureFichier());
+            if (train.getHeureFichier().equals(sam.getHeureFichier())) {
+                trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                trainMap.put("NbEssieux", sam.getNbEssieux());
+                trainMap.put("urlSam", sam.getUrlSam());
+                trainMap.put("statutSAM", sam.getStatutSAM());
+                trainMap.put("NbOccultations", sam.getNbOccultations());
+//                trainMap.put("tempsMs", tempsMsNodesList);
+                foundSam = true;
+                break;
+            }
         }
-        for (Train train : trains) {
-            heuresCommunes.add(train.getHeureFichier());
-        }
+
         for (M_50592 m50592 : m50592s) {
-            heuresCommunes.add(m50592.getHeureFichier());
+            if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
+                trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                trainMap.put("statut50592", m50592.getStatut50592());
+                trainMap.put("url50592", m50592.getUrl50592());
+                trainMap.put("BE_R1",m50592.getBE_R1());
+                trainMap.put("BE_R2",m50592.getBeR2());
+                trainMap.put("BL_R1",m50592.getBlR1());
+                trainMap.put("BL_R2",m50592.getBlR2());
+                found50592 = true;
+                break;
+            }
         }
 
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        // Itérer sur les heures communes et récupérer les enregistrements correspondants
-        for (Date heureCommune : heuresCommunes) {
-            List<Sam> samsHeureCommune = sams.stream()
-                    .filter(sam -> sam.getHeureFichier().equals(heureCommune))
-                    .collect(Collectors.toList());
-            List<Train> trainsHeureCommune = trains.stream()
-                    .filter(train -> train.getHeureFichier().equals(heureCommune))
-                    .collect(Collectors.toList());
-            List<M_50592> m50592sHeureCommune = m50592s.stream()
-                    .filter(m50592 -> m50592.getHeureFichier().equals(heureCommune))
-                    .collect(Collectors.toList());
-
-            // Ajouter les enregistrements correspondants dans la liste result
-            for (Sam sam : samsHeureCommune) {
-
-
-                ;for (M_50592 m50592 : m50592sHeureCommune) {
-
-
-                for (Train train : trainsHeureCommune) {
-                    Map<String, Object> trainMap = new HashMap<>();
-                    trainMap.put("id", train.getId());
-                    trainMap.put("numTrain", train.getNumTrain());
-
-
-                    if (sam != null) {
-                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
-                    } else {
-                        trainMap.put("vitesse_moy", null);
-                    }
-
-                    if (m50592 != null) {
-                        trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                    } else {
-                        trainMap.put("meteo", null);
-                    }
-
-                    Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
-                    if (mr != null) {
-                        trainMap.put("mr", mr.getMr());
-                    }
-
-                    result.add(trainMap);
-                }
-            }
-
-
-
-
-
-            }
-
+        if (!foundSam) {
+            trainMap.put("vitesse_moy", null);
+            trainMap.put("NbEssieux", null);
+            trainMap.put("urlSam", null);
+            trainMap.put("statutSAM", null);
+            trainMap.put("NbOccultations", null);
+            trainMap.put("tempsMs", null);
         }
 
-        return ResponseEntity.ok(result);
+        if (!found50592) {
+            trainMap.put("meteo", null);
+            trainMap.put("statut50592",null);
+            trainMap.put("url50592", null);
+            trainMap.put("BE_R1",null);
+            trainMap.put("BE_R2",null);
+            trainMap.put("BL_R1",null);
+            trainMap.put("BL_R2",null);
+        }
 
-
+        Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+        if (mr != null) {
+            trainMap.put("mr", mr.getMr());
+        }
+        result.add(trainMap);
     }
+
+    if (result.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+
+    return ResponseEntity.ok(result);
+}
 
 
     @GetMapping("/dataBetweenDate50592")
