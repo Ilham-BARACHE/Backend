@@ -138,7 +138,7 @@ public class Main {
                         train.setFileName(trainFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         train.loadStartingWithTRAIN(trainFile.getName());
                         train.loadSite(trainFile.getName());
-                        String url = outputFolderPath + train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
+                        String url = outputFolderPath+"/"+ train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
                         train.setUrl(url);
                         trainService.save(train);
                     }
@@ -234,49 +234,6 @@ public class Main {
 //
 //                }
 
-//                // Récupérer les données à visualiser
-//                List<Double> xData = enveloppeData.getX();
-//                List<Double> yData = enveloppeData.getY();
-//
-//                // Créer un objet XYSeriesCollection pour stocker les données
-//                XYSeriesCollection dataset = new XYSeriesCollection();
-//                XYSeries series = new XYSeries("Enveloppe");
-//                for (int i = 0; i < xData.size(); i++) {
-//                    series.add(xData.get(i), yData.get(i));
-//                }
-//                dataset.addSeries(series);
-//
-//                // Créer le graphe avec JFreeChart
-//                JFreeChart chart = ChartFactory.createXYLineChart(
-//                        "Enveloppe Data", // titre
-//                        "X", // axe X
-//                        "Y", // axe Y
-//                        dataset, // données
-//                        PlotOrientation.VERTICAL, // orientation du graphe
-//                        true, // légende
-//                        true, // tooltips
-//                        false // urls
-//                );
-//                // Personnaliser l'apparence du graphe
-//                XYPlot plot = chart.getXYPlot();
-//                plot.setBackgroundPaint(java.awt.Color.WHITE);
-//                plot.setRangeGridlinePaint(java.awt.Color.RED);
-//                plot.setDomainGridlinePaint(java.awt.Color.black);
-//                plot.getRenderer().setSeriesPaint(0, Color.RED);
-//                plot.getRenderer().setSeriesStroke(0, new BasicStroke(1.5f));
-//// Créer un panneau de graphique
-//                ChartPanel chartPanel = new ChartPanel(chart);
-//
-//// Ajouter le panneau de graphique à un conteneur Swing (par exemple, un JPanel)
-//                JPanel panel = new JPanel();
-//                panel.add(chartPanel);
-//
-//// Afficher le conteneur Swing
-//                JFrame frame = new JFrame("Enveloppe Data Graph");
-//                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//                frame.getContentPane().add(panel);
-//                frame.pack();
-//                frame.setVisible(true);
 
                 TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
                 try (InputStream samStream = new FileInputStream(samFile)) {
@@ -293,7 +250,7 @@ public class Main {
                             sam.setUrlSam(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier
-                            String urlsam = outputFolderPath + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
+                            String urlsam = outputFolderPath+"/"+ sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
                             sam.setUrlSam(urlsam);
                         }
 
@@ -395,6 +352,8 @@ public class Main {
                             m_50592.setStatut50592("OK") ;
                         }
                         m50592Service.save(m_50592);
+                        String url = outputFolderPath+"/"+m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
+
                         // Vérifier si le nom du fichier correspond au format JSON attendu
                         if (m50592File.getName().endsWith(".json")) {
                             // Extraire le nom du fichier JSON
@@ -427,16 +386,14 @@ public class Main {
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
 
-                                String url = outputFolderPath + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
-                                m_50592.setUrl50592(url);
+                               m_50592.setUrl50592(url);
                                 m50592Service.save(m_50592);
 
                             }
                         } else {
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
 
-                            String url = outputFolderPath + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
-                            m_50592.setUrl50592(url);
+                             m_50592.setUrl50592(url);
                             m50592Service.save(m_50592);
                         }
 

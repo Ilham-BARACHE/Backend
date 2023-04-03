@@ -20,7 +20,10 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -316,7 +319,7 @@ public class SamTrainController {
             @RequestParam("datefinFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datefin
     ) throws IOException {
         Date datestartFichier = Date.from(datestart.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date datefinFichier = Date.from(datefin.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date datefinFichier = Date.from(datefin.atStartOfDay(ZoneId.systemDefault()).plusDays(1).toInstant());
         List<File> filesList = getFilesBySiteAndDateFichierBetween(site, datestartFichier, datefinFichier);
 
         List<List<JsonNode>> tempsMsList = new ArrayList<>();
@@ -349,9 +352,9 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
 
     Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
 
-    List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
+        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
     List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
     List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start, end);
         List<List<JsonNode>> tempsMsNodesList = getTempsMsBetween(site,startDate,endDate);
@@ -367,8 +370,9 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         boolean found50592 = false;
 
         for (Sam sam : sams) {
-            if (train.getHeureFichier().equals(sam.getHeureFichier())) {
+            if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
                 trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                trainMap.put("datesam",sam.getDateFichier());
                 trainMap.put("NbEssieux", sam.getNbEssieux());
                 trainMap.put("urlSam", sam.getUrlSam());
                 trainMap.put("statutSAM", sam.getStatutSAM());
@@ -383,10 +387,13 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         }
 
         for (M_50592 m50592 : m50592s) {
-            if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
+            if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                 trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                trainMap.put("date50592",m50592.getDateFichier());
+                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxSortie());
                 trainMap.put("statut50592", m50592.getStatut50592());
                 trainMap.put("url50592", m50592.getUrl50592());
+                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
                 trainMap.put("BE_R1",m50592.getBE_R1());
                 trainMap.put("BE_R2",m50592.getBeR2());
                 trainMap.put("BL_R1",m50592.getBlR1());
@@ -430,58 +437,55 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 }
 
 
-    @GetMapping("/dataBetweenDate50592")
-    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichier(
+    @GetMapping("/dataBetweenDateSAM")
+    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierSAMBetween(
             @RequestParam("site") String site,
+            @RequestParam("statut") String statutSam,
             @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
+    ) throws Exception{
+
+
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
-        List<M_50592> m_50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
-        if (m_50592s.isEmpty()) {
-            // Si la liste de fichiers 50592 est vide, renvoyer une réponse avec un corps vide ou avec un message "null"
-            return ResponseEntity.ok(null); // ou return ResponseEntity.noContent().build();
-        }
-        if (m_50592s.isEmpty() && trains.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
 
+        List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start, end);
+        List<List<JsonNode>> tempsMsNodesList = getTempsMsBetween(site,startDate,endDate);
         List<Map<String, Object>> result = new ArrayList<>();
-        for (M_50592 m50592 : m_50592s) {
-            if (m50592.getStatut50592().equals("NOK")) {
-                for (Train train : trains) {
-                    if (train.getDateFichier().equals(m50592.getDateFichier()) &&
-                            train.getHeureFichier().equals(m50592.getHeureFichier())) {
-                        Map<String, Object> trainMap = new HashMap<>();
-                        trainMap.put("numTrain", train.getNumTrain());
-                        trainMap.put("dateFichier", train.getDateFichier());
-                        trainMap.put("heureFichier", train.getHeureFichier());
-                        trainMap.put("url", train.getUrl());
+        for (Sam sam : sams) {
+            if (!statutSam.equals("uniquement sam") && !sam.getStatutSAM().equals(statutSam)) {
+                continue; // Si le statut de ce SAM n'est pas le statut demandé, on passe au prochain SAM
+            }
+            Map<String, Object> trainMap = null;
+            for (Train train : trains) {
+                if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
+                    trainMap = new HashMap<>();
+                    trainMap.put("numTrain", train.getNumTrain());
+                    trainMap.put("dateFichier", train.getDateFichier());
+                    trainMap.put("heureFichier", train.getHeureFichier());
+                    trainMap.put("url", train.getUrl());
+                    trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+                    trainMap.put("tempsMs", tempsList);
 
-
-
-                        trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                        trainMap.put("statut50592", m50592.getStatut50592());
-                        trainMap.put("url_50592", m50592.getUrl50592());
-
-                        Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
-                        if (mr != null) {
-                            trainMap.put("mr", mr.getMr());
-                        }
-
-                        result.add(trainMap);
-                        break;
+                    Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+                    if (mr != null) {
+                        trainMap.put("mr", mr.getMr());
                     }
+                    result.add(trainMap);
+                    break; // On a trouvé le train correspondant à ce SAM, on passe au prochain SAM
                 }
             }
         }
 
+        if (result.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.ok(result);
     }
-
 
 
 
@@ -539,6 +543,82 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
         return ResponseEntity.ok(result);
     }
+
+    private int lastMonthOfQuarter(int month) {
+        if (month <= 0 || month > 12) {
+            throw new IllegalArgumentException("Invalid month: " + month);
+        }
+        int quarter = (month - 1) / 3 + 1; // calcul du numéro de trimestre
+        return quarter * 3; // le dernier mois du trimestre est le mois numéro 3, 6, 9 ou 12
+    }
+
+    @GetMapping("/dataQuarterlySAM")
+    public ResponseEntity<List<Map<String, Object>>> getBySiteAndQuarterSAM(
+
+    ) throws Exception {
+
+        LocalDate startDate = LocalDate.of(2023, 1, 1);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        while (true) {
+            LocalDate endDate = startDate.plusMonths(3);
+            if (endDate.getYear() != startDate.getYear()) {
+                endDate = endDate.withYear(startDate.getYear());
+            }
+            System.out.println("Trimestre " + ((endDate.getMonthValue() + 2) / 3) + " " + startDate + " - " + endDate.minusDays(1));
+
+
+            int lastMonth = lastMonthOfQuarter(endDate.getMonthValue()); // on utilise endDate au lieu de startDate
+            LocalDate endQuarterDate = LocalDate.of(endDate.getYear(), lastMonth, 30).with(TemporalAdjusters.lastDayOfMonth()); // on calcule la fin du trimestre
+            System.out.println("Fin de trimestre: " + endQuarterDate);
+
+
+            Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            List<Train> trains = trainRepository.findAll();
+
+            List<Sam> sams = samRepository.findAll();
+//            List<List<JsonNode>> tempsMsNodesList = getTempsMsBetween(site, startDate, endDate);
+
+            for (Sam sam : sams) {
+
+                Map<String, Object> trainMap = null;
+                for (Train train : trains) {
+                    if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
+                        trainMap = new HashMap<>();
+                        trainMap.put("numTrain", train.getNumTrain());
+                        trainMap.put("dateFichier", train.getDateFichier());
+                        trainMap.put("heureFichier", train.getHeureFichier());
+//                        trainMap.put("url", train.getUrl());
+                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                        trainMap.put("datesam" ,sam.getDateFichier());
+//                        List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+//                        trainMap.put("tempsMs", tempsList);
+
+                        Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
+                        if (mr != null) {
+                            trainMap.put("mr", mr.getMr());
+                        }
+                        result.add(trainMap);
+                        break; // On a trouvé le train correspondant à ce SAM, on passe au prochain SAM
+                    }
+                }
+            }
+
+            if (endDate.isAfter(LocalDate.now())) {
+                break;
+            }
+            startDate = endDate;
+        }
+
+        if (result.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(result);
+    }
+
 
 
 
