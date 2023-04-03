@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.minidev.json.JSONArray;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.poi.ss.usermodel.*;
@@ -78,14 +79,23 @@ public class Main {
             String inputFolderPath = prop.getProperty("input.folder.path");
             String outputFolderPath = prop.getProperty("output.folder.path");
 
-
-            File inputFolder = new File(inputFolderPath);
+            // Déplacer tous les fichiers et dossiers de l'URL donnée vers le dossier de sortie
+//            String inputUrl = "http://example.com/traindata";
+//            File inputFolderurl = new File(inputUrl);
+//
+//            FileUtils.moveFile(inputFolderurl, outputFolder);
             File outputFolder = new File(outputFolderPath);
+            File inputFolder = new File(inputFolderPath);
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
 
-            File[] files = inputFolder.listFiles();
+
+
+
+
+
+                File[] files = inputFolder.listFiles();
             for (File file : files) {
                 if (file.getName().endsWith(".json") || file.getName().endsWith(".xlsx")) {
                     try {
@@ -108,7 +118,8 @@ public class Main {
                 }
             }
 
-// Liste pour stocker les noms de fichiers traités
+
+// Liste pour stocker les noms de fichiers train traités
             List<String> processedFiles = new ArrayList<>();
             // Lire tous les fichiers commençant par 'TRAIN'
             File[] trainFiles = outputFolder.listFiles((dir, name) -> name.startsWith("TRAIN") & name.endsWith(".json"));
@@ -127,7 +138,7 @@ public class Main {
                         train.setFileName(trainFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         train.loadStartingWithTRAIN(trainFile.getName());
                         train.loadSite(trainFile.getName());
-                        String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
+                        String url = outputFolderPath + train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
                         train.setUrl(url);
                         trainService.save(train);
                     }
@@ -184,8 +195,9 @@ public class Main {
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFilessam = new ArrayList<>();
 
+
             // Lire tous les fichiers commençant par 'Sam'
-            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM") && name.endsWith(".json"));
+            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
             for (File samFile : samFiles) {
 
 
@@ -197,21 +209,30 @@ public class Main {
 
 
 
-                // Charger les enveloppes à partir du fichier JSON
-                EnvloppeData enveloppeData = new EnvloppeData();
-                enveloppeData.loadFromJson(samFile);
-
-
-// Appel de la méthode saveSampledToJson
-                File outputFile = new File(samFile.getParent(), samFile.getName().replace(".json", "sampled.json"));
-                double step = 20.0; // step peut être changé selon vos besoins
-
-                try {
-                    enveloppeData.saveSampledToJson(outputFile, step);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                // Charger les enveloppes à partir du fichier JSON
+//                EnvloppeData enveloppeData = new EnvloppeData();
+//                enveloppeData.loadFromJson(samFile);
+//
+//
+//// Appel de la méthode saveSampledToJson
+//                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
+//                double step = 20.0; // step peut être changé selon vos besoins
+//
+//                try {
+//                    enveloppeData.saveSampledToJson(outputFile, step);
+//
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+//                for (File samFiletraite : samFilestraite) {
+//
+//
+//                    enveloppeData.generateGraph(samFiletraite);
+//
+//                }
 
 //                // Récupérer les données à visualiser
 //                List<Double> xData = enveloppeData.getX();
@@ -272,7 +293,7 @@ public class Main {
                             sam.setUrlSam(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier
-                            String urlsam = "C:\\Users\\Ilham Barache\\Documents\\output\\" + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
+                            String urlsam = outputFolderPath + sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
                             sam.setUrlSam(urlsam);
                         }
 
@@ -346,30 +367,21 @@ public class Main {
                 }
                 TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {  };
 
-                try {
-                    Thread.sleep(1000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // Déplacer le fichier 50592 dans le dossier output
-                File outputFile = new File(outputFolder, m50592File.getName());
-                if (!m50592File.renameTo(outputFile)) {
-                    System.err.println("Erreur lors du déplacement du fichier " + m50592File.getName() + " dans le dossier output.");
-                    continue; // Passer au fichier suivant en cas d'erreur
-                }
 
 
-                try (InputStream m50592Stream = new FileInputStream(outputFile)) {
+
+
+
+                try (InputStream m50592Stream = new FileInputStream(m50592File)) {
                     List<M_50592> m_50592s = mapper.readValue(m50592Stream, m50592TypeRef);
 
 
                     for (M_50592 m_50592 : m_50592s) {
 
 
-                        m_50592.setFileName(outputFile.getName()); // Définir le nom de fichier dans l'objet M_50592
-                        m_50592.loadStartingWith50592(outputFile.getName());
-                        m_50592.loadSite(outputFile.getName());
+                        m_50592.setFileName(m50592File.getName()); // Définir le nom de fichier dans l'objet M_50592
+                        m_50592.loadStartingWith50592(m50592File.getName());
+                        m_50592.loadSite(m50592File.getName());
                         Environnement env = m_50592.getEnvironnement();
                         String[] villes = env.extraireVilles(env.getSens());
 
@@ -415,7 +427,7 @@ public class Main {
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
 
-                                String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
+                                String url = outputFolderPath + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
                                 m_50592.setUrl50592(url);
                                 m50592Service.save(m_50592);
 
@@ -423,7 +435,7 @@ public class Main {
                         } else {
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
 
-                            String url = "C:\\Users\\Ilham Barache\\Documents\\output\\" + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
+                            String url = outputFolderPath + m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
                             m_50592.setUrl50592(url);
                             m50592Service.save(m_50592);
                         }

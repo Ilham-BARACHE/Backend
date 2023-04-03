@@ -2,9 +2,6 @@ package org.example.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.minidev.json.JSONArray;
-import org.example.component.SamAssembler;
-import org.example.component.TrainAssembler;
 import org.example.component.Utils;
 import org.example.model.M_50592;
 import org.example.model.Mr;
@@ -15,22 +12,14 @@ import org.example.repository.MrRepository;
 import org.example.repository.SamRepository;
 import org.example.repository.TrainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.TemporalType;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Time;
+import java.io.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,7 +52,7 @@ public class SamTrainController {
 
     }
 
-    private File getFileBySiteAndDateFichier(String site, Date dateFichier) throws IOException {
+    private List<File> getFilesBySiteAndDateFichier(String site, Date dateFichier) throws IOException {
         Properties prop = new Properties();
         InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
         prop.load(input);
@@ -77,54 +66,34 @@ public class SamTrainController {
         File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + dateFichierStr) && name.endsWith(".json"));
 
         if (samFiles != null && samFiles.length > 0) {
-            return samFiles[0];
+            return Arrays.asList(samFiles);
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
-
-//    private File getFileBySiteAndDateFichierBetween(String site, Date datestartFichier,Date datefinFichier ) throws IOException {
-//        Properties prop = new Properties();
-//        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
-//        prop.load(input);
-//
-//        String outputFolderPath = prop.getProperty("output.folder.path");
-//
-//        File outputFolder = new File(outputFolderPath);
-//        ObjectMapper mapper = new ObjectMapper();
-//        String datestartFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(datestartFichier);
-//        String datefinFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(datefinFichier);
-//
-//        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + datestartFichierStr) && name.endsWith(".json"));
-//        File[] samFiless = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + datefinFichierStr) && name.endsWith(".json"));
-//
-//        if (samFiles != null && samFiless != null && samFiles.length > 0 && samFiless.length > 0) {
-//            return samFiles[0], samFiless[0];
-//        } else {
-//            return null;
-//        }
-//    }
-
     @GetMapping("/temps")
-    public List<JsonNode> getTempsMs(@RequestParam("site") String site, @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) throws IOException {
+    public List<List<JsonNode>> getTempsMs(@RequestParam("site") String site, @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) throws IOException {
 
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        File file = getFileBySiteAndDateFichier(site, dateFichier);
-        List<JsonNode> tempsMsNodesList = new ArrayList<>();
+        List<File> files = getFilesBySiteAndDateFichier(site, dateFichier);
+        List<List<JsonNode>> tempsMsNodesList = new ArrayList<>();
 
-        if (file != null) {
+        if (!files.isEmpty()) {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(file);
-            JsonNode tempsMsNodes = rootNode.get("Temps_ms");
+            for (File file : files) {
+                JsonNode rootNode = mapper.readTree(file);
+                JsonNode tempsMsNodes = rootNode.get("Temps_ms");
 
-            for (JsonNode tempsMsNode : tempsMsNodes) {
-                tempsMsNodesList.add(tempsMsNode);
-                System.out.println(tempsMsNode);
+                List<JsonNode> tempsMsNodesSubList = new ArrayList<>();
+                for (JsonNode tempsMsNode : tempsMsNodes) {
+                    tempsMsNodesSubList.add(tempsMsNode);
+                }
+
+                tempsMsNodesList.add(tempsMsNodesSubList);
             }
         }
 
-        System.out.println(tempsMsNodesList);
         return tempsMsNodesList;
     }
 
@@ -139,7 +108,7 @@ public class SamTrainController {
         List<Sam> sams = samRepository.findBySiteAndDateFichier(site, dateFichier);
         List<Train> trains = trainRepository.findBySiteAndDateFichier(site, dateFichier);
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
-        List<JsonNode> tempsMsNodesList = getTempsMs(site,date);
+        List<List<JsonNode>> tempsMsNodesList = getTempsMs(site,date);
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (Train train : trains) {
@@ -155,11 +124,12 @@ public class SamTrainController {
             for (Sam sam : sams) {
                 if (train.getHeureFichier().equals(sam.getHeureFichier())) {
                     trainMap.put("vitesse_moy", sam.getVitesse_moy());
-                    trainMap.put("NbEssieux", sam.getNbEssieux());
-                    trainMap.put("urlSam", sam.getUrlSam());
-                    trainMap.put("statutSAM", sam.getStatutSAM());
-                    trainMap.put("NbOccultations", sam.getNbOccultations());
-                    trainMap.put("tempsMs", tempsMsNodesList);
+//                    trainMap.put("NbEssieux", sam.getNbEssieux());
+//                    trainMap.put("urlSam", sam.getUrlSam());
+//                    trainMap.put("statutSAM", sam.getStatutSAM());
+//                    trainMap.put("NbOccultations", sam.getNbOccultations());
+                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+                    trainMap.put("tempsMs", tempsList);
                     foundSam = true;
                     break;
                 }
@@ -168,12 +138,12 @@ public class SamTrainController {
             for (M_50592 m50592 : m50592s) {
                 if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
                     trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                    trainMap.put("statut50592", m50592.getStatut50592());
-                    trainMap.put("url50592", m50592.getUrl50592());
-                    trainMap.put("BE_R1",m50592.getBE_R1());
-                    trainMap.put("BE_R2",m50592.getBeR2());
-                    trainMap.put("BL_R1",m50592.getBlR1());
-                    trainMap.put("BL_R2",m50592.getBlR2());
+//                    trainMap.put("statut50592", m50592.getStatut50592());
+//                    trainMap.put("url50592", m50592.getUrl50592());
+//                    trainMap.put("BE_R1",m50592.getBE_R1());
+//                    trainMap.put("BE_R2",m50592.getBeR2());
+//                    trainMap.put("BL_R1",m50592.getBlR1());
+//                    trainMap.put("BL_R2",m50592.getBlR2());
                     found50592 = true;
                     break;
                 }
@@ -298,7 +268,79 @@ public class SamTrainController {
 //
 //
 //    }
-@GetMapping("/dataBetween")
+
+
+
+    private List<File> getFilesBySiteAndDateFichierBetween(String site, Date datestartFichier, Date datefinFichier) throws IOException {
+        Properties prop = new Properties();
+        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+        prop.load(input);
+
+        String outputFolderPath = prop.getProperty("output.folder.path");
+
+        File outputFolder = new File(outputFolderPath);
+        ObjectMapper mapper = new ObjectMapper();
+
+        List<File> filesList = new ArrayList<>();
+
+        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_") && name.endsWith(".json"));
+        if (samFiles != null) {
+            for (File samFile : samFiles) {
+                String fileName = samFile.getName();
+                String[] parts = fileName.split("_");
+                String fileDateStr = parts[1];
+
+                try {
+                    Date fileDate = new SimpleDateFormat("yyyy.MM.dd").parse(fileDateStr);
+
+                    if (fileDate.compareTo(datestartFichier) >= 0 && fileDate.compareTo(datefinFichier) <= 0) {
+                        filesList.add(samFile);
+                    }
+
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println(filesList);
+        return filesList;
+    }
+
+
+
+    @GetMapping("/tempsBetween")
+    public List<List<JsonNode>> getTempsMsBetween(
+            @RequestParam("site") String site,
+            @RequestParam("datestartFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datestart,
+            @RequestParam("datefinFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datefin
+    ) throws IOException {
+        Date datestartFichier = Date.from(datestart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date datefinFichier = Date.from(datefin.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        List<File> filesList = getFilesBySiteAndDateFichierBetween(site, datestartFichier, datefinFichier);
+
+        List<List<JsonNode>> tempsMsList = new ArrayList<>();
+        if (filesList != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            for (File file : filesList) {
+                JsonNode rootNode = mapper.readTree(file);
+                JsonNode tempsMsNodes = rootNode.get("Temps_ms");
+                List<JsonNode> fileTempsMsList = new ArrayList<>();
+
+                for (JsonNode tempsMsNode : tempsMsNodes) {
+                    fileTempsMsList.add(tempsMsNode);
+                }
+                tempsMsList.add(fileTempsMsList);
+                System.out.println("Fichier : " + file.getName() + " Temps_ms : " + fileTempsMsList);
+            }
+        }
+        System.out.println(tempsMsList);
+        return tempsMsList;
+    }
+
+
+
+    @GetMapping("/dataBetween")
 public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         @RequestParam("site") String site,
         @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -312,15 +354,14 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
     List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
     List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
     List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start, end);
-    List<JsonNode> tempsMsNodesList = getTempsMs(site,startDate);
-
+        List<List<JsonNode>> tempsMsNodesList = getTempsMsBetween(site,startDate,endDate);
     List<Map<String, Object>> result = new ArrayList<>();
     for (Train train : trains) {
         Map<String, Object> trainMap = new HashMap<>();
         trainMap.put("numTrain", train.getNumTrain());
         trainMap.put("dateFichier", train.getDateFichier());
         trainMap.put("heureFichier", train.getHeureFichier());
-//        trainMap.put("url", train.getUrl());
+        trainMap.put("url", train.getUrl());
 
         boolean foundSam = false;
         boolean found50592 = false;
@@ -332,7 +373,10 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("urlSam", sam.getUrlSam());
                 trainMap.put("statutSAM", sam.getStatutSAM());
                 trainMap.put("NbOccultations", sam.getNbOccultations());
-//                trainMap.put("tempsMs", tempsMsNodesList);
+                List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+                trainMap.put("tempsMs", tempsList);
+
+
                 foundSam = true;
                 break;
             }
