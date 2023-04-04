@@ -576,7 +576,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("url50592", m50592.getUrl50592());
                 trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
 
-                String concatenatedValuebe = m50592.getBE_R1() + " " + m50592.getBeR2();
+                String concatenatedValuebe = m50592.getBE_R1().getX()+" "+m50592.getBE_R1().getY()+" " +m50592.getBE_R1().getZ()+" "+m50592.getBE_R1().getxFond()+" " +m50592.getBE_R1().getyFond()+" " +m50592.getBE_R1().getzFond()+ " " + m50592.getBeR2().getX()+" "+m50592.getBeR2().getY()+" "+m50592.getBeR2().getZ()+" "+m50592.getBeR2().getxFond()+" "+m50592.getBeR2().getyFond()+" "+m50592.getBeR2().getzFond();
                 String[] values = concatenatedValuebe.split(" ");
                 trainMap.put("be",values);
 
