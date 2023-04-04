@@ -13,6 +13,7 @@ import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
@@ -101,28 +102,24 @@ public class EnvloppeData {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(jsonFile);
-        JsonNode enveloppeNode = rootNode.get("Enveloppes");
+            JsonNode enveloppeNode = rootNode.get("Enveloppes");
+
 
         if (enveloppeNode != null) {
             dtMs = enveloppeNode.get("dt_ms").asDouble();
 
-            JsonNode capteursNode = enveloppeNode.get("Capteurs");
-            if (capteursNode != null && capteursNode.isArray() && capteursNode.size() > 0) {
-                JsonNode firstCapteurNode = capteursNode.get(0);
-                if (firstCapteurNode != null) {
-                    JsonNode xNode = firstCapteurNode.get("X");
-                    JsonNode yNode = firstCapteurNode.get("Y");
 
-                    if (xNode != null && yNode != null) {
-                        for (int i = 0; i < xNode.size(); i++) {
-                            x.add(xNode.get(i).asDouble());
-                            y.add(yNode.get(i).asDouble());
-                        }
-                    }
+// Récupérer les données de Capteurs[0]
+            JsonNode capteursNode = enveloppeNode.get("Capteurs").get(0);
+            JsonNode xNode = capteursNode.get("X");
+            JsonNode yNode = capteursNode.get("Y");
+
+            if (xNode != null && yNode != null) {
+                for (int i = 0; i < xNode.size(); i++) {
+                    x.add(xNode.get(i).asDouble());
+                    y.add(yNode.get(i).asDouble());
                 }
             }
-
-
 // Récupérer les données de Capteurs[1]
 //            JsonNode capteursNode1 = enveloppeNode.get("Capteurs").get(1);
 //            JsonNode xNode1 = capteursNode1.get("X");
@@ -576,7 +573,7 @@ public class EnvloppeData {
         plot.setBackgroundPaint(Color.white);
         plot.setRangeGridlinePaint(Color.black);
         plot.setDomainGridlinePaint(Color.black);
-        chart.getPlot().setInsets(new RectangleInsets(0, 0, 0, 50));
+
 
 
         // Personnaliser l'axe des abscisses
@@ -586,8 +583,7 @@ public class EnvloppeData {
         xAxis.setTickUnit(new NumberTickUnit(200000));
         xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
         plot.setDomainAxis(xAxis);
-        xAxis.setTickMarkInsideLength(8f); // Réduire l'espace entre les points
-        xAxis.setTickMarkOutsideLength(8f);
+
 
 
 
@@ -601,11 +597,26 @@ public class EnvloppeData {
         yAxis.setTickUnit(new NumberTickUnit(0.1));
         plot.setRangeAxis(yAxis);
 
+        // Créez un objet ValueMarker pour la position initiale de votre premier marqueur
+        ValueMarker marker = new ValueMarker(300000.0);
+
+// Ajoutez le marqueur à l'axe X de votre graphique
+
+        plot.addDomainMarker(marker);
+
+// Ajoutez des marqueurs supplémentaires toutes les 9 secondes
+        for (int i = 2; i <= 10; i++) {
+            double position = 9.0 * i;
+            ValueMarker newMarker = new ValueMarker(position);
+            plot.addDomainMarker(newMarker);
+        }
+
 
 
 // Générer l'image du graphe
         File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image.png");
-        ChartUtilities.saveChartAsPNG(outputFile, chart, 300, 300);
+        ChartUtilities.saveChartAsPNG(outputFile, chart, 5000, 170);
+
 
 
     }

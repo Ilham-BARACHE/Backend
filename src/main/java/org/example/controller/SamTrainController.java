@@ -220,15 +220,16 @@ public class SamTrainController {
                     trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                     trainMap.put("statut50592", m50592.getStatut50592());
                     trainMap.put("url50592", m50592.getUrl50592());
-                    trainMap.put("BE_R1",m50592.getBE_R1());
-                    trainMap.put("BE_R2",m50592.getBeR2());
-                    trainMap.put("BL_R1",m50592.getBlR1());
-                    trainMap.put("BL_R2",m50592.getBlR2());
-                    List<JsonNode> par = parametres.get(m50592s.indexOf(m50592));
+                    String concatenatedValuebe = m50592.getBE_R1() + " " + m50592.getBeR2();
+                    String concatenatedValuebl = m50592.getBlR1() + " " + m50592.getBlR2();
+                    trainMap.put("be",concatenatedValuebe);
 
+                    trainMap.put("bl",concatenatedValuebl);
+
+                    List<JsonNode> par = parametres.get(m50592s.indexOf(m50592));
+                    trainMap.put("parametrebl", par);
                     List<JsonNode> parbe = parametresbe.get(m50592s.indexOf(m50592));
-                    String concatenatedValue = par + " " + parbe;
-                    trainMap.put("parametre", concatenatedValue);
+                    trainMap.put("parametrebe", parbe);
 
 
 
@@ -574,16 +575,17 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("statut50592", m50592.getStatut50592());
                 trainMap.put("url50592", m50592.getUrl50592());
                 trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
-                trainMap.put("BE_R1",m50592.getBE_R1());
-                trainMap.put("BE_R2",m50592.getBeR2());
-                trainMap.put("BL_R1",m50592.getBlR1());
-                trainMap.put("BL_R2",m50592.getBlR2());
+                String concatenatedValuebe = m50592.getBE_R1() + " " + m50592.getBeR2();
+                String concatenatedValuebl = m50592.getBlR1() + " " + m50592.getBlR2();
+                trainMap.put("be",concatenatedValuebe);
+
+                trainMap.put("bl",concatenatedValuebl);
                 List<JsonNode> parametrebl = parametreblNodesList.get(m50592s.indexOf(m50592));
 
-
+                trainMap.put("parametrebl",parametrebl);
                 List<JsonNode> parametrebe = parametrebeNodesList.get(m50592s.indexOf(m50592));
-                String concatenatedValue = parametrebl + " " + parametrebe;
-                trainMap.put("parametre",concatenatedValue);
+
+                trainMap.put("parametrebe",parametrebe);
 
 
                 found50592 = true;
