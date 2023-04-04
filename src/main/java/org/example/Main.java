@@ -200,31 +200,10 @@ public class Main {
             File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
             for (File samFile : samFiles) {
 
-
-
-                if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
-                    // Le fichier a déjà été traité, passer au suivant
-                    continue;
-                }
-
-
-
 //                // Charger les enveloppes à partir du fichier JSON
 //                EnvloppeData enveloppeData = new EnvloppeData();
 //                enveloppeData.loadFromJson(samFile);
 //
-//
-//// Appel de la méthode saveSampledToJson
-//                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
-//                double step = 20.0; // step peut être changé selon vos besoins
-//
-//                try {
-//                    enveloppeData.saveSampledToJson(outputFile, step);
-//
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
 //
 //                File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
 //                for (File samFiletraite : samFilestraite) {
@@ -233,6 +212,15 @@ public class Main {
 //                    enveloppeData.generateGraph(samFiletraite);
 //
 //                }
+
+                if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
+                    // Le fichier a déjà été traité, passer au suivant
+                    continue;
+                }
+
+
+
+
 
 
                 TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
