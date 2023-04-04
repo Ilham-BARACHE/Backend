@@ -101,24 +101,28 @@ public class EnvloppeData {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(jsonFile);
-            JsonNode enveloppeNode = rootNode.get("Enveloppes");
-
+        JsonNode enveloppeNode = rootNode.get("Enveloppes");
 
         if (enveloppeNode != null) {
             dtMs = enveloppeNode.get("dt_ms").asDouble();
 
+            JsonNode capteursNode = enveloppeNode.get("Capteurs");
+            if (capteursNode != null && capteursNode.isArray() && capteursNode.size() > 0) {
+                JsonNode firstCapteurNode = capteursNode.get(0);
+                if (firstCapteurNode != null) {
+                    JsonNode xNode = firstCapteurNode.get("X");
+                    JsonNode yNode = firstCapteurNode.get("Y");
 
-// Récupérer les données de Capteurs[0]
-            JsonNode capteursNode = enveloppeNode.get("Capteurs").get(0);
-            JsonNode xNode = capteursNode.get("X");
-            JsonNode yNode = capteursNode.get("Y");
-
-            if (xNode != null && yNode != null) {
-                for (int i = 0; i < xNode.size(); i++) {
-                    x.add(xNode.get(i).asDouble());
-                    y.add(yNode.get(i).asDouble());
+                    if (xNode != null && yNode != null) {
+                        for (int i = 0; i < xNode.size(); i++) {
+                            x.add(xNode.get(i).asDouble());
+                            y.add(yNode.get(i).asDouble());
+                        }
+                    }
                 }
             }
+
+
 // Récupérer les données de Capteurs[1]
 //            JsonNode capteursNode1 = enveloppeNode.get("Capteurs").get(1);
 //            JsonNode xNode1 = capteursNode1.get("X");

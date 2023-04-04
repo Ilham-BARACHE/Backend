@@ -200,18 +200,18 @@ public class Main {
             File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
             for (File samFile : samFiles) {
 
-//                // Charger les enveloppes à partir du fichier JSON
-//                EnvloppeData enveloppeData = new EnvloppeData();
-//                enveloppeData.loadFromJson(samFile);
-//
-//
-//                File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-//                for (File samFiletraite : samFilestraite) {
-//
-//
-//                    enveloppeData.generateGraph(samFiletraite);
-//
-//                }
+                // Charger les enveloppes à partir du fichier JSON
+                EnvloppeData enveloppeData = new EnvloppeData();
+                enveloppeData.loadFromJson(samFile);
+
+
+                File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+                for (File samFiletraite : samFilestraite) {
+
+
+                    enveloppeData.generateGraph(samFiletraite);
+
+                }
 
                 if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
                     // Le fichier a déjà été traité, passer au suivant
