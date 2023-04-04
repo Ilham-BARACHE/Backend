@@ -538,7 +538,11 @@ public class EnvloppeData {
                         }
                     }
                 }
-
+// Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
+                if (x - lastX > 90000) {
+                    double newX = x - 9; // calculer la valeur X du point fictif
+                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
+                }
                 lastX = x; // mettre à jour la valeur X du dernier point ajouté
             }
 
@@ -580,7 +584,7 @@ public class EnvloppeData {
         NumberAxis xAxis = new NumberAxis("Temps (ms)");
         xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
         xAxis.setRange(0, 3000000);
-        xAxis.setTickUnit(new NumberTickUnit(200000));
+        xAxis.setTickUnit(new NumberTickUnit(400000));
         xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
         plot.setDomainAxis(xAxis);
 
@@ -597,25 +601,15 @@ public class EnvloppeData {
         yAxis.setTickUnit(new NumberTickUnit(0.1));
         plot.setRangeAxis(yAxis);
 
-        // Créez un objet ValueMarker pour la position initiale de votre premier marqueur
-        ValueMarker marker = new ValueMarker(300000.0);
 
-// Ajoutez le marqueur à l'axe X de votre graphique
-
-        plot.addDomainMarker(marker);
-
-// Ajoutez des marqueurs supplémentaires toutes les 9 secondes
-        for (int i = 2; i <= 10; i++) {
-            double position = 9.0 * i;
-            ValueMarker newMarker = new ValueMarker(position);
-            plot.addDomainMarker(newMarker);
-        }
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+        renderer.setBaseStroke(new BasicStroke(0.1f));
 
 
 
 // Générer l'image du graphe
         File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image.png");
-        ChartUtilities.saveChartAsPNG(outputFile, chart, 5000, 170);
+        ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
 
 
 

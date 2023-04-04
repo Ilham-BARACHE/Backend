@@ -575,16 +575,20 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("statut50592", m50592.getStatut50592());
                 trainMap.put("url50592", m50592.getUrl50592());
                 trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
+
                 String concatenatedValuebe = m50592.getBE_R1() + " " + m50592.getBeR2();
+                String[] values = concatenatedValuebe.split(" ");
+                trainMap.put("be",values);
+
                 String concatenatedValuebl = m50592.getBlR1() + " " + m50592.getBlR2();
-                trainMap.put("be",concatenatedValuebe);
+                String[] values1 = concatenatedValuebl.split(" ");
+                trainMap.put("bl",values1);
 
-                trainMap.put("bl",concatenatedValuebl);
+
                 List<JsonNode> parametrebl = parametreblNodesList.get(m50592s.indexOf(m50592));
-
                 trainMap.put("parametrebl",parametrebl);
-                List<JsonNode> parametrebe = parametrebeNodesList.get(m50592s.indexOf(m50592));
 
+                List<JsonNode> parametrebe = parametrebeNodesList.get(m50592s.indexOf(m50592));
                 trainMap.put("parametrebe",parametrebe);
 
 
