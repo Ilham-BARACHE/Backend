@@ -209,22 +209,22 @@ public class Main {
 
 
 
-                // Charger les enveloppes à partir du fichier JSON
-                EnvloppeData enveloppeData = new EnvloppeData();
-                enveloppeData.loadFromJson(samFile);
-
-
-// Appel de la méthode saveSampledToJson
-                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
-                double step = 0.1; // step peut être changé selon vos besoins
-
-                try {
-                    enveloppeData.saveSampledToJson(outputFile, step);
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                // Charger les enveloppes à partir du fichier JSON
+//                EnvloppeData enveloppeData = new EnvloppeData();
+//                enveloppeData.loadFromJson(samFile);
+//
+//
+//// Appel de la méthode saveSampledToJson
+//                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
+//                double step = 0.1; // step peut être changé selon vos besoins
+//
+//                try {
+//                    enveloppeData.saveSampledToJson(outputFile, step);
+//
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
 
 
@@ -303,13 +303,13 @@ public class Main {
                 }
             }
 
-            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-            for (File samFiletraite : samFilestraite) {
-
-                EnvloppeData enveloppeData = new EnvloppeData();
-                enveloppeData.generateGraph(samFiletraite);
-
-            }
+//            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+//            for (File samFiletraite : samFilestraite) {
+//
+//                EnvloppeData enveloppeData = new EnvloppeData();
+//                enveloppeData.generateGraph(samFiletraite);
+//
+//            }
 
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFiles50592 = new ArrayList<>();

@@ -132,7 +132,7 @@ public class SamTrainController {
 
 
 
-    private List<File> getFilesBySiteAndDateFichier(String site, Date dateFichier) throws IOException {
+    private File getFileBySiteAndDateFichier(String site, Date dateFichier, Time heure) throws IOException {
         Properties prop = new Properties();
         InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
         prop.load(input);
@@ -140,37 +140,53 @@ public class SamTrainController {
         String outputFolderPath = prop.getProperty("output.folder.path");
 
         File outputFolder = new File(outputFolderPath);
-        ObjectMapper mapper = new ObjectMapper();
+        System.out.println( heure);
         String dateFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(dateFichier);
+        String heureStr = new SimpleDateFormat("HH'h'mm'm'ss's'").format(new Date(heure.getTime()));
+        System.out.println("SAM005-" + site + "_" + dateFichierStr + "_" + heureStr + ".json");
+        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + dateFichierStr + "_" + heureStr) && name.endsWith(".json"));
 
-        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + dateFichierStr) && name.endsWith(".json"));
+        System.out.println(samFiles.length == 0 ? "Le tableau est vide" : "Le tableau contient des éléments");
+
 
         if (samFiles != null && samFiles.length > 0) {
-            return Arrays.asList(samFiles);
+            System.out.println(samFiles[0]);
+            return samFiles[0];
+
+
         } else {
-            return Collections.emptyList();
+            return null;
         }
     }
 
+
     @GetMapping("/temps")
-    public List<List<JsonNode>> getTempsMs(@RequestParam("site") String site, @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) throws IOException {
+    public List<Map<String, JsonNode>> getTempsMs(@RequestParam("site") String site,
+                                                  @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
+                                                  @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
+        Time heureTime = Time.valueOf(heure);
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        List<File> files = getFilesBySiteAndDateFichier(site, dateFichier);
-        List<List<JsonNode>> tempsMsNodesList = new ArrayList<>();
+        File file = getFileBySiteAndDateFichier(site, dateFichier, heureTime);
+        List<Map<String, JsonNode>> tempsMsNodesList = new ArrayList<>();
 
-        if (!files.isEmpty()) {
+        if (file != null) {
             ObjectMapper mapper = new ObjectMapper();
-            for (File file : files) {
-                JsonNode rootNode = mapper.readTree(file);
-                JsonNode tempsMsNodes = rootNode.get("Temps_ms");
+            JsonNode rootNode = mapper.readTree(file);
+            JsonNode tempsMsNodes = rootNode.get("Temps_ms");
+            JsonNode t1Nodes = tempsMsNodes.get("t1");
+            JsonNode t2Nodes = tempsMsNodes.get("t2");
+            JsonNode t3Nodes = tempsMsNodes.get("t3");
 
-                List<JsonNode> tempsMsNodesSubList = new ArrayList<>();
-                for (JsonNode tempsMsNode : tempsMsNodes) {
-                    tempsMsNodesSubList.add(tempsMsNode);
+            // Vérifier que les trois tableaux ont la même longueur
+            if (t1Nodes.size() == t2Nodes.size() && t2Nodes.size() == t3Nodes.size()) {
+                for (int i = 0; i < t1Nodes.size(); i++) {
+                    Map<String, JsonNode> tempsMsMap = new HashMap<>();
+                    tempsMsMap.put("t1", t1Nodes.get(i));
+                    tempsMsMap.put("t2", t2Nodes.get(i));
+                    tempsMsMap.put("t3", t3Nodes.get(i));
+                    tempsMsNodesList.add(tempsMsMap);
                 }
-
-                tempsMsNodesList.add(tempsMsNodesSubList);
             }
         }
 
@@ -178,58 +194,64 @@ public class SamTrainController {
     }
 
 
-    @GetMapping("/dataheure")
-    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierHEURE(
-            @RequestParam("site") String site,
-            @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
-            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
-        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Time heureTime = Time.valueOf(heure);
-        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site, dateFichier , heureTime);
-
-        List<List<JsonNode>> tempsMsNodesList = getTempsMs(site,date);
-
-        List<Map<String, Object>> result = new ArrayList<>();
-
-            Map<String, Object> trainMap = new HashMap<>();
-
-
-            boolean foundSam = false;
-
-
-            for (Sam sam : sams) {
-
-                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
-                    trainMap.put("tempsMs", tempsList);
-                    foundSam = true;
-                    break;
-                }
-
-        if (!foundSam) {
-            trainMap.put("vitesse_moy", null);
-            trainMap.put("NbEssieux", null);
-            trainMap.put("urlSam", null);
-            trainMap.put("statutSAM", null);
-            trainMap.put("NbOccultations", null);
-            trainMap.put("tempsMs", null);
-        }
-
-
-
-
-
-
-
-            result.add(trainMap);
-
-
-        if (result.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(result);
-    }
+//    @GetMapping("/dataheure")
+//    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierHEURE(
+//            @RequestParam("site") String site,
+//            @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) java.sql.Time heure,
+//            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
+//
+//        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//
+//        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site, dateFichier , heureTime);
+//
+//        List<List<JsonNode>> tempsMsNodesList = getTempsMs(site,heure,dateFichier);
+//
+//        List<Map<String, Object>> result = new ArrayList<>();
+//
+//            Map<String, Object> trainMap = new HashMap<>();
+//
+//
+//            boolean foundSam = false;
+//
+//
+//            for (Sam sam : sams) {
+//
+//                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+//                    trainMap.put("tempsMs", tempsList);
+//                    trainMap.put("datesam",sam.getDateFichier());
+//                trainMap.put("heuream",sam.getHeureFichier());
+//                trainMap.put("heureparametre",heureTime);
+//                trainMap.put("dateparametre",dateFichier);
+//
+//                    foundSam = true;
+//                    break;
+//                }
+//
+//        if (!foundSam) {
+//            trainMap.put("vitesse_moy", null);
+//            trainMap.put("NbEssieux", null);
+//            trainMap.put("urlSam", null);
+//            trainMap.put("statutSAM", null);
+//            trainMap.put("NbOccultations", null);
+//            trainMap.put("tempsMs", null);
+//        }
+//
+//
+//
+//
+//
+//
+//
+//            result.add(trainMap);
+//
+//
+//        if (result.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        return ResponseEntity.ok(result);
+//    }
 
 
 
@@ -243,7 +265,7 @@ public class SamTrainController {
         List<Sam> sams = samRepository.findBySiteAndDateFichier(site, dateFichier);
         List<Train> trains = trainRepository.findBySiteAndDateFichier(site, dateFichier);
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
-        List<List<JsonNode>> tempsMsNodesList = getTempsMs(site,date);
+
         List< List<JsonNode>> parametres = getParametre(site,date);
         List< List<JsonNode>> parametresbe = getParametreBE(site,date);
         List<Map<String, Object>> result = new ArrayList<>();
@@ -265,8 +287,7 @@ public class SamTrainController {
                     trainMap.put("urlSam", sam.getUrlSam());
                     trainMap.put("statutSAM", sam.getStatutSAM());
                     trainMap.put("NbOccultations", sam.getNbOccultations());
-                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
-                    trainMap.put("tempsMs", tempsList);
+
                     foundSam = true;
                     break;
                 }
@@ -277,11 +298,12 @@ public class SamTrainController {
                     trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                     trainMap.put("statut50592", m50592.getStatut50592());
                     trainMap.put("url50592", m50592.getUrl50592());
-                    String concatenatedValuebe = m50592.getBeR1() + " " + m50592.getBeR2();
-                    String concatenatedValuebl = m50592.getBlR1() + " " + m50592.getBlR2();
-                    trainMap.put("be",concatenatedValuebe);
 
-                    trainMap.put("bl",concatenatedValuebl);
+
+                    trainMap.put("ber1",m50592.getBlR1());
+                    trainMap.put("ber2" ,m50592.getBeR2());
+                    trainMap.put("blr1" ,m50592.getBlR1() );
+                    trainMap.put("blr2" ,m50592.getBlR2());
 
                     List<JsonNode> par = parametres.get(m50592s.indexOf(m50592));
                     trainMap.put("parametrebl", par);
@@ -616,8 +638,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("urlSam", sam.getUrlSam());
                 trainMap.put("statutSAM", sam.getStatutSAM());
                 trainMap.put("NbOccultations", sam.getNbOccultations());
-                List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
-                trainMap.put("tempsMs", tempsList);
+
 
 
                 foundSam = true;
