@@ -346,7 +346,7 @@ public class Main {
                             env.setVilleDepart(villes[0]);
                             env.setVilleArrivee(villes[1]);
                         }
-                        if (m_50592.getBE_R1().getxFond().contains("FF382A") || m_50592.getBE_R1().getyFond().contains("FF382A") || m_50592.getBE_R1().getzFond().contains("FF382A")|| m_50592.getBeR2().getxFond().contains("FF382A") || m_50592.getBeR2().getyFond().contains("FF382A") || m_50592.getBeR2().getzFond().contains("FF382A") || m_50592.getBlR1().getxFond().contains("FF382A") || m_50592.getBlR1().getyFond().contains("FF382A")|| m_50592.getBlR1().getzFond().contains("FF382A") || m_50592.getBlR2().getxFond().contains("FF382A") || m_50592.getBlR2().getyFond().contains("FF382A") || m_50592.getBlR2().getzFond().contains("FF382A")) {
+                        if (m_50592.getBeR1().getxFond().contains("FF382A") || m_50592.getBeR1().getyFond().contains("FF382A") || m_50592.getBeR1().getzFond().contains("FF382A")|| m_50592.getBeR2().getxFond1().contains("FF382A") || m_50592.getBeR2().getyFond1().contains("FF382A") || m_50592.getBeR2().getzFond1().contains("FF382A") || m_50592.getBlR1().getxFondl().contains("FF382A") || m_50592.getBlR1().getyFondl().contains("FF382A")|| m_50592.getBlR1().getzFondl().contains("FF382A") || m_50592.getBlR2().getxFondl2().contains("FF382A") || m_50592.getBlR2().getyFondl2().contains("FF382A") || m_50592.getBlR2().getzFondl2().contains("FF382A")) {
                             m_50592.setStatut50592("NOK") ;
                         } else {
                             m_50592.setStatut50592("OK") ;

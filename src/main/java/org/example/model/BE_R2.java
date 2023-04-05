@@ -13,87 +13,77 @@ public class BE_R2 {
 
     @ElementCollection
     @JsonProperty("X")
-    private List<Double> x;
+    private List<Double> x1;
 
     @ElementCollection
     @JsonProperty("Y")
-    private List<Double> y;
+    private List<Double> y1;
 
     @ElementCollection
     @JsonProperty("Z")
-    private List<Double> z;
+    private List<Double> z1;
 
 
     @ElementCollection
     @JsonProperty("X_Fond")
-    private List<String> xFond;
+    private List<String> xFond1;
 
     @ElementCollection
     @JsonProperty("Y_Fond")
-    private List<String> yFond;
+    private List<String> yFond1;
 
 
     @ElementCollection
     @JsonProperty("Z_Fond")
-    private List<String> zFond;
+    private List<String> zFond1;
 
     public  BE_R2(){}
 
-    public List<Double> getX() {
-        return x;
+    public List<Double> getX1() {
+        return x1;
     }
 
-    public void setX(List<Double> x) {
-        this.x = x;
+    public void setX1(List<Double> x1) {
+        this.x1 = x1;
     }
 
-    public List<Double> getY() {
-        return y;
+    public List<Double> getY1() {
+        return y1;
     }
 
-    public void setY(List<Double> y) {
-        this.y = y;
+    public void setY1(List<Double> y1) {
+        this.y1 = y1;
     }
 
-    public List<Double> getZ() {
-        return z;
+    public List<Double> getZ1() {
+        return z1;
     }
 
-    public void setZ(List<Double> z) {
-        this.z = z;
+    public void setZ1(List<Double> z1) {
+        this.z1 = z1;
     }
 
-    public List<String> getxFond() {
-        return xFond;
+    public List<String> getxFond1() {
+        return xFond1;
     }
 
-    public void setxFond(List<String> xFond) {
-        this.xFond = xFond;
+    public void setxFond1(List<String> xFond1) {
+        this.xFond1 = xFond1;
     }
 
-    public List<String> getyFond() {
-        return yFond;
+    public List<String> getyFond1() {
+        return yFond1;
     }
 
-    public void setyFond(List<String> yFond) {
-        this.yFond = yFond;
+    public void setyFond1(List<String> yFond1) {
+        this.yFond1 = yFond1;
     }
 
-    public List<String> getzFond() {
-        return zFond;
+    public List<String> getzFond1() {
+        return zFond1;
     }
 
-    public void setzFond(List<String> zFond) {
-        this.zFond = zFond;
-    }
-
-
-    public BE_R2(List<Double> x, List<Double> y, List<Double> z, List<String> xFond, List<String> yFond, List<String> zFond) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.xFond = xFond;
-        this.yFond = yFond;
-        this.zFond = zFond;
+    public void setzFond1(List<String> zFond1) {
+        this.zFond1 = zFond1;
     }
 }

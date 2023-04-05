@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"Meteo","Enveloppes"})
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"Meteo","Enveloppes","Temps_ms"})
 @Entity
 @Data
 @Table(name = "T_SAM005")
@@ -81,10 +81,6 @@ public class Sam  {
 
 
 
-    @JsonIgnore
-    @Embedded
-    private Temps_ms Temps_Ms;
-
 
 
 
@@ -105,13 +101,7 @@ public class Sam  {
         this.nb_Occultations = nb_Occultations;
     }
 
-    public org.example.model.Temps_ms getTemps_ms() {
-        return Temps_Ms;
-    }
 
-    public void setTemps_ms(org.example.model.Temps_ms temps_ms) {
-        Temps_Ms = temps_ms;
-    }
 
     public Integer getNbEssieux() {
         return nb_Essieux;
@@ -329,7 +319,7 @@ public class Sam  {
         this.id = id;
     }
 
-    public Sam(Long id, Integer nb_Essieux, List<Integer> nb_Occultations, String statutSAM, String urlSam, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy, org.example.model.Temps_ms temps_ms) {
+    public Sam(Long id, Integer nb_Essieux, List<Integer> nb_Occultations, String statutSAM, String urlSam, String site, String fileName, Date dateFichier, Date heureFichier, Double vitesse1_7, Double vitesse2_8, Double vitesse_moy) {
         this.id = id;
         this.nb_Essieux = nb_Essieux;
         this.nb_Occultations = nb_Occultations;
@@ -342,6 +332,6 @@ public class Sam  {
         this.vitesse1_7 = vitesse1_7;
         this.vitesse2_8 = vitesse2_8;
         this.vitesse_moy = vitesse_moy;
-        Temps_Ms = temps_ms;
+
     }
 }

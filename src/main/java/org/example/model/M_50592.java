@@ -27,9 +27,7 @@ public class M_50592 {
 
 
 
-    @JsonIgnore
-    @Embedded
-    private ParametresBL ParametresBL;
+
 
 
 
@@ -69,7 +67,7 @@ public class M_50592 {
 
     @JsonProperty("BE_R1")
     @Embedded
-    private BE_R1 BE_R1 ;
+    private BE_R1 beR1 ;
 
     @JsonProperty("BE_R2")
     @Embedded
@@ -107,13 +105,9 @@ public class M_50592 {
         this.blR2 = blR2;
     }
 
-    public org.example.model.BE_R1 getBE_R1() {
-        return BE_R1;
-    }
 
-    public void setBE_R1(org.example.model.BE_R1 BE_R1) {
-        this.BE_R1 = BE_R1;
-    }
+
+
 
     public String getUrl50592() {
         return url50592;
@@ -204,21 +198,16 @@ public class M_50592 {
 
     }
 
-    public M_50592(Long id, String fileName, Date dateFichier, Date heureFichier, String site, String url50592, String statut50592, Environnement environnement, org.example.model.BE_R1 BE_R1, BE_R2 beR2, BL_R1 blR1, BL_R2 blR2) {
-        this.id = id;
 
-        this.fileName = fileName;
-        this.dateFichier = dateFichier;
-        this.heureFichier = heureFichier;
-        this.site = site;
-        this.url50592 = url50592;
-        this.statut50592 = statut50592;
-        this.environnement = environnement;
-        this.BE_R1 = BE_R1;
-        this.beR2 = beR2;
-        this.blR1 = blR1;
-        this.blR2 = blR2;
+    public BE_R1 getBeR1() {
+        return beR1;
     }
+
+    public void setBeR1(BE_R1 beR1) {
+        this.beR1 = beR1;
+    }
+
+
 
     public void loadFilenamesStartingWith50592() {
 
