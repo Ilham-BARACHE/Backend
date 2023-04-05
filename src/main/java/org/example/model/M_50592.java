@@ -27,15 +27,6 @@ public class M_50592 {
 
 
 
-
-
-
-
-
-
-
-
-
     @Column(columnDefinition = "Varchar",name = "file_Name")
     private String fileName;
     @Column(name = "date_Fichier")
@@ -297,13 +288,6 @@ public class M_50592 {
 
 
 
-    @Transient
-    @Embedded
-    private FFT_R1 fftR1;
-
-    @Transient
-    @Embedded
-    private FFT_R2 fftR2;
 
 
 

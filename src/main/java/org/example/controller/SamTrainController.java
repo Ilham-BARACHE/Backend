@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -175,6 +176,61 @@ public class SamTrainController {
 
         return tempsMsNodesList;
     }
+
+
+    @GetMapping("/dataheure")
+    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierHEURE(
+            @RequestParam("site") String site,
+            @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
+            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
+
+        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Time heureTime = Time.valueOf(heure);
+        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site, dateFichier , heureTime);
+
+        List<List<JsonNode>> tempsMsNodesList = getTempsMs(site,date);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+            Map<String, Object> trainMap = new HashMap<>();
+
+
+            boolean foundSam = false;
+
+
+            for (Sam sam : sams) {
+
+                    List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+                    trainMap.put("tempsMs", tempsList);
+                    foundSam = true;
+                    break;
+                }
+
+        if (!foundSam) {
+            trainMap.put("vitesse_moy", null);
+            trainMap.put("NbEssieux", null);
+            trainMap.put("urlSam", null);
+            trainMap.put("statutSAM", null);
+            trainMap.put("NbOccultations", null);
+            trainMap.put("tempsMs", null);
+        }
+
+
+
+
+
+
+
+            result.add(trainMap);
+
+
+        if (result.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
 
 
     @GetMapping("/data")
@@ -555,13 +611,13 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         for (Sam sam : sams) {
             if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
                 trainMap.put("vitesse_moy", sam.getVitesse_moy());
-                trainMap.put("datesam",sam.getDateFichier());
-                trainMap.put("NbEssieux", sam.getNbEssieux());
-                trainMap.put("urlSam", sam.getUrlSam());
-                trainMap.put("statutSAM", sam.getStatutSAM());
-                trainMap.put("NbOccultations", sam.getNbOccultations());
-                List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
-                trainMap.put("tempsMs", tempsList);
+//                trainMap.put("datesam",sam.getDateFichier());
+//                trainMap.put("NbEssieux", sam.getNbEssieux());
+//                trainMap.put("urlSam", sam.getUrlSam());
+//                trainMap.put("statutSAM", sam.getStatutSAM());
+//                trainMap.put("NbOccultations", sam.getNbOccultations());
+//                List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
+//                trainMap.put("tempsMs", tempsList);
 
 
                 foundSam = true;
@@ -571,23 +627,29 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
         for (M_50592 m50592 : m50592s) {
             if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
-                trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
-                trainMap.put("date50592",m50592.getDateFichier());
-                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxSortie());
-                trainMap.put("statut50592", m50592.getStatut50592());
-                trainMap.put("url50592", m50592.getUrl50592());
-                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
+//                trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+//                trainMap.put("date50592",m50592.getDateFichier());
+//                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxSortie());
+//                trainMap.put("statut50592", m50592.getStatut50592());
+//                trainMap.put("url50592", m50592.getUrl50592());
+//                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
+//
 
-                String concatenatedValuebl = m50592.getBlR1() + " " + m50592.getBlR2();
-                trainMap.put("be",m50592.getBeR2().getX1());
+                trainMap.put("ber1",m50592.getBlR1());
 
-                trainMap.put("bl",concatenatedValuebl);
-                List<JsonNode> parametrebl = parametreblNodesList.get(m50592s.indexOf(m50592));
 
-                trainMap.put("parametrebl",parametrebl);
-                List<JsonNode> parametrebe = parametrebeNodesList.get(m50592s.indexOf(m50592));
 
-                trainMap.put("parametrebe",parametrebe);
+
+
+
+
+//                trainMap.put("bl",concatenatedValuebl);
+//                List<JsonNode> parametrebl = parametreblNodesList.get(m50592s.indexOf(m50592));
+//
+//                trainMap.put("parametrebl",parametrebl);
+//                List<JsonNode> parametrebe = parametrebeNodesList.get(m50592s.indexOf(m50592));
+//
+//                trainMap.put("parametrebe",parametrebe);
 
 
                 found50592 = true;
