@@ -18,7 +18,7 @@ public interface TrainRepository extends JpaRepository<Train, Long> {
     List<Train> findByDateFichierAndSite(Date dateFichier, String site);
 
     List<Train> findBySiteAndDateFichier(String site, Date dateFichier);
-
+    List<Train> findBySiteAndDateFichierAndHeureFichier(String site , Date dateFichier , Time heure);
     List<Train> findAll();
 
 

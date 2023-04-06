@@ -195,10 +195,34 @@ public class Main {
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFilessam = new ArrayList<>();
 
-
+            EnvloppeData enveloppeData = new EnvloppeData();
             // Lire tous les fichiers commençant par 'Sam'
             File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
+            System.out.println(samFiles.length);
             for (File samFile : samFiles) {
+                // Charger les enveloppes à partir du fichier JSON
+
+                System.out.println(enveloppeData);
+                System.out.println("voila : "+samFile);
+                enveloppeData.loadFromJson(samFile);
+
+
+// Appel de la méthode saveSampledToJson
+                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
+                double step = 0.1; // step peut être changé selon vos besoins
+
+                try {
+                    enveloppeData.saveSampledToJson(outputFile, step);
+                    System.out.println(outputFile);
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+
+
 
 
 
@@ -207,24 +231,6 @@ public class Main {
                     continue;
                 }
 
-
-
-//                // Charger les enveloppes à partir du fichier JSON
-//                EnvloppeData enveloppeData = new EnvloppeData();
-//                enveloppeData.loadFromJson(samFile);
-//
-//
-//// Appel de la méthode saveSampledToJson
-//                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
-//                double step = 0.1; // step peut être changé selon vos besoins
-//
-//                try {
-//                    enveloppeData.saveSampledToJson(outputFile, step);
-//
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
 
 
 
@@ -303,14 +309,15 @@ public class Main {
                 }
             }
 
-//            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-//            for (File samFiletraite : samFilestraite) {
-//
-//                EnvloppeData enveloppeData = new EnvloppeData();
-//                enveloppeData.generateGraph(samFiletraite);
-//
-//            }
+            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+            System.out.println("samtraite :"+samFilestraite);
+            for (File samFiletraite : samFilestraite) {
 
+
+//                enveloppeData.generateGraph(samFiletraite);
+                System.out.println("fichier  :"+samFiletraite);
+
+            }
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFiles50592 = new ArrayList<>();
             // Lire tous les fichiers commençant par '50592'
