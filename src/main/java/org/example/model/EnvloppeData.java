@@ -106,7 +106,8 @@ public class EnvloppeData {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonFile);
         JsonNode enveloppeNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
-
+x.clear();
+y.clear();
 
 //        List<Capteur> allCapteurs = new ArrayList<>();
         if (enveloppeNode != null && !enveloppeNode.isEmpty()) {
@@ -121,11 +122,11 @@ public class EnvloppeData {
             JsonNode yNode = capteursNode.get("Y");
             for (int i = 0; i < xNode.size(); i++) {
                 x.add(xNode.get(i).asDouble());
-
                 y.add(yNode.get(i).asDouble());
 
             }
-            System.out.println("aaa"+x.size());
+            System.out.println("x : "+x.size() +"Y :"+y.size());
+
 
 
 
@@ -270,7 +271,7 @@ public class EnvloppeData {
     }
 
     //méthode principale qui échantillonne les données. Elle calcule d'abord les bornes de temps et les ajuste pour contenir toutes les données. Ensuite, elle trouve les indices du début et de la fin de chaque "segment" de données (où la valeur de y est inférieure à 0,2) et calcule les bornes correspondantes en x. Enfin, elle échantillonne les données en fonction d'un pas donné (step) pour obtenir un nombre fixe de points échantillonnés
-    public double[][] sample(double step) {
+    public double[][] sample(double step ) {
 
 
         List<Double> lsttmpmin = new ArrayList<Double>();
@@ -292,9 +293,10 @@ public class EnvloppeData {
         // Pour chaque capteur, trouver la première et la dernière valeur en dessous de 0.2 dans le tableau Y.
         List<Integer> firstIndices = new ArrayList<Integer>();
         List<Integer> lastIndices = new ArrayList<Integer>();
-        double minY = 0.2;
+        double minY = 0.4;
+
         for (int i = 0; i < y.size(); i++) {
-            if (y.get(i) < minY) {
+            if (y.get(i) < minY && x.get(i) >= 0) {
                 if (firstIndices.isEmpty()) {
                     firstIndices.add(i);
                 }
@@ -331,7 +333,7 @@ public class EnvloppeData {
         long numSamples = (long) Math.ceil( (xd - xp) / step);
 
 
-        int maxSamples = 6000;
+        int maxSamples = 10000;
         if (numSamples <= maxSamples) {
             return sampleAllData();
         } else {
@@ -384,8 +386,9 @@ public class EnvloppeData {
         }
     }
     //échantillonne les données et les sauvegarde au format JSON dans un fichier spécifié.
-    public void saveSampledToJson(File outputFile, double step) throws IOException {
+    public void saveSampledToJson(File outputFile, double step ) throws IOException {
         double[][] sampledData = sample(step);
+
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNodeFactory nodeFactory = mapper.getNodeFactory();
@@ -416,6 +419,7 @@ public class EnvloppeData {
             xNode.add(sampledData[0][i]);
             yNode.add(sampledData[1][i]);
         }
+        System.out.println("x echantillonné "+xNode.size()+" y echantillonné "+yNode.size());
 
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
@@ -435,117 +439,118 @@ public class EnvloppeData {
 
 
 
-//    public static void generateGraph(File jsonFile) throws IOException {
-//
-//        // Charger le fichier JSON
-//        ObjectMapper mapper = new ObjectMapper();
-//        JsonNode rootNode = mapper.readTree(jsonFile);
-//
-//
-//        // Récupérer les données de Capteurs[0]
-//        JsonNode capteursNode = rootNode.get("Capteurs").get(0);
-//
-//        JsonNode xNode = capteursNode.get("X");
-//
-//
-//        JsonNode yNode = capteursNode.get("Y");
-//
-//        // Créer une série de données pour le graphe
-//        XYSeries series = new XYSeries("Données de capteur");
-//        double intervalle = 0.2; // intervalle en millisecondes entre chaque vague
-//        double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
-//        for (int i = 0; i < xNode.size(); i++) {
-//            double x = xNode.get(i).asDouble();
-//            double y = yNode.get(i).asDouble();
-//
-//            // ne garder que les points dont la valeur en Y est inferieur ou égale à 0.4
-//            if (y <= 0.4) {
-//                // si la valeur de x est inférieure ou égale à 3000000, ajouter le point
-//                if (x <= 3000000) {
-//                    series.add(x, y, false);
-//                } else {
-//                    // sinon, ajouter un point supplémentaire à 3000000 avec la même valeur de y
-//                    series.add(3000000, y, false);
-//                }
-//
-//                // Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
-//                if (x - lastX > 90000) {
-//                    System.out.println("jjjj"+x);
-//                    double newX = x - 9; // calculer la valeur X du point fictif
-//                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
-//                    lastX = newX; // mettre à jour la valeur X du dernier point ajouté
-//                }
-//                lastX = x; // mettre à jour la valeur X du dernier point ajouté
-//            }
-//
-//
-//
-//
-//
-//
-//
-//
-//    }
-//
-//
-//
-//
-//        // Ajouter la série de données à une collection
-//        XYSeriesCollection dataset = new XYSeriesCollection();
-//        dataset.addSeries(series);
-//        System.out.println("je 7");
-//        // Créer le graphe
-//        JFreeChart chart = ChartFactory.createXYLineChart(
-//                "Données de capteur", // titre
-//                "Temps (ms)", // étiquette axe des abscisses
-//                "Valeur", // étiquette axe des ordonnées
-//                dataset, // données
-//                PlotOrientation.VERTICAL, // orientation du graphe
-//                true, // afficher la légende
-//                false, // pas de tooltips
-//                false // pas de URLs
-//        );
-//
-//        // Personnaliser le graphe
-//        XYPlot plot = chart.getXYPlot();
-//        plot.setBackgroundPaint(Color.white);
-//        plot.setRangeGridlinePaint(Color.black);
-//        plot.setDomainGridlinePaint(Color.black);
-//
-//
-//
-//        // Personnaliser l'axe des abscisses
-//        NumberAxis xAxis = new NumberAxis("Temps (ms)");
-//        xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
-//        xAxis.setRange(0, 3000000);
-//        xAxis.setTickUnit(new NumberTickUnit(400000));
-//        xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
-//        plot.setDomainAxis(xAxis);
-//
-//
-//
-//
-//
-//        // Personnaliser l'axe des ordonnées
-//        NumberAxis yAxis = new NumberAxis("Valeur");
-////        yAxis.setFixedDimension(50);
-//
-//
-//        yAxis.setRange(0, 0.4);
-//        yAxis.setTickUnit(new NumberTickUnit(0.1));
-//        plot.setRangeAxis(yAxis);
-//
-//
-//        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
-//        renderer.setBaseStroke(new BasicStroke(0.1f));
-//
-//
-//
-//// Générer l'image du graphe
-//        File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image.png");
-//        ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
-//
-//
-//
-//    }
+    public static void generateGraph(File jsonFile , int j ) throws IOException {
+
+        // Charger le fichier JSON
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode = mapper.readTree(jsonFile);
+
+
+        // Récupérer les données de Capteurs[0]
+        JsonNode capteursNode = rootNode.get("Capteurs").get(0);
+
+        JsonNode xNode = capteursNode.get("X");
+
+
+        JsonNode yNode = capteursNode.get("Y");
+
+        // Créer une série de données pour le graphe
+        XYSeries series = new XYSeries("Données de capteur");
+        double intervalle = 0.2; // intervalle en millisecondes entre chaque vague
+        double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
+        for (int i = 0; i < xNode.size(); i++) {
+            double x = xNode.get(i).asDouble();
+            double y = yNode.get(i).asDouble();
+
+            // ne garder que les points dont la valeur en Y est inferieur ou égale à 0.4
+            if (y <= 0.4) {
+                // si la valeur de x est inférieure ou égale à 3000000, ajouter le point
+                if (x <= 3000000) {
+                    series.add(x, y, false);
+                } else {
+                    // sinon, ajouter un point supplémentaire à 3000000 avec la même valeur de y
+                    series.add(3000000, y, false);
+                }
+
+                // Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
+                if (x - lastX > 90000) {
+
+                    double newX = x - 9; // calculer la valeur X du point fictif
+                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
+                    lastX = newX; // mettre à jour la valeur X du dernier point ajouté
+                }
+                lastX = x; // mettre à jour la valeur X du dernier point ajouté
+            }
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+        // Ajouter la série de données à une collection
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(series);
+
+
+        // Créer le graphe
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                "Données de capteur", // titre
+                "Temps (ms)", // étiquette axe des abscisses
+                "Valeur", // étiquette axe des ordonnées
+                dataset, // données
+                PlotOrientation.VERTICAL, // orientation du graphe
+                true, // afficher la légende
+                false, // pas de tooltips
+                false // pas de URLs
+        );
+
+        // Personnaliser le graphe
+        XYPlot plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.white);
+        plot.setRangeGridlinePaint(Color.black);
+        plot.setDomainGridlinePaint(Color.black);
+
+
+
+        // Personnaliser l'axe des abscisses
+        NumberAxis xAxis = new NumberAxis("Temps (ms)");
+        xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
+        xAxis.setRange(0, 3000000);
+        xAxis.setTickUnit(new NumberTickUnit(400000));
+        xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
+        plot.setDomainAxis(xAxis);
+
+
+
+
+
+        // Personnaliser l'axe des ordonnées
+        NumberAxis yAxis = new NumberAxis("Valeur");
+//        yAxis.setFixedDimension(50);
+
+
+        yAxis.setRange(0, 0.4);
+        yAxis.setTickUnit(new NumberTickUnit(0.1));
+        plot.setRangeAxis(yAxis);
+
+
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+        renderer.setBaseStroke(new BasicStroke(0.1f));
+
+
+
+// Générer l'image du graphe
+        File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image"+j+".png");
+        ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
+
+
+
+    }
 }

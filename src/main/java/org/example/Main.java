@@ -221,21 +221,35 @@ public class Main {
 
                     for (Sam sam : sams) {
                         for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
+
                             enveloppeData.loadFromJson(samFile, i);
 System.out.println(i);
 
 // Appel de la méthode saveSampledToJson
                             File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"+i));
-                            double step = 60.0; // step peut être changé selon vos besoins
+                            double step = 40.0; // step peut être changé selon vos besoins
 
 
                                 enveloppeData.saveSampledToJson(outputFile, step);
-                                System.out.println(outputFile);
-                                System.out.println("aaaaa");
 
 
 
-                        }
+                            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+
+                            for (File samFiletraite : samFilestraite) {
+
+
+                                enveloppeData.generateGraph(samFiletraite,i);
+
+
+
+
+                            }
+
+                            }
+
+
+
                         if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
                             // Le fichier a déjà été traité, passer au suivant
                             continue;
@@ -253,15 +267,7 @@ System.out.println(i);
                             sam.setUrlSam(urlsam);
                         }
 
-                        File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-                        System.out.println("samtraite :"+samFilestraite);
-                        for (File samFiletraite : samFilestraite) {
-                            System.out.println("fichier1  :"+samFiletraite);
 
-//                enveloppeData.generateGraph(samFiletraite);
-                            System.out.println("fichier  :"+samFiletraite);
-
-                        }
                         samService.save(sam);
 
                         processedFilessam.add(samFile.getName());
