@@ -146,7 +146,23 @@ public class SamTrainController {
 
             trainMap.put("dateFichier", train.getDateFichier());
             trainMap.put("heureFichier", train.getHeureFichier());
-            trainMap.put("url", train.getUrl());
+            // Créer une liste de noms d'images PNG à partir de l'URL
+            List<String> images = new ArrayList<>();
+            String url = train.getUrl();
+            int index = url.lastIndexOf('/');
+            String directory = url.substring(0, index + 1);
+            File folder = new File(directory);
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
+                        images.add(file.getName());
+                    }
+                }
+            }
+
+
+            trainMap.put("images", images);
 
 
             boolean foundSam = false;
@@ -155,7 +171,23 @@ public class SamTrainController {
             for (Sam sam : sams) {
                 if (train.getHeureFichier().equals(sam.getHeureFichier())) {
 
-                    trainMap.put("urlSam", sam.getUrlSam());
+                    // Créer une liste de noms d'images PNG à partir de l'URL
+                    List<String> imagesSam = new ArrayList<>();
+                    String urlsam = sam.getUrlSam();
+                    int indexsam = urlsam.lastIndexOf('/');
+                    String directorysam = url.substring(0, indexsam + 1);
+                    File foldersam = new File(directorysam);
+                    File[] filesSam = foldersam.listFiles();
+                    if (filesSam != null) {
+                        for (File file : filesSam) {
+                            if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
+                                imagesSam.add(file.getName());
+                            }
+                        }
+                    }
+
+
+                    trainMap.put("imagesSam", imagesSam);
 
 
                     foundSam = true;
@@ -166,7 +198,23 @@ public class SamTrainController {
             for (M_50592 m50592 : m50592s) {
                 if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
 
-                    trainMap.put("url50592", m50592.getUrl50592());
+                    // Créer une liste de noms d'images PNG à partir de l'URL
+                    List<String> images50592 = new ArrayList<>();
+                    String url50592 = m50592.getUrl50592();
+                    int index50592 = url50592.lastIndexOf('/');
+                    String directory50592 = url.substring(0, index50592 + 1);
+                    File folder50592 = new File(directory50592);
+                    File[] files50592 = folder50592.listFiles();
+                    if (files50592 != null) {
+                        for (File file : files50592) {
+                            if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
+                                images50592.add(file.getName());
+                            }
+                        }
+                    }
+
+
+                    trainMap.put("images50592", images50592);
 
 
 
@@ -426,7 +474,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         trainMap.put("numTrain", train.getNumTrain());
         trainMap.put("dateFichier", train.getDateFichier());
         trainMap.put("heureFichier", train.getHeureFichier());
-//        trainMap.put("url", train.getUrl());
+
 //        trainMap.put("site",site);
 
         boolean foundSam = false;

@@ -202,21 +202,6 @@ public class Main {
             for (File samFile : samFiles) {
                 // Charger les enveloppes à partir du fichier JSON
 
-                enveloppeData.loadFromJson(samFile);
-
-
-// Appel de la méthode saveSampledToJson
-                File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
-                double step = 60.0; // step peut être changé selon vos besoins
-
-                try {
-                    enveloppeData.saveSampledToJson(outputFile, step);
-                    System.out.println(outputFile);
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
 
 
@@ -224,10 +209,7 @@ public class Main {
 
 
 
-                if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
-                    // Le fichier a déjà été traité, passer au suivant
-                    continue;
-                }
+
 
 
 
@@ -238,7 +220,28 @@ public class Main {
                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
 
                     for (Sam sam : sams) {
+                        for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
+                            enveloppeData.loadFromJson(samFile, i);
+System.out.println(i);
 
+// Appel de la méthode saveSampledToJson
+                            File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"+i));
+                            double step = 60.0; // step peut être changé selon vos besoins
+
+                            try {
+                                enveloppeData.saveSampledToJson(outputFile, step);
+                                System.out.println(outputFile);
+                                System.out.println("aaaaa");
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                        if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
+                            // Le fichier a déjà été traité, passer au suivant
+                            continue;
+                        }
                         sam.checkOccultations();
 
                         sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
@@ -252,7 +255,15 @@ public class Main {
                             sam.setUrlSam(urlsam);
                         }
 
+                        File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+                        System.out.println("samtraite :"+samFilestraite);
+                        for (File samFiletraite : samFilestraite) {
+                            System.out.println("fichier1  :"+samFiletraite);
 
+//                enveloppeData.generateGraph(samFiletraite);
+                            System.out.println("fichier  :"+samFiletraite);
+
+                        }
                         samService.save(sam);
 
                         processedFilessam.add(samFile.getName());
@@ -307,15 +318,7 @@ public class Main {
                 }
             }
 
-            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-            System.out.println("samtraite :"+samFilestraite);
-            for (File samFiletraite : samFilestraite) {
-                System.out.println("fichier1  :"+samFiletraite);
 
-                enveloppeData.generateGraph(samFiletraite);
-                System.out.println("fichier  :"+samFiletraite);
-
-            }
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFiles50592 = new ArrayList<>();
             // Lire tous les fichiers commençant par '50592'

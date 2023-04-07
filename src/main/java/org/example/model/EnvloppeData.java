@@ -100,7 +100,7 @@ public class EnvloppeData {
 
     }
 
-    public void loadFromJson(File jsonFile) throws IOException {
+    public void loadFromJson(File jsonFile ,int j) throws IOException {
 
 
         ObjectMapper mapper = new ObjectMapper();
@@ -108,44 +108,60 @@ public class EnvloppeData {
         JsonNode enveloppeNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
 
 
-
+//        List<Capteur> allCapteurs = new ArrayList<>();
         if (enveloppeNode != null && !enveloppeNode.isEmpty()) {
             dtMs = enveloppeNode.get("dt_ms").asDouble();
 
 
+                dtMs = enveloppeNode.get("dt_ms").asDouble();
 
-
-
-
-
-
-
-
-
-
-
-
-
-            //Récupérer les données de Capteurs[1]
-            JsonNode capteursNode = enveloppeNode.get("Capteurs").get(0);
+            //Récupérer les données de Capteurs
+            JsonNode capteursNode = enveloppeNode.get("Capteurs").get(j-1);
             JsonNode xNode = capteursNode.get("X");
             JsonNode yNode = capteursNode.get("Y");
             for (int i = 0; i < xNode.size(); i++) {
                 x.add(xNode.get(i).asDouble());
-                y.add(yNode.get(i).asDouble());
-          }
 
+                y.add(yNode.get(i).asDouble());
+
+            }
+            System.out.println("aaa"+x.size());
+
+
+
+
+
+
+
+//                JsonNode capteursNode = enveloppeNode.get("Capteurs");
+
+//                for (int i = 0; i < capteursNode.size(); i++) {
+//                    JsonNode capteurNode = capteursNode.get(i);
+//                    List<Double> xList = new ArrayList<>();
+//                    List<Double> yList = new ArrayList<>();
+//                    JsonNode xNode = capteurNode.get("X");
+//
+//                    JsonNode yNode = capteurNode.get("Y");
+//                    for (int j = 0; j < xNode.size(); j++) {
+//                        xList.add(xNode.get(j).asDouble());
+//                        yList.add(yNode.get(j).asDouble());
+//
+//                    }
+//                    Capteur capteurs = new Capteur(xList, yList);
+//                    allCapteurs.add(capteurs);
+//
+//                }
+//            for (int k = 0; k < allCapteurs.get(0).getX().size(); k++) {
+//                x.add(allCapteurs.get(0).getX().get(k));
+//
+//                y.add(allCapteurs.get(1).getY().get(k));
+//            }
+//            System.out.println(x.size());
         }
 
 
-//            //Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode1 = enveloppeNode.get("Capteurs").get(1);
-//            JsonNode xNode1 = capteursNode1.get("X");
-//            JsonNode yNode1 = capteursNode1.get("Y");
-//            for (int i = 0; i < xNode1.size(); i++) {
-//                x1.add(xNode1.get(i).asDouble());
-//                y1.add(yNode1.get(i).asDouble());
-//            }
+
+
 //
 //            //    Récupérer les données de Capteurs[2]
 //            JsonNode capteursNode2 = enveloppeNode.get("Capteurs").get(2);
@@ -383,130 +399,20 @@ public class EnvloppeData {
         ArrayNode capteursArrayNode = enveloppesNode.arrayNode();
 
         // Ajout des données du premier capteur
-        ObjectNode capteur1Node = nodeFactory.objectNode();
-        ArrayNode xNode1 = nodeFactory.arrayNode();
-        ArrayNode yNode1 = nodeFactory.arrayNode();
-        System.out.println(sampledData[0]);
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode1.add(sampledData[0][i]);
-            yNode1.add(sampledData[1][i]);
-        }
-
-        capteur1Node.set("X", xNode1);
-        capteur1Node.set("Y", yNode1);
-
-        capteursArrayNode.add(capteur1Node);
-
-       //  Ajout des données du deuxième capteur
-        ObjectNode capteur2Node = nodeFactory.objectNode();
-        ArrayNode xNode2 = nodeFactory.arrayNode();
-        ArrayNode yNode2 = nodeFactory.arrayNode();
-
-        for (int i = 0 ;i < sampledData[0].length; i++) {
-            xNode2.add(sampledData[0][i]);
-            yNode2.add(sampledData[1][i]);
-        }
-
-        capteur2Node.set("X", xNode2);
-        capteur2Node.set("Y", yNode2);
-
-        capteursArrayNode.add(capteur2Node);
-
-
-        // Ajout des données du troisieme capteur
-        ObjectNode capteur3Node = nodeFactory.objectNode();
-        ArrayNode xNode3 = nodeFactory.arrayNode();
-        ArrayNode yNode3 = nodeFactory.arrayNode();
+        ObjectNode capteurNode = nodeFactory.objectNode();
+        ArrayNode xNode = nodeFactory.arrayNode();
+        ArrayNode yNode = nodeFactory.arrayNode();
 
         for (int i = 0; i < sampledData[0].length; i++) {
-            xNode3.add(sampledData[0][i]);
-            yNode3.add(sampledData[1][i]);
+            xNode.add(sampledData[0][i]);
+            yNode.add(sampledData[1][i]);
         }
 
-        capteur3Node.set("X", xNode3);
-        capteur3Node.set("Y", yNode3);
+        capteurNode.set("X", xNode);
+        capteurNode.set("Y", yNode);
 
-        capteursArrayNode.add(capteur3Node);
+        capteursArrayNode.add(capteurNode);
 
-
-        // Ajout des données du 4 capteur
-        ObjectNode capteur4Node = nodeFactory.objectNode();
-        ArrayNode xNode4 = nodeFactory.arrayNode();
-        ArrayNode yNode4 = nodeFactory.arrayNode();
-
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode4.add(sampledData[0][i]);
-            yNode4.add(sampledData[1][i]);
-        }
-
-        capteur4Node.set("X", xNode4);
-        capteur4Node.set("Y", yNode4);
-
-        capteursArrayNode.add(capteur4Node);
-
-
-       //  Ajout des données du 5 capteur
-        ObjectNode capteur5Node = nodeFactory.objectNode();
-        ArrayNode xNode5 = nodeFactory.arrayNode();
-        ArrayNode yNode5 = nodeFactory.arrayNode();
-
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode5.add(sampledData[0][i]);
-            yNode5.add(sampledData[1][i]);
-        }
-
-        capteur5Node.set("X", xNode5);
-        capteur5Node.set("Y", yNode5);
-
-        capteursArrayNode.add(capteur5Node);
-
-
-        // Ajout des données du 6 capteur
-        ObjectNode capteur6Node = nodeFactory.objectNode();
-        ArrayNode xNode6 = nodeFactory.arrayNode();
-        ArrayNode yNode6 = nodeFactory.arrayNode();
-
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode6.add(sampledData[0][i]);
-            yNode6.add(sampledData[1][i]);
-        }
-
-        capteur6Node.set("X", xNode6);
-        capteur6Node.set("Y", yNode6);
-
-        capteursArrayNode.add(capteur6Node);
-
-
-       //  Ajout des données du 7 capteur
-        ObjectNode capteur7Node = nodeFactory.objectNode();
-        ArrayNode xNode7 = nodeFactory.arrayNode();
-        ArrayNode yNode7 = nodeFactory.arrayNode();
-
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode7.add(sampledData[0][i]);
-            yNode7.add(sampledData[1][i]);
-        }
-
-        capteur7Node.set("X", xNode7);
-        capteur7Node.set("Y", yNode7);
-
-        capteursArrayNode.add(capteur7Node);
-
-
-        // Ajout des données du 8 capteur
-        ObjectNode capteur8Node = nodeFactory.objectNode();
-        ArrayNode xNode8 = nodeFactory.arrayNode();
-        ArrayNode yNode8 = nodeFactory.arrayNode();
-
-        for (int i = 0; i < sampledData[0].length; i++) {
-            xNode8.add(sampledData[0][i]);
-            yNode8.add(sampledData[1][i]);
-        }
-
-        capteur8Node.set("X", xNode8);
-        capteur8Node.set("Y", yNode8);
-
-        capteursArrayNode.add(capteur8Node);
 
 // Ajout du tableau de capteurs à l'objet principal
         rootNode.set("Enveloppes", enveloppesNode);
@@ -519,117 +425,117 @@ public class EnvloppeData {
 
 
 
-    public static void generateGraph(File jsonFile) throws IOException {
-
-        // Charger le fichier JSON
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(jsonFile);
-
-
-        // Récupérer les données de Capteurs[0]
-        JsonNode capteursNode = rootNode.get("Capteurs").get(0);
-
-        JsonNode xNode = capteursNode.get("X");
-
-
-        JsonNode yNode = capteursNode.get("Y");
-
-        // Créer une série de données pour le graphe
-        XYSeries series = new XYSeries("Données de capteur");
-        double intervalle = 0.2; // intervalle en millisecondes entre chaque vague
-        double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
-        for (int i = 0; i < xNode.size(); i++) {
-            double x = xNode.get(i).asDouble();
-            double y = yNode.get(i).asDouble();
-
-            // ne garder que les points dont la valeur en Y est inferieur ou égale à 0.4
-            if (y <= 0.4) {
-                // si la valeur de x est inférieure ou égale à 3000000, ajouter le point
-                if (x <= 3000000) {
-                    series.add(x, y, false);
-                } else {
-                    // sinon, ajouter un point supplémentaire à 3000000 avec la même valeur de y
-                    series.add(3000000, y, false);
-                }
-
-                // Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
-                if (x - lastX > 90000) {
-                    System.out.println("jjjj"+x);
-                    double newX = x - 9; // calculer la valeur X du point fictif
-                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
-                    lastX = newX; // mettre à jour la valeur X du dernier point ajouté
-                }
-                lastX = x; // mettre à jour la valeur X du dernier point ajouté
-            }
-
-
-
-
-
-
-
-
-    }
-
-
-
-
-        // Ajouter la série de données à une collection
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        dataset.addSeries(series);
-        System.out.println("je 7");
-        // Créer le graphe
-        JFreeChart chart = ChartFactory.createXYLineChart(
-                "Données de capteur", // titre
-                "Temps (ms)", // étiquette axe des abscisses
-                "Valeur", // étiquette axe des ordonnées
-                dataset, // données
-                PlotOrientation.VERTICAL, // orientation du graphe
-                true, // afficher la légende
-                false, // pas de tooltips
-                false // pas de URLs
-        );
-
-        // Personnaliser le graphe
-        XYPlot plot = chart.getXYPlot();
-        plot.setBackgroundPaint(Color.white);
-        plot.setRangeGridlinePaint(Color.black);
-        plot.setDomainGridlinePaint(Color.black);
-
-
-
-        // Personnaliser l'axe des abscisses
-        NumberAxis xAxis = new NumberAxis("Temps (ms)");
-        xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
-        xAxis.setRange(0, 3000000);
-        xAxis.setTickUnit(new NumberTickUnit(400000));
-        xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
-        plot.setDomainAxis(xAxis);
-
-
-
-
-
-        // Personnaliser l'axe des ordonnées
-        NumberAxis yAxis = new NumberAxis("Valeur");
-//        yAxis.setFixedDimension(50);
-
-
-        yAxis.setRange(0, 0.4);
-        yAxis.setTickUnit(new NumberTickUnit(0.1));
-        plot.setRangeAxis(yAxis);
-
-
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
-        renderer.setBaseStroke(new BasicStroke(0.1f));
-
-
-
-// Générer l'image du graphe
-        File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image.png");
-        ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
-
-
-
-    }
+//    public static void generateGraph(File jsonFile) throws IOException {
+//
+//        // Charger le fichier JSON
+//        ObjectMapper mapper = new ObjectMapper();
+//        JsonNode rootNode = mapper.readTree(jsonFile);
+//
+//
+//        // Récupérer les données de Capteurs[0]
+//        JsonNode capteursNode = rootNode.get("Capteurs").get(0);
+//
+//        JsonNode xNode = capteursNode.get("X");
+//
+//
+//        JsonNode yNode = capteursNode.get("Y");
+//
+//        // Créer une série de données pour le graphe
+//        XYSeries series = new XYSeries("Données de capteur");
+//        double intervalle = 0.2; // intervalle en millisecondes entre chaque vague
+//        double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
+//        for (int i = 0; i < xNode.size(); i++) {
+//            double x = xNode.get(i).asDouble();
+//            double y = yNode.get(i).asDouble();
+//
+//            // ne garder que les points dont la valeur en Y est inferieur ou égale à 0.4
+//            if (y <= 0.4) {
+//                // si la valeur de x est inférieure ou égale à 3000000, ajouter le point
+//                if (x <= 3000000) {
+//                    series.add(x, y, false);
+//                } else {
+//                    // sinon, ajouter un point supplémentaire à 3000000 avec la même valeur de y
+//                    series.add(3000000, y, false);
+//                }
+//
+//                // Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
+//                if (x - lastX > 90000) {
+//                    System.out.println("jjjj"+x);
+//                    double newX = x - 9; // calculer la valeur X du point fictif
+//                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
+//                    lastX = newX; // mettre à jour la valeur X du dernier point ajouté
+//                }
+//                lastX = x; // mettre à jour la valeur X du dernier point ajouté
+//            }
+//
+//
+//
+//
+//
+//
+//
+//
+//    }
+//
+//
+//
+//
+//        // Ajouter la série de données à une collection
+//        XYSeriesCollection dataset = new XYSeriesCollection();
+//        dataset.addSeries(series);
+//        System.out.println("je 7");
+//        // Créer le graphe
+//        JFreeChart chart = ChartFactory.createXYLineChart(
+//                "Données de capteur", // titre
+//                "Temps (ms)", // étiquette axe des abscisses
+//                "Valeur", // étiquette axe des ordonnées
+//                dataset, // données
+//                PlotOrientation.VERTICAL, // orientation du graphe
+//                true, // afficher la légende
+//                false, // pas de tooltips
+//                false // pas de URLs
+//        );
+//
+//        // Personnaliser le graphe
+//        XYPlot plot = chart.getXYPlot();
+//        plot.setBackgroundPaint(Color.white);
+//        plot.setRangeGridlinePaint(Color.black);
+//        plot.setDomainGridlinePaint(Color.black);
+//
+//
+//
+//        // Personnaliser l'axe des abscisses
+//        NumberAxis xAxis = new NumberAxis("Temps (ms)");
+//        xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
+//        xAxis.setRange(0, 3000000);
+//        xAxis.setTickUnit(new NumberTickUnit(400000));
+//        xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
+//        plot.setDomainAxis(xAxis);
+//
+//
+//
+//
+//
+//        // Personnaliser l'axe des ordonnées
+//        NumberAxis yAxis = new NumberAxis("Valeur");
+////        yAxis.setFixedDimension(50);
+//
+//
+//        yAxis.setRange(0, 0.4);
+//        yAxis.setTickUnit(new NumberTickUnit(0.1));
+//        plot.setRangeAxis(yAxis);
+//
+//
+//        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+//        renderer.setBaseStroke(new BasicStroke(0.1f));
+//
+//
+//
+//// Générer l'image du graphe
+//        File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image.png");
+//        ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
+//
+//
+//
+//    }
 }
