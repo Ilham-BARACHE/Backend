@@ -85,21 +85,6 @@ public class Sam  {
 
 
 
-    public Integer getNb_Essieux() {
-        return nb_Essieux;
-    }
-
-    public void setNb_Essieux(Integer nb_Essieux) {
-        this.nb_Essieux = nb_Essieux;
-    }
-
-    public List<Integer> getNb_Occultations() {
-        return nb_Occultations;
-    }
-
-    public void setNb_Occultations(List<Integer> nb_Occultations) {
-        this.nb_Occultations = nb_Occultations;
-    }
 
 
 

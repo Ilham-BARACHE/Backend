@@ -202,14 +202,12 @@ public class Main {
             for (File samFile : samFiles) {
                 // Charger les enveloppes à partir du fichier JSON
 
-                System.out.println(enveloppeData);
-                System.out.println("voila : "+samFile);
                 enveloppeData.loadFromJson(samFile);
 
 
 // Appel de la méthode saveSampledToJson
                 File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"));
-                double step = 0.1; // step peut être changé selon vos besoins
+                double step = 60.0; // step peut être changé selon vos besoins
 
                 try {
                     enveloppeData.saveSampledToJson(outputFile, step);
@@ -312,9 +310,9 @@ public class Main {
             File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
             System.out.println("samtraite :"+samFilestraite);
             for (File samFiletraite : samFilestraite) {
+                System.out.println("fichier1  :"+samFiletraite);
 
-
-//                enveloppeData.generateGraph(samFiletraite);
+                enveloppeData.generateGraph(samFiletraite);
                 System.out.println("fichier  :"+samFiletraite);
 
             }
