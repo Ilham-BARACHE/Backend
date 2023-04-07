@@ -3,6 +3,7 @@ package org.example.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.io.FileUtils;
 import org.example.component.Utils;
 import org.example.model.M_50592;
 import org.example.model.Mr;
@@ -146,9 +147,10 @@ public class SamTrainController {
 
             trainMap.put("dateFichier", train.getDateFichier());
             trainMap.put("heureFichier", train.getHeureFichier());
+
             // Créer une liste de noms d'images PNG à partir de l'URL
-            List<String> images = new ArrayList<>();
-            String url = train.getUrl();
+            List<Map<String, Object>> imagestrain = new ArrayList<>();
+            String url = train.getUrl() + '/';
             int index = url.lastIndexOf('/');
             String directory = url.substring(0, index + 1);
             File folder = new File(directory);
@@ -156,13 +158,41 @@ public class SamTrainController {
             if (files != null) {
                 for (File file : files) {
                     if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
-                        images.add(file.getName());
+                        Map<String, Object> image = new HashMap<>();
+                        image.put("name", file.getName());
+
+                        try {
+                            byte[] fileContent = FileUtils.readFileToByteArray(file);
+                            String base64 = Base64.getEncoder().encodeToString(fileContent);
+                            image.put("content", base64);
+                            imagestrain.add(image);
+                        } catch (IOException e) {
+                            // handle exception
+                        }
                     }
                 }
             }
 
+            trainMap.put("images", imagestrain);
+            trainMap.put("url", train.getUrl());
 
-            trainMap.put("images", images);
+            // Créer une liste de noms d'images PNG à partir de l'URL
+//            List<String> images = new ArrayList<>();
+//            String url = train.getUrl();
+//            int index = url.lastIndexOf('/');
+//            String directory = url.substring(0, index + 1);
+//            File folder = new File(directory);
+//            File[] files = folder.listFiles();
+//            if (files != null) {
+//                for (File file : files) {
+//                    if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
+//                        images.add(file.getName());
+//                    }
+//                }
+//            }
+//
+//
+//            trainMap.put("images", images);
 
 
             boolean foundSam = false;
@@ -172,22 +202,32 @@ public class SamTrainController {
                 if (train.getHeureFichier().equals(sam.getHeureFichier())) {
 
                     // Créer une liste de noms d'images PNG à partir de l'URL
-                    List<String> imagesSam = new ArrayList<>();
-                    String urlsam = sam.getUrlSam();
+                    List<Map<String, Object>> images = new ArrayList<>();
+                    String urlsam = sam.getUrlSam() + '/';
                     int indexsam = urlsam.lastIndexOf('/');
-                    String directorysam = url.substring(0, indexsam + 1);
+                    String directorysam = urlsam.substring(0, indexsam + 1);
                     File foldersam = new File(directorysam);
                     File[] filesSam = foldersam.listFiles();
                     if (filesSam != null) {
                         for (File file : filesSam) {
                             if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
-                                imagesSam.add(file.getName());
+                                Map<String, Object> image = new HashMap<>();
+                                image.put("name", file.getName());
+
+                                try {
+                                    byte[] fileContent = FileUtils.readFileToByteArray(file);
+                                    String base64 = Base64.getEncoder().encodeToString(fileContent);
+                                    image.put("content", base64);
+                                    images.add(image);
+                                } catch (IOException e) {
+                                    // handle exception
+                                }
                             }
                         }
                     }
 
-
-                    trainMap.put("imagesSam", imagesSam);
+                    trainMap.put("imagesSam", images);
+                    trainMap.put("urlSam", sam.getUrlSam());
 
 
                     foundSam = true;
@@ -199,22 +239,32 @@ public class SamTrainController {
                 if (train.getHeureFichier().equals(m50592.getHeureFichier())) {
 
                     // Créer une liste de noms d'images PNG à partir de l'URL
-                    List<String> images50592 = new ArrayList<>();
-                    String url50592 = m50592.getUrl50592();
+                    List<Map<String, Object>> images50592 = new ArrayList<>();
+                    String url50592 = m50592.getUrl50592() + '/';
                     int index50592 = url50592.lastIndexOf('/');
-                    String directory50592 = url.substring(0, index50592 + 1);
+                    String directory50592 = url50592.substring(0, index50592 + 1);
                     File folder50592 = new File(directory50592);
                     File[] files50592 = folder50592.listFiles();
                     if (files50592 != null) {
                         for (File file : files50592) {
                             if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
-                                images50592.add(file.getName());
+                                Map<String, Object> image = new HashMap<>();
+                                image.put("name", file.getName());
+
+                                try {
+                                    byte[] fileContent = FileUtils.readFileToByteArray(file);
+                                    String base64 = Base64.getEncoder().encodeToString(fileContent);
+                                    image.put("content", base64);
+                                    imagestrain.add(image);
+                                } catch (IOException e) {
+                                    // handle exception
+                                }
                             }
                         }
                     }
 
-
                     trainMap.put("images50592", images50592);
+                    trainMap.put("url50592", m50592.getUrl50592());
 
 
 
@@ -475,7 +525,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         trainMap.put("dateFichier", train.getDateFichier());
         trainMap.put("heureFichier", train.getHeureFichier());
 
-//        trainMap.put("site",site);
+        trainMap.put("site",site);
 
         boolean foundSam = false;
         boolean found50592 = false;

@@ -228,14 +228,12 @@ System.out.println(i);
                             File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"+i));
                             double step = 60.0; // step peut être changé selon vos besoins
 
-                            try {
+
                                 enveloppeData.saveSampledToJson(outputFile, step);
                                 System.out.println(outputFile);
                                 System.out.println("aaaaa");
 
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+
 
                         }
                         if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {

@@ -391,6 +391,8 @@ public class EnvloppeData {
         JsonNodeFactory nodeFactory = mapper.getNodeFactory();
         ObjectNode rootNode = nodeFactory.objectNode();
 
+        // Effacer les nœuds existants dans l'objet rootNode
+        rootNode.removeAll();
         // Création de l'objet "Enveloppes"
         ObjectNode enveloppesNode = nodeFactory.objectNode();
         enveloppesNode.put("Dt_ms", dtMs);
@@ -403,6 +405,13 @@ public class EnvloppeData {
         ArrayNode xNode = nodeFactory.arrayNode();
         ArrayNode yNode = nodeFactory.arrayNode();
 
+// Vider les tableaux
+        xNode.removeAll();
+        yNode.removeAll();
+        enveloppesNode.removeAll();
+        capteurNode.removeAll();
+        capteursArrayNode.removeAll();
+
         for (int i = 0; i < sampledData[0].length; i++) {
             xNode.add(sampledData[0][i]);
             yNode.add(sampledData[1][i]);
@@ -414,13 +423,14 @@ public class EnvloppeData {
         capteursArrayNode.add(capteurNode);
 
 
-// Ajout du tableau de capteurs à l'objet principal
+
+// Ajout du nouveau contenu à l'objet rootNode
         rootNode.set("Enveloppes", enveloppesNode);
         rootNode.set("Capteurs", capteursArrayNode);
 
-
-
+// Écrire le fichier JSON
         mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile, rootNode);
+
     }
 
 
