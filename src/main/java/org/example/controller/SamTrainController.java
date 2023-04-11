@@ -255,7 +255,7 @@ public class SamTrainController {
                                     byte[] fileContent = FileUtils.readFileToByteArray(file);
                                     String base64 = Base64.getEncoder().encodeToString(fileContent);
                                     image.put("content", base64);
-                                    imagestrain.add(image);
+                                    images50592.add(image);
                                 } catch (IOException e) {
                                     // handle exception
                                 }
