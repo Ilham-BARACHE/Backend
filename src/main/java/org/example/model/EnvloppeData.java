@@ -79,23 +79,7 @@ public class EnvloppeData {
 
         x = new ArrayList<>();
         y = new ArrayList<>();
-        x1 = new ArrayList<>();
-        y1 = new ArrayList<>();
 
-        x2 = new ArrayList<>();
-        y2 = new ArrayList<>();
-        x3 = new ArrayList<>();
-        y3 = new ArrayList<>();
-
-        x4 = new ArrayList<>();
-        y4 = new ArrayList<>();
-        x5 = new ArrayList<>();
-        y5 = new ArrayList<>();
-
-        x6 = new ArrayList<>();
-        y6 = new ArrayList<>();
-        x7 = new ArrayList<>();
-        y7 = new ArrayList<>();
         dtMs = 0.0;
 
     }
@@ -106,15 +90,15 @@ public class EnvloppeData {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonFile);
         JsonNode enveloppeNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
-x.clear();
-y.clear();
+        x.clear();
+        y.clear();
 
 //        List<Capteur> allCapteurs = new ArrayList<>();
         if (enveloppeNode != null && !enveloppeNode.isEmpty()) {
             dtMs = enveloppeNode.get("dt_ms").asDouble();
 
 
-                dtMs = enveloppeNode.get("dt_ms").asDouble();
+            dtMs = enveloppeNode.get("dt_ms").asDouble();
 
             //Récupérer les données de Capteurs
             JsonNode capteursNode = enveloppeNode.get("Capteurs").get(j-1);
@@ -122,10 +106,10 @@ y.clear();
             JsonNode yNode = capteursNode.get("Y");
             for (int i = 0; i < xNode.size(); i++) {
                 x.add(xNode.get(i).asDouble());
+
                 y.add(yNode.get(i).asDouble());
 
             }
-            System.out.println("x : "+x.size() +"Y :"+y.size());
 
 
 
@@ -271,7 +255,7 @@ y.clear();
     }
 
     //méthode principale qui échantillonne les données. Elle calcule d'abord les bornes de temps et les ajuste pour contenir toutes les données. Ensuite, elle trouve les indices du début et de la fin de chaque "segment" de données (où la valeur de y est inférieure à 0,2) et calcule les bornes correspondantes en x. Enfin, elle échantillonne les données en fonction d'un pas donné (step) pour obtenir un nombre fixe de points échantillonnés
-    public double[][] sample(double step ) {
+    public double[][] sample(double step) {
 
 
         List<Double> lsttmpmin = new ArrayList<Double>();
@@ -291,12 +275,14 @@ y.clear();
         enveloppeData.GarderSegment(tempsMin, tempsMax);
 
         // Pour chaque capteur, trouver la première et la dernière valeur en dessous de 0.2 dans le tableau Y.
+        List<Integer> highIndices = new ArrayList<Integer>();
         List<Integer> firstIndices = new ArrayList<Integer>();
         List<Integer> lastIndices = new ArrayList<Integer>();
-        double minY = 0.4;
+        double minY = 0.2;
 
         for (int i = 0; i < y.size(); i++) {
-            if (y.get(i) < minY && x.get(i) >= 0) {
+            if (y.get(i) >= minY && x.get(i) >= 0) { // vérifie si la valeur de Y est supérieure à 0,2
+                highIndices.add(i);
                 if (firstIndices.isEmpty()) {
                     firstIndices.add(i);
                 }
@@ -307,9 +293,9 @@ y.clear();
                     firstIndices.add(lastIndices.get(0));
                     lastIndices.clear();
                 }
+                lastIndices.add(i); // Ajout de l'index actuel
             }
         }
-
         // Déterminer la valeur minimale de toutes les premières valeurs (XP) et la valeur maximale de toutes les dernières valeurs (XD).
         double xp = Double.MAX_VALUE;
         double xd = Double.MIN_VALUE;
@@ -321,12 +307,23 @@ y.clear();
             }
             double xFirst = x.get(firstIndex);
             double xLast = x.get(lastIndex);
-            xp = Math.min(xp, xFirst);
-            xd = Math.max(xd, xLast);
+            double yFirst = y.get(firstIndex);
+            double yLast = y.get(lastIndex);
+            if (yFirst >= minY || yLast >= minY) { // vérifier si la première ou la dernière valeur est supérieure ou égale à la valeur minimale
+                xp = Math.min(xp, xFirst);
+                xd = Math.max(xd, xLast);
+            }
         }
 
 
+// Échantillonnez les données correspondant aux indices des valeurs Y supérieures à 0,2
+        List<Double> ySample = new ArrayList<Double>();
+        List<Double> xSample = new ArrayList<Double>();
+        for (int i : highIndices) {
+            ySample.add(y.get(i));
 
+            xSample.add(x.get(i));
+        }
 
 
         // Calculer le nombre de valeurs entre XP et XD et diviser ce nombre par la largeur maximale des images souhaitée (par exemple, 6000).
@@ -365,7 +362,7 @@ y.clear();
         return sampledData;
     }
 
-//interpole une valeur de y en fonction d'une valeur donnée de x en utilisant une approximation linéaire entre les deux points les plus proches.
+    //interpole une valeur de y en fonction d'une valeur donnée de x en utilisant une approximation linéaire entre les deux points les plus proches.
     private double interpolateY(double xSampled) {
         int i = 0;
         while (i < x.size() - 1 && x.get(i) < xSampled) {
@@ -386,9 +383,8 @@ y.clear();
         }
     }
     //échantillonne les données et les sauvegarde au format JSON dans un fichier spécifié.
-    public void saveSampledToJson(File outputFile, double step ) throws IOException {
+    public void saveSampledToJson(File outputFile, double step) throws IOException {
         double[][] sampledData = sample(step);
-
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNodeFactory nodeFactory = mapper.getNodeFactory();
@@ -416,10 +412,18 @@ y.clear();
         capteursArrayNode.removeAll();
 
         for (int i = 0; i < sampledData[0].length; i++) {
-            xNode.add(sampledData[0][i]);
-            yNode.add(sampledData[1][i]);
+            String xValue = Double.toString(sampledData[0][i]);
+            if (xValue.endsWith(".0")) {
+                xValue = xValue.substring(0, xValue.length() - 2);
+            }
+            xNode.add(xValue);
+
+            String yValue = Double.toString(sampledData[1][i]);
+            if (yValue.endsWith(".0")) {
+                yValue = yValue.substring(0, yValue.length() - 2);
+            }
+            yNode.add(yValue);
         }
-        System.out.println("x echantillonné "+xNode.size()+" y echantillonné "+yNode.size());
 
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
@@ -439,7 +443,7 @@ y.clear();
 
 
 
-    public static void generateGraph(File jsonFile , int j ) throws IOException {
+    public static void generateGraph(File jsonFile , int j) throws IOException {
 
         // Charger le fichier JSON
         ObjectMapper mapper = new ObjectMapper();
@@ -498,7 +502,6 @@ y.clear();
         XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(series);
 
-
         // Créer le graphe
         JFreeChart chart = ChartFactory.createXYLineChart(
                 "Données de capteur", // titre
@@ -547,7 +550,8 @@ y.clear();
 
 
 // Générer l'image du graphe
-        File outputFile = new File("C:\\Users\\Ilham Barache\\Documents\\output\\image"+j+".png");
+        File outputFile = new File(jsonFile.getParentFile(), "image"+j+".png");
+
         ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
 
 

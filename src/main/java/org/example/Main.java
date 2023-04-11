@@ -221,32 +221,27 @@ public class Main {
 
                     for (Sam sam : sams) {
                         for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
-
                             enveloppeData.loadFromJson(samFile, i);
-System.out.println(i);
+                            System.out.println(i);
 
-// Appel de la méthode saveSampledToJson
-                            File outputFile = new File(samFile.getParent(), samFile.getName().replace("SAM005", "SAMTraite"+i));
-                            double step = 40.0; // step peut être changé selon vos besoins
+                            // Créer un dossier avec le nom du fichier sans extension
+                            File outputFolderenvloppe = new File(samFile.getParent(), samFile.getName().replace(".json", "") + "_enveloppes");
+                            outputFolderenvloppe.mkdir();
 
+                            // Créer le nom du fichier de sortie pour ce traitement spécifique
+                            String outputFileName = samFile.getName().replace("SAM005", "SAMTraite"+i);
+                            File outputFile = new File(outputFolderenvloppe, outputFileName);
 
-                                enveloppeData.saveSampledToJson(outputFile, step);
+                            double step = 6.0; // step peut être changé selon vos besoins
+                            enveloppeData.saveSampledToJson(outputFile, step);
 
-
-
-                            File[] samFilestraite = outputFolder.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
+                            File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
 
                             for (File samFiletraite : samFilestraite) {
-
-
                                 enveloppeData.generateGraph(samFiletraite,i);
-
-
-
-
                             }
 
-                            }
+
 
 
 
@@ -263,7 +258,8 @@ System.out.println(i);
                             sam.setUrlSam(null); // Définir l'URL à null
                         } else {
                             // Définir l'URL en fonction du nom de fichier
-                            String urlsam = outputFolderPath+"/"+ sam.getFileName().substring(0, sam.getFileName().lastIndexOf('.'));
+                            String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
+
                             sam.setUrlSam(urlsam);
                         }
 
@@ -273,43 +269,43 @@ System.out.println(i);
                         processedFilessam.add(samFile.getName());
 
 
+//
+//                        // Vérifier si le nom du fichier correspond au format JSON attendu
+//                        if (samFile.getName().endsWith(".json")) {
+//                            // Extraire le nom du fichier JSON
+//                            String jsonFileName = samFile.getName().substring(0, samFile.getName().lastIndexOf('.'));
+//                            // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
+//                            File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
+//                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
+//                            if (imageFiles.length > 0) {
+//                                // Créer le dossier correspondant au nom du fichier JSON
+//                                File outputFolderFile = new File(outputFolder, jsonFileName);
+//                                if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
+//                                    System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
+//                                } else {
+//                                    System.out.println("Le dossier " + jsonFileName + " a été créé.");
+//                                }
+//
+//                                // Déplacer les fichiers d'image correspondants dans le dossier créé
+//                                for (File imageFile : imageFiles) {
+//                                    File targetFile = new File(outputFolderFile, imageFile.getName());
+//                                    if (!imageFile.renameTo(targetFile)) {
+//                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
+//                                    } else {
+//                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
+//                                    }
+//                                }
+//                            } else {
+//                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
+//                            }
+//                        } else {
+//                            System.err.println("Le fichier " + samFile.getName() + " ne correspond pas au format JSON attendu.");
+//                        }
+//
 
-                        // Vérifier si le nom du fichier correspond au format JSON attendu
-                        if (samFile.getName().endsWith(".json")) {
-                            // Extraire le nom du fichier JSON
-                            String jsonFileName = samFile.getName().substring(0, samFile.getName().lastIndexOf('.'));
-                            // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
-                            File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
-                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
-                            if (imageFiles.length > 0) {
-                                // Créer le dossier correspondant au nom du fichier JSON
-                                File outputFolderFile = new File(outputFolder, jsonFileName);
-                                if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
-                                    System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
-                                } else {
-                                    System.out.println("Le dossier " + jsonFileName + " a été créé.");
-                                }
 
-                                // Déplacer les fichiers d'image correspondants dans le dossier créé
-                                for (File imageFile : imageFiles) {
-                                    File targetFile = new File(outputFolderFile, imageFile.getName());
-                                    if (!imageFile.renameTo(targetFile)) {
-                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
-                                    } else {
-                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
-                                    }
-                                }
-                            } else {
-                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-                            }
-                        } else {
-                            System.err.println("Le fichier " + samFile.getName() + " ne correspond pas au format JSON attendu.");
+
                         }
-
-
-
-
-
 
 
 
