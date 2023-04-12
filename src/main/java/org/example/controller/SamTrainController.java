@@ -658,12 +658,14 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 for (Sam sam : sams) {
                     if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
                         trainMap.put("statutSAM", sam.getStatutSAM());
+                        trainMap.put("vitesse_moy",sam.getVitesse_moy());
                         hasSam = true;
                     }
                 }
                 for (M_50592 m50592 : m_50592s) {
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
+                        trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
                         has50592 = true;
                     }
                 }
@@ -700,6 +702,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 for (Sam samuniquement : samsuniquement) {
                     if (statutSam.equals("uniquement sam") && train.getHeureFichier().equals(samuniquement.getHeureFichier()) && train.getDateFichier().equals(samuniquement.getDateFichier())) {
                         trainMap.put("statutSAM", samuniquement.getStatutSAM());
+                        trainMap.put("vitesse_moy",samuniquement.getVitesse_moy());
                         hasSam = true;
                     }
                 }
@@ -707,6 +710,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 for (M_50592 m50592uniquement : m_50592suniquement) {
                     if (statut50592.equals("uniquement 50592") && train.getHeureFichier().equals(m50592uniquement.getHeureFichier()) && train.getDateFichier().equals(m50592uniquement.getDateFichier())) {
                         trainMap.put("statut50592", m50592uniquement.getStatut50592());
+                        trainMap.put("meteo",m50592uniquement.getEnvironnement().getMeteo());
                         has50592 = true;
                     }
                 }
@@ -742,6 +746,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 for (Sam sam : sams) {
                     if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
                         trainMap.put("statutSAM", sam.getStatutSAM());
+                        trainMap.put("vitesse_moy",sam.getVitesse_moy());
                         hasSam = true;
                     }
                 }
@@ -749,6 +754,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 for (M_50592 m50592 : m_50592s) {
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
+                        trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
                         has50592 = true;
                     }
                 }
