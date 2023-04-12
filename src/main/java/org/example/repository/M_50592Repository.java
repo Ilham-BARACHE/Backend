@@ -18,6 +18,8 @@ public interface M_50592Repository extends JpaRepository<M_50592, Long> {
     List<M_50592> findBySiteAndDateFichierAndHeureFichier(String site, Date dateFichier, Time heure);
     boolean existsByfileName(String nomFichier);
 
+    List<M_50592> findBySiteAndStatut50592AndDateFichierBetween(String site ,String statut ,Date dateFichier ,Date dateF );
+
 
 
 

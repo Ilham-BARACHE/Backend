@@ -44,13 +44,11 @@ import javax.persistence.Persistence;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 
-
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -79,23 +77,62 @@ public class Main {
             String inputFolderPath = prop.getProperty("input.folder.path");
             String outputFolderPath = prop.getProperty("output.folder.path");
 
-            // Déplacer tous les fichiers et dossiers de l'URL donnée vers le dossier de sortie
-//            String inputUrl = "http://example.com/traindata";
-//            File inputFolderurl = new File(inputUrl);
-//
-//            FileUtils.moveFile(inputFolderurl, outputFolder);
+
             File outputFolder = new File(outputFolderPath);
             File inputFolder = new File(inputFolderPath);
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
+//
+//            String url = "https://test01.rd-vision-dev.com/get_images";
+//            URL jsonUrl = new URL(url);
+//
+//            HttpURLConnection connection = (HttpURLConnection) jsonUrl.openConnection();
+//            connection.setRequestMethod("GET");
+//
+//// Ajouter le header Authorization avec le token
+//            String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QudXNlckB0ZXN0LmNvbSIsImV4cCI6MTY5NjYwMDY5MiwiaXNzIjoiand0dGVzdC5jb20iLCJhdWQiOiJ0cnlzdGFud2lsY29jay5jb20ifQ.LQ6yfa0InJi6N5GjRfVcA8XMZtZZef0PswrM2Io7l-g";
+//            connection.setRequestProperty("Authorization", "Bearer " + token);
+//
+//            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+//                InputStream inputStream = connection.getInputStream();
+//                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+//                StringBuilder response = new StringBuilder();
+//                String line;
+//                while ((line = bufferedReader.readLine()) != null) {
+//                    response.append(line);
+//                }
+//                bufferedReader.close();
+//                inputStream.close();
+//
+//                // Afficher la réponse
+//                System.out.println("Response: " + response.toString());
+//
+//                // Parcourir l'objet JSON
+//                JsonNode jsonNode = mapper.readTree(response.toString());
+//                System.out.println("Train id: " + jsonNode.get("results").asText());
+//                // Afficher d'autres valeurs du JSON en utilisant la méthode get() et asText()
+//
+//                connection.disconnect();
+//            } else {
+//                System.out.println("Error response code: " + connection.getResponseCode());
+//            }
 
 
 
 
 
 
-                File[] files = inputFolder.listFiles();
+
+
+
+
+
+
+
+
+
+            File[] files = inputFolder.listFiles();
             for (File file : files) {
                 if (file.getName().endsWith(".json") || file.getName().endsWith(".xlsx")) {
                     try {
@@ -138,8 +175,8 @@ public class Main {
                         train.setFileName(trainFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                         train.loadStartingWithTRAIN(trainFile.getName());
                         train.loadSite(trainFile.getName());
-                        String url = outputFolderPath+"/"+ train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
-                        train.setUrl(url);
+                        String urlt = outputFolderPath+"/"+ train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
+                        train.setUrl(urlt);
                         trainService.save(train);
                     }
                     processedFiles.add(fileName);
@@ -222,7 +259,7 @@ public class Main {
                     for (Sam sam : sams) {
                         for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
                             enveloppeData.loadFromJson(samFile, i);
-                            System.out.println(i);
+
 
                             // Créer un dossier avec le nom du fichier sans extension
                             File outputFolderenvloppe = new File(samFile.getParent(), samFile.getName().replace(".json", "") + "_enveloppes");
@@ -360,12 +397,13 @@ public class Main {
                             m_50592.setStatut50592("OK") ;
                         }
                         m50592Service.save(m_50592);
-                        String url = outputFolderPath+"/"+m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
+                        String url50592 = outputFolderPath+"/"+m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
 
                         // Vérifier si le nom du fichier correspond au format JSON attendu
                         if (m50592File.getName().endsWith(".json")) {
+                            System.out.println(m50592File.getParentFile());
                             // Extraire le nom du fichier JSON
-                            String jsonFileName = m50592File.getName().substring(0, m50592File.getName().lastIndexOf('.'));
+                            String jsonFileName = m_50592.getFileName().substring(0, m50592File.getName().lastIndexOf('.'));
                             // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
                             File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
                                     && (name.endsWith(".png") || name.endsWith(".bmp")));
@@ -394,14 +432,14 @@ public class Main {
                             } else {
                                 System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
 
-                               m_50592.setUrl50592(url);
+                               m_50592.setUrl50592(url50592);
                                 m50592Service.save(m_50592);
 
                             }
                         } else {
                             System.err.println("Le fichier " + m50592File.getName() + " ne correspond pas au format JSON attendu.");
 
-                             m_50592.setUrl50592(url);
+                             m_50592.setUrl50592(url50592);
                             m50592Service.save(m_50592);
                         }
 
