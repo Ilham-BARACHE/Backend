@@ -241,17 +241,6 @@ public class Main {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
                 TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
                 try (InputStream samStream = new FileInputStream(samFile)) {
                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);

@@ -84,32 +84,32 @@ public class EnvloppeData {
 
     }
 
-    public void loadFromJson(File jsonFile ,int j) throws IOException {
-
-
+    public void loadFromJson(File jsonFile, int j) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonFile);
-        JsonNode enveloppeNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
+
         x.clear();
         y.clear();
 
-//        List<Capteur> allCapteurs = new ArrayList<>();
-        if (enveloppeNode != null && !enveloppeNode.isEmpty()) {
-            dtMs = enveloppeNode.get("dt_ms").asDouble();
+        JsonNode enveloppesNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
 
-
-            dtMs = enveloppeNode.get("dt_ms").asDouble();
-
-            //Récupérer les données de Capteurs
-            JsonNode capteursNode = enveloppeNode.get("Capteurs").get(j-1);
-            JsonNode xNode = capteursNode.get("X");
-            JsonNode yNode = capteursNode.get("Y");
-            for (int i = 0; i < xNode.size(); i++) {
-                x.add(xNode.get(i).asDouble());
-
-                y.add(yNode.get(i).asDouble());
-
+        if (enveloppesNode != null) {
+            if (enveloppesNode.has("dt_ms") && !enveloppesNode.get("dt_ms").isNull()) {
+                dtMs = enveloppesNode.get("dt_ms").asDouble();
             }
+
+            JsonNode capteursNode = enveloppesNode.has("Capteurs") ? enveloppesNode.get("Capteurs").get(j - 1) : null;
+
+            if (capteursNode != null) {
+                JsonNode xNode = capteursNode.get("X");
+                JsonNode yNode = capteursNode.get("Y");
+                for (int i = 0; i < xNode.size(); i++) {
+                    x.add(xNode.get(i).asDouble());
+                    y.add(yNode.get(i).asDouble());
+                }
+            }
+        }
+    }
 
 
 
@@ -142,7 +142,7 @@ public class EnvloppeData {
 //                y.add(allCapteurs.get(1).getY().get(k));
 //            }
 //            System.out.println(x.size());
-        }
+
 
 
 
@@ -207,29 +207,28 @@ public class EnvloppeData {
 //                y7.add(yNode7.get(i).asDouble());
 //            }
 
-    }
+
 
 
     //calcule les bornes inférieures et supérieures des données enregistrées en x et y
     public void CalculerBornes() {
 
+        if (!x.isEmpty() && !y.isEmpty()) {
+
+            double borneInfX = Collections.min(x);
+
+            double borneSupX = Collections.max(x);
+            String borneSupXString = String.valueOf((long) borneSupX);
+            double borneSupXValue = Double.parseDouble(borneSupXString);
 
 
-        double borneInfX = Collections.min(x);
+            double borneInfY = Collections.min(y);
+            double borneSupY = Collections.max(y);
 
-        double borneSupX = Collections.max(x);
-        String borneSupXString = String.valueOf((long) borneSupX);
-        double borneSupXValue = Double.parseDouble(borneSupXString);
-
-
-
-
-        double borneInfY = Collections.min(y);
-        double borneSupY = Collections.max(y);
-
-        this.bornes = new double[][] { {borneInfX, borneInfY}, {borneSupXValue, borneSupY} };
-        this.TempsMin = bornes[0][0];
-        this.TempsMax = bornes[1][0];
+            this.bornes = new double[][]{{borneInfX, borneInfY}, {borneSupXValue, borneSupY}};
+            this.TempsMin = bornes[0][0];
+            this.TempsMax = bornes[1][0];
+        }
     }
 
     //permet de garder uniquement une partie des données qui se situent entre deux bornes de temps spécifiées

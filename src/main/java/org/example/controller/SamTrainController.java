@@ -666,6 +666,41 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
                         trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
+
+                        Properties prop = new Properties();
+                        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                        prop.load(input);
+                        String outputFolderPath = prop.getProperty("output.folder.path");
+                        File inputFile = new File(outputFolderPath, m50592.getFileName());
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
+                        JsonNode parametreBENode = rootNode.get("ParametresBE");
+                        JsonNode parametreBLNode = rootNode.get("ParametresBL");
+// create maps to store parameter-status associations
+                        Map<String, String> statusesBE = new HashMap<>();
+                        Map<String, String> statusesBL = new HashMap<>();
+
+//loop through parameters and determine their statuses
+                        for (int i = 0; i < m50592.getBeR1().getX().size(); i++) {
+                            String parameter = parametreBLNode.get(0).get(i).asText();
+                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                statusesBE.put(parameter, "NOK");
+                            } else {
+                                statusesBE.put(parameter, "OK");
+                            }
+                        }
+                        for (int i = 0; i < m50592.getBlR1().getXl().size(); i++) {
+                            String parameter = parametreBENode.get(0).get(i).asText();
+                            if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A")) {
+                                statusesBL.put(parameter, "NOK");
+                            } else {
+                                statusesBL.put(parameter, "OK");
+                            }
+                        }
+
+// add parameter-status maps to train map
+                        trainMap.put("statusbe", statusesBE);
+                        trainMap.put("statusbl", statusesBL);
                         has50592 = true;
                     }
                 }
@@ -711,6 +746,41 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (statut50592.equals("uniquement 50592") && train.getHeureFichier().equals(m50592uniquement.getHeureFichier()) && train.getDateFichier().equals(m50592uniquement.getDateFichier())) {
                         trainMap.put("statut50592", m50592uniquement.getStatut50592());
                         trainMap.put("meteo",m50592uniquement.getEnvironnement().getMeteo());
+
+                        Properties prop = new Properties();
+                        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                        prop.load(input);
+                        String outputFolderPath = prop.getProperty("output.folder.path");
+                        File inputFile = new File(outputFolderPath, m50592uniquement.getFileName());
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
+                        JsonNode parametreBENode = rootNode.get("ParametresBE");
+                        JsonNode parametreBLNode = rootNode.get("ParametresBL");
+// create maps to store parameter-status associations
+                        Map<String, String> statusesBE = new HashMap<>();
+                        Map<String, String> statusesBL = new HashMap<>();
+
+//loop through parameters and determine their statuses
+                        for (int i = 0; i < m50592uniquement.getBeR1().getX().size(); i++) {
+                            String parameter = parametreBLNode.get(0).get(i).asText();
+                            if (m50592uniquement.getBeR1().getxFond().get(i).equals("FF382A") || m50592uniquement.getBeR1().getyFond().get(i).equals("FF382A") || m50592uniquement.getBeR1().getzFond().get(i).equals("FF382A") || m50592uniquement.getBeR2().getxFond1().get(i).equals("FF382A") || m50592uniquement.getBeR2().getyFond1().get(i).equals("FF382A") || m50592uniquement.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                statusesBE.put(parameter, "NOK");
+                            } else {
+                                statusesBE.put(parameter, "OK");
+                            }
+                        }
+                        for (int i = 0; i < m50592uniquement.getBlR1().getXl().size(); i++) {
+                            String parameter = parametreBENode.get(0).get(i).asText();
+                            if (m50592uniquement.getBlR1().getxFondl().get(i).equals("FF382A") || m50592uniquement.getBlR1().getyFondl().get(i).equals("FF382A") || m50592uniquement.getBlR1().getzFondl().get(i).equals("FF382A") || m50592uniquement.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592uniquement.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592uniquement.getBlR2().getzFondl2().get(i).equals("FF382A")) {
+                                statusesBL.put(parameter, "NOK");
+                            } else {
+                                statusesBL.put(parameter, "OK");
+                            }
+                        }
+
+// add parameter-status maps to train map
+                        trainMap.put("statusbe", statusesBE);
+                        trainMap.put("statusbl", statusesBL);
                         has50592 = true;
                     }
                 }
@@ -755,6 +825,41 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
                         trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
+
+                        Properties prop = new Properties();
+                        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                        prop.load(input);
+                        String outputFolderPath = prop.getProperty("output.folder.path");
+                        File inputFile = new File(outputFolderPath, m50592.getFileName());
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
+                        JsonNode parametreBENode = rootNode.get("ParametresBE");
+                        JsonNode parametreBLNode = rootNode.get("ParametresBL");
+// create maps to store parameter-status associations
+                        Map<String, String> statusesBE = new HashMap<>();
+                        Map<String, String> statusesBL = new HashMap<>();
+
+//loop through parameters and determine their statuses
+                        for (int i = 0; i < m50592.getBeR1().getX().size(); i++) {
+                            String parameter = parametreBLNode.get(0).get(i).asText();
+                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                statusesBE.put(parameter, "NOK");
+                            } else {
+                                statusesBE.put(parameter, "OK");
+                            }
+                        }
+                        for (int i = 0; i < m50592.getBlR1().getXl().size(); i++) {
+                            String parameter = parametreBENode.get(0).get(i).asText();
+                            if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A")) {
+                                statusesBL.put(parameter, "NOK");
+                            } else {
+                                statusesBL.put(parameter, "OK");
+                            }
+                        }
+
+// add parameter-status maps to train map
+                        trainMap.put("statusbe", statusesBE);
+                        trainMap.put("statusbl", statusesBL);
                         has50592 = true;
                     }
                 }
