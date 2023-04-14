@@ -47,9 +47,7 @@ public class Sam  {
     private List<Integer> nb_Occultations;
     @Column(name = "statut_Sam")
     private String statutSAM;
-    @JsonIgnore
-    @Embedded
-    private Enveloppes enveloppes;
+
     @Column(name = "url_Sam")
     private String urlSam;
 

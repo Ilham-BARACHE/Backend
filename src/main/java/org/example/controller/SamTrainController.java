@@ -654,6 +654,9 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("heureFichier", train.getHeureFichier());
                 trainMap.put("site", site);
 
+
+
+
                 boolean hasSam = false, has50592 = false;
                 for (Sam sam : sams) {
                     if (train.getHeureFichier().equals(sam.getHeureFichier()) && train.getDateFichier().equals(sam.getDateFichier())) {
@@ -666,7 +669,61 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
                         trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
+
+
+                        Properties prop = new Properties();
+                        InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                        prop.load(input);
+
+                        String outputFolderPath = prop.getProperty("output.folder.path");
+
+                        File inputFile = new File(outputFolderPath, m50592.getFileName()); // use output folder path as parent directory
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class); // read from input file
+                        JsonNode parametreBENode = rootNode.get("ParametresBE");
+                        JsonNode parametreBLNode = rootNode.get("ParametresBL");
+
+
+                        trainMap.put("parbL",parametreBLNode);
+
+                        trainMap.put("parbE",parametreBENode);
+
+
+                        // create maps to store parameter-status associations
+                        Map<String, String> statusesBE = new HashMap<>();
+                        Map<String, String> statusesBL = new HashMap<>();
+
+//                        for (int i = 0; i < m50592.getBeR1().getX().size(); i++) {
+//                            String parameterbe = parametreBENode.get(0).get(i).toString();
+//                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A") ){
+//
+//                                statusesBE.put(parameterbe ,"NOK");
+//                            }
+//
+//                        }
+//
+//                        trainMap.put("statusbe", statusesBE);
+
+                        for (int i = 0; i < m50592.getBlR1().getXl().size(); i++) {
+                            String parameterbl = parametreBLNode.get(0).get(i).asText();
+                            System.out.println(parameterbl );
+                            if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A") ){
+
+
+                                statusesBL.put(parameterbl,"NOK");
+                            }else {
+                                statusesBL.put(parameterbl,"OK");
+                            }
+
+                        }
+                        trainMap.put("statusbl", statusesBL);
+
+
                         has50592 = true;
+
+
+
+
                     }
                 }
 
@@ -711,6 +768,13 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (statut50592.equals("uniquement 50592") && train.getHeureFichier().equals(m50592uniquement.getHeureFichier()) && train.getDateFichier().equals(m50592uniquement.getDateFichier())) {
                         trainMap.put("statut50592", m50592uniquement.getStatut50592());
                         trainMap.put("meteo",m50592uniquement.getEnvironnement().getMeteo());
+                        for (int i = 0; i < m50592uniquement.getBeR1().getX().size(); i++) {
+                            if (m50592uniquement.getBeR1().getxFond().get(i).equals("FF382A") && m50592uniquement.getBeR1().getyFond().get(i).equals("FF382A") && m50592uniquement.getBeR1().getzFond().get(i).equals("FF382A") && m50592uniquement.getBeR2().getxFond1().get(i).equals("FF382A") && m50592uniquement.getBeR2().getyFond1().get(i).equals("FF382A") && m50592uniquement.getBeR2().getzFond1().get(i).equals("FF382A") ){
+                                String statut = "NOK" ;
+                                trainMap.put("statutbe" ,statut);
+                                                          }
+
+                        }
                         has50592 = true;
                     }
                 }
@@ -755,6 +819,24 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (train.getHeureFichier().equals(m50592.getHeureFichier()) && train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("statut50592", m50592.getStatut50592());
                         trainMap.put("meteo",m50592.getEnvironnement().getMeteo());
+                        for (int i = 0; i <= m50592.getBeR1().getX().size(); i++) {
+                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A") ){
+                                String statutbe = "NOK" ;
+                                System.out.println(statutbe);
+                                trainMap.put("statutbe" ,statutbe);
+                                                          }
+
+                        }
+                        System.out.println( m50592.getBlR1().getzFondl().get(1));
+                        for (int i = 0; i <= m50592.getBeR1().getX().size(); i++) {
+
+                            if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A") ){
+                                String statutbl = "NOK" ;
+                                System.out.println(statutbl);
+                                trainMap.put("statutbl" ,statutbl);
+                            }
+
+                        }
                         has50592 = true;
                     }
                 }
