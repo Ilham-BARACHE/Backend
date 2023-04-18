@@ -235,7 +235,7 @@ public class M_50592 {
             // Trouver l'index du 2ème "_" en partant de la droite
             int lastIndex = fileName.lastIndexOf("_");
             if (lastIndex > index) {
-                String dateTimePart = fileName.substring(index+1, fileName.length()-5); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
+                String dateTimePart = fileName.substring(index+1, lastIndex); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
 
                 System.out.println("dateTimePart: " + dateTimePart);
 

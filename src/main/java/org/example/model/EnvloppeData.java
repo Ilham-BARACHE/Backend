@@ -355,10 +355,13 @@ public class EnvloppeData {
         for (int i = 0; i < numSamples; i++) {
             double xSampled = xp + i * step;
             double ySampled = interpolateY(xSampled);
-            sampledData[0][i] = xSampled;
+            sampledData[0][i] = Math.round(xSampled);
             sampledData[1][i] = ySampled;
+
         }
+
         return sampledData;
+
     }
 
     //interpole une valeur de y en fonction d'une valeur donnée de x en utilisant une approximation linéaire entre les deux points les plus proches.
@@ -411,22 +414,18 @@ public class EnvloppeData {
         capteursArrayNode.removeAll();
 
         for (int i = 0; i < sampledData[0].length; i++) {
-            String xValue = Double.toString(sampledData[0][i]);
-            if (xValue.endsWith(".0")) {
-                xValue = xValue.substring(0, xValue.length() - 2);
-            }
+            Double xValue = sampledData[0][i];
+
             xNode.add(xValue);
 
-            String yValue = Double.toString(sampledData[1][i]);
-            if (yValue.endsWith(".0")) {
-                yValue = yValue.substring(0, yValue.length() - 2);
-            }
+            Double yValue = sampledData[1][i];
+
             yNode.add(yValue);
         }
-
+        System.out.println(xNode.get(1));
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
-
+System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1));
         capteursArrayNode.add(capteurNode);
 
 
@@ -451,6 +450,7 @@ public class EnvloppeData {
 
         // Récupérer les données de Capteurs[0]
         JsonNode capteursNode = rootNode.get("Capteurs").get(0);
+        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
 
         JsonNode xNode = capteursNode.get("X");
 
@@ -549,7 +549,8 @@ public class EnvloppeData {
 
 
 // Générer l'image du graphe
-        File outputFile = new File(jsonFile.getParentFile(), "image"+j+".png");
+        String jsonFileName = jsonFile.getName().replace(".json", "");
+        File outputFile = new File(jsonFile.getParentFile(), jsonFileName+"_Capteur"+ j + ".png");
 
         ChartUtilities.saveChartAsPNG(outputFile, chart, 4000, 180);
 

@@ -13,5 +13,7 @@ public interface MrRepository extends JpaRepository<Mr,Long> {
 
     List<Mr> findByNumTrainIn(List<String> numTrains);
 
+    List<Mr> findByMr(String mr);
+
 List<Mr> findAll();
 }

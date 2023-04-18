@@ -232,6 +232,8 @@ public class Main {
 // Liste pour stocker les noms de fichiers traités
             List<String> processedFilessam = new ArrayList<>();
 
+
+
             EnvloppeData enveloppeData = new EnvloppeData();
             // Lire tous les fichiers commençant par 'Sam'
             File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
@@ -246,53 +248,23 @@ public class Main {
                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
 
                     for (Sam sam : sams) {
-                        for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
-                            enveloppeData.loadFromJson(samFile, i);
-
-
-                            // Créer un dossier avec le nom du fichier sans extension
-                            File outputFolderenvloppe = new File(samFile.getParent(), samFile.getName().replace(".json", "") + "_enveloppes");
-                            outputFolderenvloppe.mkdir();
-
-                            // Créer le nom du fichier de sortie pour ce traitement spécifique
-                            String outputFileName = samFile.getName().replace("SAM005", "SAMTraite"+i);
-                            File outputFile = new File(outputFolderenvloppe, outputFileName);
-
-                            double step = 6.0; // step peut être changé selon vos besoins
-                            enveloppeData.saveSampledToJson(outputFile, step);
-
-                            File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMTraite") && name.endsWith(".json"));
-
-                            for (File samFiletraite : samFilestraite) {
-                                enveloppeData.generateGraph(samFiletraite,i);
-                            }
 
 
 
+                                if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
+                                    // Le fichier a déjà été traité, passer au suivant
+                                    continue;
+                                }
+                                sam.checkOccultations();
+
+                                sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
+                                sam.loadStartingWithSam(samFile.getName());
+                                sam.loadSite(samFile.getName());
+                                if (sam.getStatutSAM().equals("OK")) {
+                                    sam.setUrlSam(null); // Définir l'URL à null
+                                }
 
 
-                        if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
-                            // Le fichier a déjà été traité, passer au suivant
-                            continue;
-                        }
-                        sam.checkOccultations();
-
-                        sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
-                        sam.loadStartingWithSam(samFile.getName());
-                        sam.loadSite(samFile.getName());
-                        if (sam.getStatutSAM().equals("OK")) {
-                            sam.setUrlSam(null); // Définir l'URL à null
-                        } else {
-                            // Définir l'URL en fonction du nom de fichier
-                            String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
-
-                            sam.setUrlSam(urlsam);
-                        }
-
-
-                        samService.save(sam);
-
-                        processedFilessam.add(samFile.getName());
 
 
 //
@@ -331,11 +303,50 @@ public class Main {
 
 
 
+                        samService.save(sam);
+
+                        processedFilessam.add(samFile.getName());
+                        if (sam.getStatutSAM().equals("NOK")) {
+                        for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
+                            System.out.println("nnoookkkk");
+
+
+                                enveloppeData.loadFromJson(samFile, i);
+
+                                // Créer un dossier avec le nom du fichier sans extension
+                                File outputFolderenvloppe = new File(samFile.getParent(), samFile.getName().replace(".json", "") + "_enveloppes");
+                                outputFolderenvloppe.mkdir();
+
+                                // Créer le nom du fichier de sortie pour ce traitement spécifique
+                                String outputFileName = samFile.getName().replace("SAM005", "SAMCapteur" + i);
+                                File outputFile = new File(outputFolderenvloppe, outputFileName);
+
+                                // Vérifier si le fichier de sortie existe déjà
+                                if (!outputFile.exists()) {
+                                    double step = 6.0; // step peut être changé selon vos besoins
+                                    enveloppeData.saveSampledToJson(outputFile, step);
+                                }
+                                final int index = i;
+                                // Vérifier si le fichier de sortie existe et si oui, le traiter
+                                if (outputFile.exists()) {
+                                    File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMCapteur" + index) && name.endsWith(".json"));
+
+                                    for (File samFiletraite : samFilestraite) {
+                                        enveloppeData.generateGraph(samFiletraite, i);
+                                        System.out.println("voila le fichier " + samFiletraite);
+                                    }
+                                }
+                                // Définir l'URL en fonction du nom de fichier
+                                String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
+
+                                sam.setUrlSam(urlsam);
+                            }
                         }
-
-
+samService.save(sam);
 
                     }
+
+
 
 
 
