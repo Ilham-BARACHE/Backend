@@ -134,7 +134,7 @@ public class Main {
 
             File[] files = inputFolder.listFiles();
             for (File file : files) {
-                if (file.getName().endsWith(".json") || file.getName().endsWith(".xlsx")) {
+                if (file.getName().endsWith(".json") || file.getName().endsWith(".xlsx") || file.getName().endsWith(".png") || file.getName().endsWith(".bmp") ) {
                     try {
                         Thread.sleep(1000); // Attendre 5 secondes avant de déplacer le fichier dans le dossier output
 
@@ -273,7 +273,7 @@ public class Main {
                         processedFilessam.add(samFile.getName());
                         if (sam.getStatutSAM().equals("NOK")) {
                         for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
-                            System.out.println("nnoookkkk");
+
 
 
                                 enveloppeData.loadFromJson(samFile, i);

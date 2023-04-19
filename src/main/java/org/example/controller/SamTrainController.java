@@ -611,6 +611,34 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     trainMap.put("outofband",outofband);
 
 
+
+
+                // create maps to store parameter-status associations
+                Map<String, String> statusesBE = new HashMap<>();
+                Map<String, String> statusesBL = new HashMap<>();
+
+//loop through parameters and determine their statuses
+                for (int i = 0; i < m50592.getBeR1().getX().size(); i++) {
+                    String parameter = parametreBENode.get(0).get(i).asText();
+                    if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                        statusesBE.put(parameter, "NOK");
+                    } else {
+                        statusesBE.put(parameter, "OK");
+                    }
+                }
+                for (int i = 0; i < m50592.getBlR1().getXl().size(); i++) {
+                    String parameter = parametreBLNode.get(0).get(i).asText();
+                    if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A")) {
+                        statusesBL.put(parameter, "NOK");
+                    } else {
+                        statusesBL.put(parameter, "OK");
+                    }
+                }
+
+// add parameter-status maps to train map
+                trainMap.put("statusbe", statusesBE);
+                trainMap.put("statusbl", statusesBL);
+
                 found50592 = true;
                 break;
             }
