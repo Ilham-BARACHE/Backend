@@ -267,41 +267,6 @@ public class Main {
 
 
 
-//
-//                        // Vérifier si le nom du fichier correspond au format JSON attendu
-//                        if (samFile.getName().endsWith(".json")) {
-//                            // Extraire le nom du fichier JSON
-//                            String jsonFileName = samFile.getName().substring(0, samFile.getName().lastIndexOf('.'));
-//                            // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
-//                            File[] imageFiles = inputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
-//                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
-//                            if (imageFiles.length > 0) {
-//                                // Créer le dossier correspondant au nom du fichier JSON
-//                                File outputFolderFile = new File(outputFolder, jsonFileName);
-//                                if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
-//                                    System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
-//                                } else {
-//                                    System.out.println("Le dossier " + jsonFileName + " a été créé.");
-//                                }
-//
-//                                // Déplacer les fichiers d'image correspondants dans le dossier créé
-//                                for (File imageFile : imageFiles) {
-//                                    File targetFile = new File(outputFolderFile, imageFile.getName());
-//                                    if (!imageFile.renameTo(targetFile)) {
-//                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
-//                                    } else {
-//                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
-//                                    }
-//                                }
-//                            } else {
-//                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-//                            }
-//                        } else {
-//                            System.err.println("Le fichier " + samFile.getName() + " ne correspond pas au format JSON attendu.");
-//                        }
-//
-
-
 
                         samService.save(sam);
 
@@ -340,7 +305,36 @@ public class Main {
                                 String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
 
                                 sam.setUrlSam(urlsam);
+
+
+
+                            File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderenvloppe.getName().replace("_enveloppes", ""))
+                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
+                            if (imageFiles.length > 0) {
+
+
+
+                                // Déplacer les fichiers d'image correspondants dans le dossier créé
+                                for (File imageFile : imageFiles) {
+                                    File targetFile = new File(outputFolderenvloppe, imageFile.getName());
+                                    if (!imageFile.renameTo(targetFile)) {
+                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + outputFolderenvloppe.getName() + ".");
+                                    } else {
+                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + outputFolderenvloppe.getName() + ".");
+                                    }
+                                }
+                            } else {
+                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le dossier " + outputFolder + ".");
                             }
+
+
+
+
+                            }
+
+
+
+
                         }
 samService.save(sam);
 
