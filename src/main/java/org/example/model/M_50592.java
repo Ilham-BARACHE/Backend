@@ -72,6 +72,8 @@ public class M_50592 {
     @Embedded
     private BL_R2 blR2;
 
+
+
     public BE_R2 getBeR2() {
         return beR2;
     }

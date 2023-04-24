@@ -499,7 +499,6 @@ public class SamTrainController {
 
 
 //Api pour la partie historique
-
     @GetMapping("/dataBetween")
 public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         @RequestParam("site") String site,

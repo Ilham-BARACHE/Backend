@@ -297,7 +297,8 @@ public class Main {
                                     File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMCapteur" + index) && name.endsWith(".json"));
 
                                     for (File samFiletraite : samFilestraite) {
-                                        enveloppeData.generateGraph(samFiletraite, i);
+                                        System.out.println("le i " +i +" sa vleur est "+sam.getDurePassage().get(i-1));
+                                        enveloppeData.generateGraph(samFiletraite, i ,sam.getDurePassage().get(i-1));
                                         System.out.println("voila le fichier " + samFiletraite);
                                     }
                                 }

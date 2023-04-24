@@ -414,14 +414,20 @@ public class EnvloppeData {
         capteursArrayNode.removeAll();
 
         for (int i = 0; i < sampledData[0].length; i++) {
-            Double xValue = sampledData[0][i];
+            if ((sampledData[0][i]) >= 0) {
+                Double xValue = sampledData[0][i] / 1000;
 
-            xNode.add(xValue);
+                xNode.add(xValue);
 
-            Double yValue = sampledData[1][i];
+                Double yValue = sampledData[1][i];
 
-            yNode.add(yValue);
+                yNode.add(yValue);
+
+            }
         }
+
+
+
         System.out.println(xNode.get(1));
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
@@ -441,7 +447,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
 
 
-    public static void generateGraph(File jsonFile , int j) throws IOException {
+    public static void generateGraph(File jsonFile , int j , double k) throws IOException {
 
         // Charger le fichier JSON
         ObjectMapper mapper = new ObjectMapper();
@@ -450,7 +456,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
         // Récupérer les données de Capteurs[0]
         JsonNode capteursNode = rootNode.get("Capteurs").get(0);
-        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
+//        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
 
         JsonNode xNode = capteursNode.get("X");
 
@@ -459,40 +465,39 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
         // Créer une série de données pour le graphe
         XYSeries series = new XYSeries("Données de capteur");
-        double intervalle = 0.2; // intervalle en millisecondes entre chaque vague
+
         double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
+        double firstX = 0; // initialiser la valeur du premier X avec 0
         for (int i = 0; i < xNode.size(); i++) {
             double x = xNode.get(i).asDouble();
             double y = yNode.get(i).asDouble();
 
-            // ne garder que les points dont la valeur en Y est inferieur ou égale à 0.4
-            if (y <= 0.4) {
-                // si la valeur de x est inférieure ou égale à 3000000, ajouter le point
-                if (x <= 3000000) {
-                    series.add(x, y, false);
-                } else {
-                    // sinon, ajouter un point supplémentaire à 3000000 avec la même valeur de y
-                    series.add(3000000, y, false);
+            double firstValue = xNode.get(0).asDouble();
+            double lastValue = xNode.get(i).asDouble();
+            double duration = lastValue - firstValue;
+            System.out.println("La durée entre la première "+firstValue+" et la dernière valeur "+lastValue+" est : " + duration);
+
+
+
+
+            if (y <= 0.4 ) {
+                series.add(x, y); // ajouter le point à la série de données
+
+                if (i == 0) {
+                    firstX = x; // stocker la valeur du premier X
                 }
 
-                // Ajouter un point fictif si la différence entre la valeur x du point actuel et la valeur x du dernier point ajouté est suffisamment grande
-                if (x - lastX > 90000) {
+                lastX = x; // mettre à jour la valeur du dernier X
 
-                    double newX = x - 9; // calculer la valeur X du point fictif
-                    series.add(newX, 0, false); // ajouter le point fictif avec une valeur y nulle
-                    lastX = newX; // mettre à jour la valeur X du dernier point ajouté
-                }
-                lastX = x; // mettre à jour la valeur X du dernier point ajouté
+
             }
 
 
+        }
 
 
 
 
-
-
-    }
 
 
 
@@ -504,8 +509,8 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
         // Créer le graphe
         JFreeChart chart = ChartFactory.createXYLineChart(
                 "Données de capteur", // titre
-                "Temps (ms)", // étiquette axe des abscisses
-                "Valeur", // étiquette axe des ordonnées
+                "Temps (s)", // étiquette axe des abscisses
+                "Tension (v)", // étiquette axe des ordonnées
                 dataset, // données
                 PlotOrientation.VERTICAL, // orientation du graphe
                 true, // afficher la légende
@@ -522,11 +527,11 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
 
         // Personnaliser l'axe des abscisses
-        NumberAxis xAxis = new NumberAxis("Temps (ms)");
+        NumberAxis xAxis = new NumberAxis("Temps (s)");
         xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
-        xAxis.setRange(0, 3000000);
-        xAxis.setTickUnit(new NumberTickUnit(400000));
-        xAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits(Locale.FRANCE));
+
+        xAxis.setRange(0, lastX);
+
         plot.setDomainAxis(xAxis);
 
 
@@ -534,8 +539,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
 
         // Personnaliser l'axe des ordonnées
-        NumberAxis yAxis = new NumberAxis("Valeur");
-//        yAxis.setFixedDimension(50);
+        NumberAxis yAxis = new NumberAxis("Tension (v)");
 
 
         yAxis.setRange(0, 0.4);
@@ -543,8 +547,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
         plot.setRangeAxis(yAxis);
 
 
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
-        renderer.setBaseStroke(new BasicStroke(0.1f));
+
 
 
 

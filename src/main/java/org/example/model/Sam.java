@@ -39,9 +39,11 @@ public class Sam  {
     private Long id;
 
 
+    @Column(name = "nb_Essieux")
     @JsonProperty("NbEssieux")
     private  Integer nb_Essieux;
 
+    @Column(name = "nb_Occultations")
     @ElementCollection
     @JsonProperty("NbOccultations")
     private List<Integer> nb_Occultations;
@@ -57,6 +59,10 @@ public class Sam  {
     private String fileName;
 
 
+    @Column(name = "durePassage")
+    @ElementCollection
+    @JsonProperty("DureePassage_s")
+    private List<Double> durePassage;
 
 
     @Column(name = "date_Fichier")
@@ -68,23 +74,24 @@ public class Sam  {
     private java.util.Date heureFichier;
 
 
+    @Column(name = "vitesse1_7")
     @JsonProperty("Vitesses_1-7_km/h")
     private Double vitesse1_7 ;
+    @Column(name = "vitesse2_8")
     @JsonProperty("Vitesses_2-8_km/h")
     private Double vitesse2_8;
+    @Column(name = "vitesse_moy")
     @JsonProperty("Vitesse_moyenne_km/h")
     private Double vitesse_moy;
 
 
+    public List<Double> getDurePassage() {
+        return durePassage;
+    }
 
-
-
-
-
-
-
-
-
+    public void setDurePassage(List<Double> durePassage) {
+        this.durePassage = durePassage;
+    }
 
     public Integer getNbEssieux() {
         return nb_Essieux;
