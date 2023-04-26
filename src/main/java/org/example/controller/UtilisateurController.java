@@ -4,6 +4,7 @@ package org.example.controller;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jdk.jshell.execution.Util;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.example.component.SamAssembler;
 import org.example.component.UtilisateurAssembler;
 import org.example.component.Utils;
@@ -106,12 +107,16 @@ public class UtilisateurController {
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver l'utilisateur' " + id));
         return new ResponseEntity<>(utilisateurAssembler.toModel(user), HttpStatus.OK);
     }
+
+
     @PostMapping("/NewUser")
     public ResponseEntity<?> createUser(@Valid @RequestBody Utilisateur user){
         try{
             if (utilisateurRepository.exists(user.getLogin())){
                 return new ResponseEntity<>("Utilisateur existe", HttpStatus.CONFLICT);
             } else {
+                String hashedPassword = DigestUtils.sha256Hex(user.getPassword());
+                user.setPassword(hashedPassword);
                 EntityModel<Utilisateur> entityModel = utilisateurAssembler.toModel(utilisateurRepository.save(user));
                 return new ResponseEntity<>(entityModel, HttpStatus.CREATED);
             }
@@ -119,6 +124,7 @@ public class UtilisateurController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 
