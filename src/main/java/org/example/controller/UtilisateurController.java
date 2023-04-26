@@ -57,11 +57,16 @@ public class UtilisateurController {
     }
 
 
-
+    @GetMapping("/user/{id}")
+    public ResponseEntity<EntityModel<Utilisateur>> getUserById(@PathVariable(value = "id") Long id){
+        Utilisateur user = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver l'utilisateur' " + id));
+        return new ResponseEntity<>(utilisateurAssembler.toModel(user), HttpStatus.OK);
+    }
     @PostMapping("/NewUser")
     public ResponseEntity<?> createUser(@Valid @RequestBody Utilisateur user){
         try{
-            if (utilisateurRepository.exists(user)){
+            if (utilisateurRepository.exists(user.getLogin())){
                 return new ResponseEntity<>("Utilisateur existe", HttpStatus.CONFLICT);
             } else {
                 EntityModel<Utilisateur> entityModel = utilisateurAssembler.toModel(utilisateurRepository.save(user));
@@ -80,13 +85,13 @@ public class UtilisateurController {
     public ResponseEntity<?> updateUser(@Valid @RequestBody Utilisateur user,
                                         @PathVariable(value = "id") Long id){
         if (utilisateurRepository.exists(user, id)){
-            return new ResponseEntity<>("Uutilisateur existe", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Utilisateur existe", HttpStatus.CONFLICT);
         }
         Utilisateur utilisateurData = utilisateurRepository.findById(id)
                 .map(utilisateur -> {
                     utilisateur.setEtat(user.getEtat());
                     utilisateur.setLogin(user.getLogin());
-                    utilisateur.setPasseword(user.getPasseword());
+                    utilisateur.setPassword(user.getPassword());
                     utilisateur.setNom(user.getNom());
                     utilisateur.setPrenom(user.getPrenom());
                     utilisateur.setRole(user.getRole());

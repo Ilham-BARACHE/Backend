@@ -97,6 +97,7 @@ public class EnvloppeData {
             if (enveloppesNode.has("dt_ms") && !enveloppesNode.get("dt_ms").isNull()) {
                 dtMs = enveloppesNode.get("dt_ms").asDouble();
             }
+            System.out.println("voila dt_ms "+dtMs);
 
             JsonNode capteursNode = enveloppesNode.has("Capteurs") ? enveloppesNode.get("Capteurs").get(j - 1) : null;
 
@@ -396,7 +397,8 @@ public class EnvloppeData {
         rootNode.removeAll();
         // Création de l'objet "Enveloppes"
         ObjectNode enveloppesNode = nodeFactory.objectNode();
-        enveloppesNode.put("Dt_ms", dtMs);
+
+
 
         // Création de l'objet "Capteurs"
         ArrayNode capteursArrayNode = enveloppesNode.arrayNode();
@@ -406,16 +408,11 @@ public class EnvloppeData {
         ArrayNode xNode = nodeFactory.arrayNode();
         ArrayNode yNode = nodeFactory.arrayNode();
 
-// Vider les tableaux
-        xNode.removeAll();
-        yNode.removeAll();
-        enveloppesNode.removeAll();
-        capteurNode.removeAll();
-        capteursArrayNode.removeAll();
+
 
         for (int i = 0; i < sampledData[0].length; i++) {
             if ((sampledData[0][i]) >= 0) {
-                Double xValue = sampledData[0][i] / 1000;
+                Double xValue = sampledData[0][i] * dtMs;
 
                 xNode.add(xValue);
 
@@ -438,6 +435,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
 // Ajout du nouveau contenu à l'objet rootNode
         rootNode.set("Enveloppes", enveloppesNode);
+
         rootNode.set("Capteurs", capteursArrayNode);
 
 // Écrire le fichier JSON
@@ -456,7 +454,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
         // Récupérer les données de Capteurs[0]
         JsonNode capteursNode = rootNode.get("Capteurs").get(0);
-//        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
+        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
 
         JsonNode xNode = capteursNode.get("X");
 
@@ -464,7 +462,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
         JsonNode yNode = capteursNode.get("Y");
 
         // Créer une série de données pour le graphe
-        XYSeries series = new XYSeries("Données de capteur");
+        XYSeries series = new XYSeries("Enveloppe (Signaux)");
 
         double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
         double firstX = 0; // initialiser la valeur du premier X avec 0

@@ -10,13 +10,18 @@ import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @Component
 public class UtilisateurAssembler implements RepresentationModelAssembler<Utilisateur , EntityModel<Utilisateur>> {
 
 
-public  UtilisateurAssembler(){}
 
+    @Override
     public EntityModel<Utilisateur> toModel(Utilisateur entity) {
-        return EntityModel.of(entity, new Link[]{WebMvcLinkBuilder.linkTo(((UtilisateurController)WebMvcLinkBuilder.methodOn(UtilisateurController.class, new Object[0])).getAllUser()).withRel("USER")});
+        return EntityModel.of(entity,
+                WebMvcLinkBuilder.linkTo(methodOn(UtilisateurController.class).getUserById(entity.getId())).withSelfRel(),
+                linkTo(methodOn(UtilisateurController.class).getAllUser()).withRel("User"));
     }
 }

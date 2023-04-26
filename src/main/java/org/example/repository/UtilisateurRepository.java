@@ -14,10 +14,16 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
 
 
 
-    default boolean exists(Utilisateur utilisateur){
+    default boolean exists(String email) {
         List<Utilisateur> utilisateurList = findAll();
-        return utilisateurList.contains(utilisateur);
+        for (Utilisateur utilisateur : utilisateurList) {
+            if (utilisateur.getLogin().equals(email)) {
+                return true;
+            }
+        }
+        return false;
     }
+
     //en excluant l'objet correspondant à id
     default boolean exists(Utilisateur utilisateur, Long id){
         List<Utilisateur> utilisateurList = findAll();

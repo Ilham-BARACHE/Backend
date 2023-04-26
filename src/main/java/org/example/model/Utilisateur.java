@@ -27,8 +27,8 @@ public class Utilisateur {
     private String login;
 
 
-    @Column(name = "passeword")
-    private String  passeword;
+    @Column(name = "password")
+    private String  password;
 
     @Column(name = "role")
     private String role;
@@ -68,12 +68,12 @@ public class Utilisateur {
         this.login = login;
     }
 
-    public String getPasseword() {
-        return passeword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPasseword(String passeword) {
-        this.passeword = passeword;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getRole() {
