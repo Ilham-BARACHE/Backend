@@ -6,13 +6,14 @@ import org.example.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
 
 
-
+    Utilisateur findByLogin(String login);
 
     default boolean exists(String email) {
         List<Utilisateur> utilisateurList = findAll();

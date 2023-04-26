@@ -1,6 +1,8 @@
 package org.example.controller;
 
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jdk.jshell.execution.Util;
 import org.example.component.SamAssembler;
 import org.example.component.UtilisateurAssembler;
@@ -13,12 +15,14 @@ import org.example.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +42,45 @@ public class UtilisateurController {
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurAssembler = utilisateurAssembler;
     }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
+        // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
+        Utilisateur utilisateur = utilisateurRepository.findByLogin(email);
+        if (utilisateur == null) {
+            return new ResponseEntity<>("L'utilisateur n'existe pas", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Vérifiez si le mot de passe est correct pour l'utilisateur spécifié
+        if (!utilisateur.getPassword().equals(password)) {
+            return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Créez un jeton JWT pour l'utilisateur connecté
+        String token = Jwts.builder()
+                .setSubject(utilisateur.getLogin())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(SignatureAlgorithm.HS256, "secret_key")
+                .compact();
+
+        // Ajoutez le jeton JWT à l'en-tête de la réponse
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + token);
+
+        // Renvoyez une réponse réussie avec l'en-tête d'autorisation
+        return new ResponseEntity<>("Connexion réussie", headers, HttpStatus.OK);
+    }
+
+
+
+
+
+
+
+
+
 
     @GetMapping("/user")
     public ResponseEntity<?> getAllUser() {
