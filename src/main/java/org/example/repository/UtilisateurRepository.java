@@ -4,6 +4,7 @@ import org.example.model.Sam;
 import org.example.model.Train;
 import org.example.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -13,7 +14,7 @@ import java.util.Objects;
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
 
 
-    Utilisateur findByLogin(String login);
+    Utilisateur findByLogin(@Param("login")String login);
 
     default boolean exists(String email) {
         List<Utilisateur> utilisateurList = findAll();

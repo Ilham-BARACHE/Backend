@@ -45,10 +45,13 @@ public class UtilisateurController {
     }
 
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
-        // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
-        Utilisateur utilisateur = utilisateurRepository.findByLogin(email);
+    @PostMapping("/connexion")
+    public ResponseEntity<String> login(@Valid @RequestBody Utilisateur user) {
+        String login = user.getLogin();
+        String password = user.getPassword();   // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
+        System.out.println("voila le login "+login+" et voila le mdp "+password);
+        Utilisateur utilisateur = utilisateurRepository.findByLogin(login);
+        System.out.println(utilisateur);
         if (utilisateur == null) {
             return new ResponseEntity<>("L'utilisateur n'existe pas", HttpStatus.UNAUTHORIZED);
         }

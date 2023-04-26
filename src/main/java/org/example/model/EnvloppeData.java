@@ -34,43 +34,12 @@ public class EnvloppeData {
 
     List<Double> x = new ArrayList<>();
     List<Double> y = new ArrayList<>();
-    private double dtMs;
-    private List<Double> x1;
-    private List<Double> y1;
-
-    private List<Double> x2;
-    private List<Double> y2;
-
-    private List<Double> x3;
-    private List<Double> y3;
-    private List<Double> x4;
-    private List<Double> y4;
-    private List<Double> x5;
-    private List<Double> y5;
-    private List<Double> x6;
-    private List<Double> y6;
-    private List<Double> x7;
-    private List<Double> y7;
-
-    public List<Double> getX() {
-        return x;
-    }
-
-    public List<Double> getY() {
-        return y;
-    }
+    public double dtMs;
 
 
-    public double getDtMs() {
-        return dtMs;
-    }
 
-    public void setDtMs(double dtMs) {
-        this.dtMs = dtMs;
 
-    }
-    List<List<Double>> allX = new ArrayList<>();
-    List<List<Double>> allY = new ArrayList<>();
+
     private double[][] bornes;
     private double TempsMin;
     private double TempsMax;
@@ -112,101 +81,6 @@ public class EnvloppeData {
         }
     }
 
-
-
-
-
-
-
-
-//                JsonNode capteursNode = enveloppeNode.get("Capteurs");
-
-//                for (int i = 0; i < capteursNode.size(); i++) {
-//                    JsonNode capteurNode = capteursNode.get(i);
-//                    List<Double> xList = new ArrayList<>();
-//                    List<Double> yList = new ArrayList<>();
-//                    JsonNode xNode = capteurNode.get("X");
-//
-//                    JsonNode yNode = capteurNode.get("Y");
-//                    for (int j = 0; j < xNode.size(); j++) {
-//                        xList.add(xNode.get(j).asDouble());
-//                        yList.add(yNode.get(j).asDouble());
-//
-//                    }
-//                    Capteur capteurs = new Capteur(xList, yList);
-//                    allCapteurs.add(capteurs);
-//
-//                }
-//            for (int k = 0; k < allCapteurs.get(0).getX().size(); k++) {
-//                x.add(allCapteurs.get(0).getX().get(k));
-//
-//                y.add(allCapteurs.get(1).getY().get(k));
-//            }
-//            System.out.println(x.size());
-
-
-
-
-
-//
-//            //    Récupérer les données de Capteurs[2]
-//            JsonNode capteursNode2 = enveloppeNode.get("Capteurs").get(2);
-//            JsonNode xNode2 = capteursNode2.get("X");
-//            JsonNode yNode2 = capteursNode2.get("Y");
-//            for (int i = 0; i < xNode2.size(); i++) {
-//                x2.add(xNode2.get(i).asDouble());
-//                y2.add(yNode2.get(i).asDouble());
-//            }
-//
-//
-//            //  Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode3 = enveloppeNode.get("Capteurs").get(3);
-//            JsonNode xNode3 = capteursNode3.get("X");
-//            JsonNode yNode3 = capteursNode3.get("Y");
-//            for (int i = 0; i < xNode3.size(); i++) {
-//                x3.add(xNode3.get(i).asDouble());
-//                y3.add(yNode3.get(i).asDouble());
-//            }
-//
-//
-//            //  Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode4 = enveloppeNode.get("Capteurs").get(4);
-//            JsonNode xNode4 = capteursNode4.get("X");
-//            JsonNode yNode4 = capteursNode4.get("Y");
-//            for (int i = 0; i < xNode4.size(); i++) {
-//                x4.add(xNode4.get(i).asDouble());
-//                y4.add(yNode4.get(i).asDouble());
-//            }
-//
-//
-//            // Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode5 = enveloppeNode.get("Capteurs").get(5);
-//            JsonNode xNode5 = capteursNode5.get("X");
-//            JsonNode yNode5 = capteursNode5.get("Y");
-//            for (int i = 0; i < xNode5.size(); i++) {
-//                x5.add(xNode5.get(i).asDouble());
-//                y5.add(yNode5.get(i).asDouble());
-//            }
-//
-//
-//            //  Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode6 = enveloppeNode.get("Capteurs").get(6);
-//            JsonNode xNode6 = capteursNode6.get("X");
-//            JsonNode yNode6 = capteursNode6.get("Y");
-//            for (int i = 0; i < xNode6.size(); i++) {
-//                x6.add(xNode6.get(i).asDouble());
-//                y6.add(yNode6.get(i).asDouble());
-//            }
-//
-//
-//            //  Récupérer les données de Capteurs[1]
-//            JsonNode capteursNode7 = enveloppeNode.get("Capteurs").get(7);
-//            JsonNode xNode7 = capteursNode7.get("X");
-//            JsonNode yNode7 = capteursNode7.get("Y");
-//            for (int i = 0; i < xNode7.size(); i++) {
-//                x7.add(xNode7.get(i).asDouble());
-//                y7.add(yNode7.get(i).asDouble());
-//            }
 
 
 
@@ -410,6 +284,7 @@ public class EnvloppeData {
 
 
 
+
         for (int i = 0; i < sampledData[0].length; i++) {
             if ((sampledData[0][i]) >= 0) {
                 Double xValue = sampledData[0][i] * dtMs;
@@ -420,15 +295,17 @@ public class EnvloppeData {
 
                 yNode.add(yValue);
 
+
+
+
             }
         }
-
 
 
         System.out.println(xNode.get(1));
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
-System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1));
+
         capteursArrayNode.add(capteurNode);
 
 
@@ -445,7 +322,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
 
 
-    public static void generateGraph(File jsonFile , int j , double k) throws IOException {
+    public static void generateGraph(File jsonFile , int j , double k ) throws IOException {
 
         // Charger le fichier JSON
         ObjectMapper mapper = new ObjectMapper();
@@ -454,7 +331,6 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
         // Récupérer les données de Capteurs[0]
         JsonNode capteursNode = rootNode.get("Capteurs").get(0);
-        System.out.println("voila la premiere valeur de chaque tableau " +capteursNode.get("X").get(1));
 
         JsonNode xNode = capteursNode.get("X");
 
@@ -465,15 +341,19 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
         XYSeries series = new XYSeries("Enveloppe (Signaux)");
 
         double lastX = Double.NEGATIVE_INFINITY; // initialiser la valeur X du dernier point ajouté avec une valeur très petite
-        double firstX = 0; // initialiser la valeur du premier X avec 0
+        double firstX = 0.0 ;
+        double firstY = 0.0;
+        boolean foundFirstChange = false;
         for (int i = 0; i < xNode.size(); i++) {
             double x = xNode.get(i).asDouble();
             double y = yNode.get(i).asDouble();
 
-            double firstValue = xNode.get(0).asDouble();
-            double lastValue = xNode.get(i).asDouble();
-            double duration = lastValue - firstValue;
-            System.out.println("La durée entre la première "+firstValue+" et la dernière valeur "+lastValue+" est : " + duration);
+            if (!foundFirstChange) {
+                firstX = x;
+                firstY = y;
+                foundFirstChange = true;
+            }
+
 
 
 
@@ -481,9 +361,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
             if (y <= 0.4 ) {
                 series.add(x, y); // ajouter le point à la série de données
 
-                if (i == 0) {
-                    firstX = x; // stocker la valeur du premier X
-                }
+
 
                 lastX = x; // mettre à jour la valeur du dernier X
 
@@ -493,6 +371,7 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
 
         }
 
+        System.out.println("Premier couple (x, y) du premier changement : (" + firstX + ", " + firstY + ")");
 
 
 
@@ -527,8 +406,10 @@ System.out.println("voila mon X dans le nv fichier "+capteurNode.get("X").get(1)
         // Personnaliser l'axe des abscisses
         NumberAxis xAxis = new NumberAxis("Temps (s)");
         xAxis.setLowerBound(0); // Fixer la valeur minimale à 0
-
-        xAxis.setRange(0, lastX);
+System.out.println("premier point "+firstX+" la fi  est "+(firstX+(k/1000)));
+Double f = firstX+(k/1000);
+System.out.println(f);
+        xAxis.setRange(firstX, f * 1000);
 
         plot.setDomainAxis(xAxis);
 
