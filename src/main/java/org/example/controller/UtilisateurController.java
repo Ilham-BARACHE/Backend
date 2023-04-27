@@ -63,17 +63,20 @@ public class UtilisateurController {
         }
 
         String role = utilisateur.getRole();
+
         String token = Jwts.builder()
                 .setSubject(utilisateur.getLogin())
-                .claim("role", role) // Ajouter le rôle dans les informations utilisateur du token
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(SignatureAlgorithm.HS256, "secret_key")
                 .compact();
 
-        // Ajoutez le jeton JWT à l'en-tête de la réponse
+// Ajoutez le jeton JWT à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + token);
+        headers.add("X-User-Role", role);
+
+
 
         // Renvoyez une réponse réussie avec l'en-tête d'autorisation
         return new ResponseEntity<>("Connexion réussie", headers, HttpStatus.OK);
