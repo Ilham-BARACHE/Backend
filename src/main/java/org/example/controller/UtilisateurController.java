@@ -1,5 +1,7 @@
 package org.example.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,6 +20,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,7 +66,6 @@ public class UtilisateurController {
         }
 
         String role = utilisateur.getRole();
-
         String token = Jwts.builder()
                 .setSubject(utilisateur.getLogin())
                 .setIssuedAt(new Date())
@@ -71,15 +73,22 @@ public class UtilisateurController {
                 .signWith(SignatureAlgorithm.HS256, "secret_key")
                 .compact();
 
-// Ajoutez le jeton JWT à l'en-tête de la réponse
+// Créer un objet JSON contenant le rôle et le token
+        JsonObject jsonResponse = new JsonObject();
+        jsonResponse.addProperty("role", role);
+        jsonResponse.addProperty("token", token);
+
+// Ajouter l'objet JSON à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer " + token);
         headers.add("Role", role);
+        headers.add("Access-Control-Expose-Headers", "Authorization, Role");
+        headers.add("X-Content-Type-Options", "nosniff");
 
+// Renvoyer une réponse réussie avec l'en-tête d'autorisation et le corps JSON
+        return new ResponseEntity<>(jsonResponse.toString(), headers, HttpStatus.OK);
 
-
-        // Renvoyez une réponse réussie avec l'en-tête d'autorisation
-        return new ResponseEntity<>("Connexion réussie", headers, HttpStatus.OK);
     }
 
 
