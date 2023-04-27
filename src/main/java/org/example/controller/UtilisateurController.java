@@ -103,6 +103,7 @@ public class UtilisateurController {
                         utilisateurSansPassword.setLogin(utilisateur.getLogin());
                         utilisateurSansPassword.setSite(utilisateur.getSite());
                         utilisateurSansPassword.setRole(utilisateur.getRole());
+                        utilisateurSansPassword.setEtat((utilisateur.getEtat()));
 
                         return utilisateurAssembler.toModel(utilisateurSansPassword);
                     })
