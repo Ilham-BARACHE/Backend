@@ -92,7 +92,17 @@ public class UtilisateurController {
     public ResponseEntity<?> getAllUser() {
         try {
             List<EntityModel<Utilisateur>> users = utilisateurRepository.findAll().stream()
-                    .map(utilisateurAssembler::toModel)
+                    .map(utilisateur -> {
+                        Utilisateur utilisateurSansPassword = new Utilisateur();
+
+                        utilisateurSansPassword.setNom(utilisateur.getNom());
+                        utilisateurSansPassword.setPrenom(utilisateur.getPrenom());
+                        utilisateurSansPassword.setLogin(utilisateur.getLogin());
+                        utilisateurSansPassword.setSite(utilisateur.getSite());
+                        utilisateurSansPassword.setRole(utilisateur.getRole());
+
+                        return utilisateurAssembler.toModel(utilisateurSansPassword);
+                    })
                     .collect(Collectors.toList());
             if (users.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -104,6 +114,7 @@ public class UtilisateurController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
     @GetMapping("/user/{id}")
