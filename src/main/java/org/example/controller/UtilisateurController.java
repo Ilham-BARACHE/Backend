@@ -49,7 +49,8 @@ public class UtilisateurController {
     public ResponseEntity<String> login(@Valid @RequestBody Utilisateur user) {
         String login = user.getLogin();
         String password = user.getPassword();   // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
-        System.out.println("voila le login "+login+" et voila le mdp "+password);
+        String hashedPassword = DigestUtils.sha256Hex(password);
+
         Utilisateur utilisateur = utilisateurRepository.findByLogin(login);
         System.out.println(utilisateur);
         if (utilisateur == null) {
@@ -57,7 +58,7 @@ public class UtilisateurController {
         }
 
         // Vérifiez si le mot de passe est correct pour l'utilisateur spécifié
-        if (!utilisateur.getPassword().equals(password)) {
+        if (!utilisateur.getPassword().equals(hashedPassword)) {
             return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
         }
 
@@ -147,6 +148,7 @@ public class UtilisateurController {
                     utilisateur.setNom(user.getNom());
                     utilisateur.setPrenom(user.getPrenom());
                     utilisateur.setRole(user.getRole());
+                    utilisateur.setSite(user.getSite());
                     return utilisateurRepository.save(utilisateur);
                 })
                 .orElseGet(() -> {

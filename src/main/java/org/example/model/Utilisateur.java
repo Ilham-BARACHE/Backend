@@ -19,7 +19,8 @@ public class Utilisateur {
 
     @Column(name = "nom")
     private String nom;
-
+    @Column(name = "site")
+    private String site;
     @Column(name = "prenom")
     private String prenom;
 
@@ -90,6 +91,14 @@ public class Utilisateur {
 
     public void setEtat(String etat) {
         this.etat = etat;
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public void setSite(String site) {
+        this.site = site;
     }
 
     public Utilisateur(){
