@@ -62,9 +62,10 @@ public class UtilisateurController {
             return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
         }
 
-        // Créez un jeton JWT pour l'utilisateur connecté
+        String role = utilisateur.getRole();
         String token = Jwts.builder()
                 .setSubject(utilisateur.getLogin())
+                .claim("role", role) // Ajouter le rôle dans les informations utilisateur du token
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(SignatureAlgorithm.HS256, "secret_key")
