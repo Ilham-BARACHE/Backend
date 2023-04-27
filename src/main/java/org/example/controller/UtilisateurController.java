@@ -74,7 +74,7 @@ public class UtilisateurController {
 // Ajoutez le jeton JWT à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + token);
-        headers.add("X-User-Role", role);
+        headers.add("Role", role);
 
 
 
