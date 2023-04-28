@@ -66,6 +66,7 @@ public class UtilisateurController {
         }
 
         String role = utilisateur.getRole();
+        String prenom = utilisateur.getPrenom();
         String token = Jwts.builder()
                 .setSubject(utilisateur.getLogin())
                 .setIssuedAt(new Date())
@@ -77,12 +78,14 @@ public class UtilisateurController {
         JsonObject jsonResponse = new JsonObject();
         jsonResponse.addProperty("role", role);
         jsonResponse.addProperty("token", token);
+        jsonResponse.addProperty("prenom", prenom);
 
 // Ajouter l'objet JSON à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer " + token);
         headers.add("Role", role);
+        headers.add("Prenom", prenom);
         headers.add("Access-Control-Expose-Headers", "Authorization, Role");
         headers.add("X-Content-Type-Options", "nosniff");
 
@@ -106,7 +109,7 @@ public class UtilisateurController {
             List<EntityModel<Utilisateur>> users = utilisateurRepository.findAll().stream()
                     .map(utilisateur -> {
                         Utilisateur utilisateurSansPassword = new Utilisateur();
-
+                        utilisateurSansPassword.setId(utilisateur.getId());
                         utilisateurSansPassword.setNom(utilisateur.getNom());
                         utilisateurSansPassword.setPrenom(utilisateur.getPrenom());
                         utilisateurSansPassword.setLogin(utilisateur.getLogin());
