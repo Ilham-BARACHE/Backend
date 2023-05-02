@@ -3,6 +3,8 @@ package org.example.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jdk.jshell.execution.Util;
@@ -22,7 +24,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -32,6 +37,8 @@ import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+
 
 @RestController
 public class UtilisateurController {
@@ -45,6 +52,32 @@ public class UtilisateurController {
     public UtilisateurController(UtilisateurRepository utilisateurRepository, UtilisateurAssembler utilisateurAssembler) {
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurAssembler = utilisateurAssembler;
+    }
+
+    @PostMapping("/someEndpoint")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> someEndpoint(@RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+
+        try {
+            Jwts.parser().setSigningKey("secret_key").parseClaimsJws(jwtToken);
+        } catch (JwtException e) {
+            // Token est invalide ou expiré
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Token est valide
+        Claims claims = Jwts.parser().setSigningKey("secret_key").parseClaimsJws(jwtToken).getBody();
+        String role = claims.get("role", String.class);
+
+        if (!role.equals("ADMIN")) {
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Faites quelque chose avec le rôle et le prénom de l'utilisateur
+        // ...
+
+        return new ResponseEntity<>("Success", HttpStatus.OK);
     }
 
 
@@ -65,8 +98,22 @@ public class UtilisateurController {
             return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
         }
 
+
+
+        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword("secret");
+
         String role = utilisateur.getRole();
+        String etat = utilisateur.getEtat();
         String prenom = utilisateur.getPrenom();
+
+        String encryptedRole = encryptor.encrypt(role);
+
+        String encryptedetat = encryptor.encrypt(etat);
+
+        String encryptedprenom = encryptor.encrypt(prenom);
+
+
         String token = Jwts.builder()
                 .setSubject(utilisateur.getLogin())
                 .setIssuedAt(new Date())
@@ -74,18 +121,25 @@ public class UtilisateurController {
                 .signWith(SignatureAlgorithm.HS256, "secret_key")
                 .compact();
 
+
+
+
 // Créer un objet JSON contenant le rôle et le token
         JsonObject jsonResponse = new JsonObject();
-        jsonResponse.addProperty("role", role);
-        jsonResponse.addProperty("token", token);
-        jsonResponse.addProperty("prenom", prenom);
+
+        jsonResponse.addProperty("1", token);
+        jsonResponse.addProperty("2", encryptedprenom);
+        jsonResponse.addProperty("3", encryptedRole);
+        jsonResponse.addProperty("4", encryptedetat);
+
 
 // Ajouter l'objet JSON à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer " + token);
-        headers.add("Role", role);
-        headers.add("Prenom", prenom);
+        headers.add("3", encryptedRole);
+        headers.add("2", encryptedprenom);
+        headers.add("4", encryptedetat );
         headers.add("Access-Control-Expose-Headers", "Authorization, Role");
         headers.add("X-Content-Type-Options", "nosniff");
 
@@ -104,6 +158,7 @@ public class UtilisateurController {
 
 
     @GetMapping("/user")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> getAllUser() {
         try {
             List<EntityModel<Utilisateur>> users = utilisateurRepository.findAll().stream()

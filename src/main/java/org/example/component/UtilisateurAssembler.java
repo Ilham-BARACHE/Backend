@@ -22,6 +22,6 @@ public class UtilisateurAssembler implements RepresentationModelAssembler<Utilis
     public EntityModel<Utilisateur> toModel(Utilisateur entity) {
         return EntityModel.of(entity,
                 WebMvcLinkBuilder.linkTo(methodOn(UtilisateurController.class).getUserById(entity.getId())).withSelfRel(),
-                linkTo(methodOn(UtilisateurController.class).getAllUser()).withRel("User"));
+                linkTo(methodOn(UtilisateurController.class).getAllUser()).withSelfRel());
     }
 }
