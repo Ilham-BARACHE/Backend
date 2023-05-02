@@ -124,7 +124,7 @@ public class SamTrainController {
 
         return tempsMsNodesList;
     }
-    private List<Map<String, JsonNode>> lireFichiersJson(String dossier) throws IOException {
+    private List<Map<String, JsonNode>> lireFichiersJson(String dossier, int startIndex) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         List<Map<String, JsonNode>> result = new ArrayList<>();
         File[] fichiers = new File(dossier).listFiles();
@@ -135,6 +135,10 @@ public class SamTrainController {
                     map.put("nomFichier", mapper.valueToTree(fichier.getName())); // Ajout de la clé "nomFichier"
                     result.add(map);
                 }
+            }
+            for (int i = 0; i < result.size(); i++) {
+                Map<String, JsonNode> map = result.get(i);
+                map.put("capteur", mapper.valueToTree("capteur" + (startIndex + i))); // Ajout de la clé "capteur" avec index incrémenté
             }
         }
         return result;
@@ -152,17 +156,14 @@ public class SamTrainController {
         List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site,dateFichier,heureTime);
 
         List<Map<String, JsonNode>> capteurs = new ArrayList<>();
+        int index = 0; // Initialisation de l'index
         for (Sam sam : sams) {
 
             String urlsamList =sam.getUrlSam();
 
-
-            List<Map<String, JsonNode>> fichiers = lireFichiersJson(urlsamList);
-            for (Map<String, JsonNode> fichier : fichiers) {
-
-                capteurs.add(fichier);
-
-            }
+            List<Map<String, JsonNode>> fichiers = lireFichiersJson(urlsamList, index);
+            capteurs.addAll(fichiers);
+            index += fichiers.size(); // Mise à jour de l'index
         }
         return capteurs;
     }
