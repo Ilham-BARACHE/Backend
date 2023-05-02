@@ -106,7 +106,7 @@ public class UtilisateurController {
             List<EntityModel<Utilisateur>> users = utilisateurRepository.findAll().stream()
                     .map(utilisateur -> {
                         Utilisateur utilisateurSansPassword = new Utilisateur();
-
+                        utilisateurSansPassword.setId(utilisateur.getId());
                         utilisateurSansPassword.setNom(utilisateur.getNom());
                         utilisateurSansPassword.setPrenom(utilisateur.getPrenom());
                         utilisateurSansPassword.setLogin(utilisateur.getLogin());
@@ -134,8 +134,17 @@ public class UtilisateurController {
     public ResponseEntity<EntityModel<Utilisateur>> getUserById(@PathVariable(value = "id") Long id){
         Utilisateur user = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver l'utilisateur' " + id));
-        return new ResponseEntity<>(utilisateurAssembler.toModel(user), HttpStatus.OK);
+        Utilisateur userSansPassword = new Utilisateur();
+        userSansPassword.setId(user.getId());
+        userSansPassword.setNom(user.getNom());
+        userSansPassword.setPrenom(user.getPrenom());
+        userSansPassword.setLogin(user.getLogin());
+        userSansPassword.setSite(user.getSite());
+        userSansPassword.setRole(user.getRole());
+        userSansPassword.setEtat(user.getEtat());
+        return new ResponseEntity<>(utilisateurAssembler.toModel(userSansPassword), HttpStatus.OK);
     }
+
 
 
     @PostMapping("/NewUser")
@@ -162,18 +171,17 @@ public class UtilisateurController {
     @PutMapping("/updateuser/{id}")
     public ResponseEntity<?> updateUser(@Valid @RequestBody Utilisateur user,
                                         @PathVariable(value = "id") Long id){
+        String password = user.getPassword();   // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
+        String hashedPassword = DigestUtils.sha256Hex(password);
         if (utilisateurRepository.exists(user, id)){
             return new ResponseEntity<>("Utilisateur existe", HttpStatus.CONFLICT);
         }
         Utilisateur utilisateurData = utilisateurRepository.findById(id)
                 .map(utilisateur -> {
                     utilisateur.setEtat(user.getEtat());
-                    utilisateur.setLogin(user.getLogin());
-                    utilisateur.setPassword(user.getPassword());
-                    utilisateur.setNom(user.getNom());
-                    utilisateur.setPrenom(user.getPrenom());
-                    utilisateur.setRole(user.getRole());
-                    utilisateur.setSite(user.getSite());
+
+                    utilisateur.setPassword(hashedPassword);
+
                     return utilisateurRepository.save(utilisateur);
                 })
                 .orElseGet(() -> {
