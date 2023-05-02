@@ -127,19 +127,19 @@ public class UtilisateurController {
 // Créer un objet JSON contenant le rôle et le token
         JsonObject jsonResponse = new JsonObject();
 
-        jsonResponse.addProperty("1", token);
-        jsonResponse.addProperty("2", encryptedprenom);
-        jsonResponse.addProperty("3", encryptedRole);
-        jsonResponse.addProperty("4", encryptedetat);
+        jsonResponse.addProperty("a", token);
+        jsonResponse.addProperty("b", encryptedprenom);
+        jsonResponse.addProperty("c", encryptedRole);
+        jsonResponse.addProperty("d", encryptedetat);
 
 
 // Ajouter l'objet JSON à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer " + token);
-        headers.add("3", encryptedRole);
-        headers.add("2", encryptedprenom);
-        headers.add("4", encryptedetat );
+        headers.add("c", encryptedRole);
+        headers.add("b", encryptedprenom);
+        headers.add("d", encryptedetat );
         headers.add("Access-Control-Expose-Headers", "Authorization, Role");
         headers.add("X-Content-Type-Options", "nosniff");
 
