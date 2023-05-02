@@ -140,7 +140,7 @@ public class UtilisateurController {
         headers.add("c", encryptedRole);
         headers.add("b", encryptedprenom);
         headers.add("d", encryptedetat );
-        headers.add("Access-Control-Expose-Headers", "Authorization, Role");
+        headers.add("Access-Control-Expose-Headers", "a, c");
         headers.add("X-Content-Type-Options", "nosniff");
 
 // Renvoyer une réponse réussie avec l'en-tête d'autorisation et le corps JSON
