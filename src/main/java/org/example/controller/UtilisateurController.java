@@ -101,7 +101,7 @@ public class UtilisateurController {
 
 
         StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword("secret");
+        encryptor.setPassword("sncf2023");
 
         String role = utilisateur.getRole();
         String etat = utilisateur.getEtat();
