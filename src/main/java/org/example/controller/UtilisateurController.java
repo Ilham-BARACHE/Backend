@@ -136,7 +136,7 @@ public class UtilisateurController {
 // Ajouter l'objet JSON à l'en-tête de la réponse
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer " + token);
+        headers.add("a", "Bearer " + token);
         headers.add("c", encryptedRole);
         headers.add("b", encryptedprenom);
         headers.add("d", encryptedetat );
