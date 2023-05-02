@@ -28,9 +28,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
-
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -98,16 +106,17 @@ public class UtilisateurController {
             return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
         }
 
-
-
+        String secret = "sncfihm2023adent";
         StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword("sncf2023");
+        encryptor.setPassword(secret);
 
         String role = utilisateur.getRole();
         String etat = utilisateur.getEtat();
         String prenom = utilisateur.getPrenom();
 
         String encryptedRole = encryptor.encrypt(role);
+
+
 
         String encryptedetat = encryptor.encrypt(etat);
 

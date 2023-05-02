@@ -85,6 +85,7 @@ public class Sam  {
     private Double vitesse_moy;
 
 
+
     public List<Double> getDurePassage() {
         return durePassage;
     }

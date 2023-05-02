@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
@@ -123,7 +124,48 @@ public class SamTrainController {
 
         return tempsMsNodesList;
     }
+    private List<Map<String, JsonNode>> lireFichiersJson(String dossier) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        List<Map<String, JsonNode>> result = new ArrayList<>();
+        File[] fichiers = new File(dossier).listFiles();
+        if (fichiers != null) {
+            for (File fichier : fichiers) {
+                if (fichier.isFile() && fichier.getName().endsWith(".json")) {
+                    JsonNode racine = mapper.readTree(fichier);
+                    Map<String, JsonNode> map = mapper.convertValue(racine, new TypeReference<Map<String, JsonNode>>(){});
+                    map.put("nomFichier", mapper.valueToTree(fichier.getName())); // Ajout de la clé "nomFichier"
+                    result.add(map);
+                }
+            }
+        }
+        return result;
+    }
 
+    @GetMapping("/echantillonage")
+    public List<Map<String, JsonNode>> getEnveloppes(@RequestParam("site") String site,
+                                                     @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
+                                                     @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
+
+        Time heureTime = Time.valueOf(heure);
+        Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site,dateFichier,heureTime);
+        int index = 0; // Initialisation de l'index
+        List<Map<String, JsonNode>> capteurs = new ArrayList<>();
+        for (Sam sam : sams) {
+
+            String urlsamList =sam.getUrlSam();
+            ObjectMapper mapper = new ObjectMapper();
+
+            List<Map<String, JsonNode>> fichiers = lireFichiersJson(urlsamList);
+            for (Map<String, JsonNode> fichier : fichiers) {
+                fichier.put("index", mapper.valueToTree(index)); // Ajout de la clé "index" à chaque fichier
+                capteurs.add(fichier);
+                index++; // Incrémentation de l'index
+            }
+        }
+        return capteurs;
+    }
 
 
 

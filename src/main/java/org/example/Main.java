@@ -291,17 +291,17 @@ public class Main {
                                     double step = 6.0; // step peut être changé selon vos besoins
                                     enveloppeData.saveSampledToJson(outputFile, step);
                                 }
-                                final int index = i;
-                                // Vérifier si le fichier de sortie existe et si oui, le traiter
-                                if (outputFile.exists()) {
-                                    File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMCapteur" + index) && name.endsWith(".json"));
-
-                                    for (File samFiletraite : samFilestraite) {
-                                        System.out.println("le i " +i +" sa vleur est "+sam.getDurePassage().get(i-1));
-                                        enveloppeData.generateGraph(samFiletraite, i ,sam.getDurePassage().get(i-1));
-                                        System.out.println("voila le fichier " + samFiletraite);
-                                    }
-                                }
+//                                final int index = i;
+//                                // Vérifier si le fichier de sortie existe et si oui, le traiter
+//                                if (outputFile.exists()) {
+//                                    File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMCapteur" + index) && name.endsWith(".json"));
+//
+//                                    for (File samFiletraite : samFilestraite) {
+//                                        System.out.println("le i " +i +" sa vleur est "+sam.getDurePassage().get(i-1));
+//                                        enveloppeData.generateGraph(samFiletraite, i ,sam.getDurePassage().get(i-1));
+//                                        System.out.println("voila le fichier " + samFiletraite);
+//                                    }
+//                                }
                                 // Définir l'URL en fonction du nom de fichier
                                 String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
 
@@ -309,24 +309,24 @@ public class Main {
 
 
 
-                            File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderenvloppe.getName().replace("_enveloppes", ""))
-                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
-                            if (imageFiles.length > 0) {
-
-
-
-                                // Déplacer les fichiers d'image correspondants dans le dossier créé
-                                for (File imageFile : imageFiles) {
-                                    File targetFile = new File(outputFolderenvloppe, imageFile.getName());
-                                    if (!imageFile.renameTo(targetFile)) {
-                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + outputFolderenvloppe.getName() + ".");
-                                    } else {
-                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + outputFolderenvloppe.getName() + ".");
-                                    }
-                                }
-                            } else {
-                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le dossier " + outputFolder + ".");
-                            }
+//                            File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderenvloppe.getName().replace("_enveloppes", ""))
+//                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
+//                            if (imageFiles.length > 0) {
+//
+//
+//
+//                                // Déplacer les fichiers d'image correspondants dans le dossier créé
+//                                for (File imageFile : imageFiles) {
+//                                    File targetFile = new File(outputFolderenvloppe, imageFile.getName());
+//                                    if (!imageFile.renameTo(targetFile)) {
+//                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + outputFolderenvloppe.getName() + ".");
+//                                    } else {
+//                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + outputFolderenvloppe.getName() + ".");
+//                                    }
+//                                }
+//                            } else {
+//                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le dossier " + outputFolder + ".");
+//                            }
 
 
 

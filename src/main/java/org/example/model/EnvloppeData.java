@@ -311,7 +311,7 @@ public class EnvloppeData {
 
 
 // Ajout du nouveau contenu à l'objet rootNode
-        rootNode.set("Enveloppes", enveloppesNode);
+
 
         rootNode.set("Capteurs", capteursArrayNode);
 
