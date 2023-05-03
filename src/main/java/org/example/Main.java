@@ -315,7 +315,7 @@ public class Main {
 //
 //
 //
-//                                // Déplacer les fichiers d'image correspondants dans le dossier créé
+//                                  // Déplacer les fichiers d'image correspondants dans le dossier créé
 //                                for (File imageFile : imageFiles) {
 //                                    File targetFile = new File(outputFolderenvloppe, imageFile.getName());
 //                                    if (!imageFile.renameTo(targetFile)) {

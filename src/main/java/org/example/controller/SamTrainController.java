@@ -133,8 +133,10 @@ public class SamTrainController {
                 if (fichier.isFile() && fichier.getName().endsWith(".json")) {
                     Map<String, JsonNode> map = new HashMap<>();
                     map.put("nomFichier", mapper.valueToTree(fichier.getName())); // Ajout de la clé "nomFichier"
+                    map.put("cheminFichier",mapper.valueToTree(dossier+"/"+fichier.getName())); // Ajout de la clé "cheminFichier" avec le chemin absolu du fichier
                     result.add(map);
                 }
+
             }
             for (int i = 0; i < result.size(); i++) {
                 Map<String, JsonNode> map = result.get(i);
@@ -1159,7 +1161,7 @@ synthesesam.put("SAMNOK" ,SAMNOK);
                             }
                         }
                         for (int i = 0; i < m50592.getBlR1().getXl().size(); i++) {
-                            String parameter = parametreBENode.get(0).get(i).asText();
+                        String parameter = parametreBENode.get(0).get(i).asText();
                             if (m50592.getBlR1().getxFondl().get(i).equals("FF382A") || m50592.getBlR1().getyFondl().get(i).equals("FF382A") || m50592.getBlR1().getzFondl().get(i).equals("FF382A") || m50592.getBlR2().getxFondl2().get(i).equals("FF382A") || m50592.getBlR2().getyFondl2().get(i).equals("FF382A") || m50592.getBlR2().getzFondl2().get(i).equals("FF382A")) {
                                 statusesBL.put(parameter, "NOK");
                             } else {
