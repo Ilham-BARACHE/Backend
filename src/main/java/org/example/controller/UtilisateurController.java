@@ -90,7 +90,7 @@ public class UtilisateurController {
 
 
     @PostMapping("/connexion")
-    public ResponseEntity<String> login(@Valid @RequestBody Utilisateur user) {
+    public ResponseEntity<String> login(@Valid @RequestBody Utilisateur user) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         String login = user.getLogin();
         String password = user.getPassword();   // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
         String hashedPassword = DigestUtils.sha256Hex(password);
@@ -106,21 +106,28 @@ public class UtilisateurController {
             return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
         }
 
-        String secret = "sncfihm2023adent";
-        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword(secret);
+        String secretKey = "sncfihm2023adent";
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
 
         String role = utilisateur.getRole();
+        byte[] encryptedRoleBytes = cipher.doFinal(role.getBytes());
+        String encryptedRole = Base64.getEncoder().encodeToString(encryptedRoleBytes);
+
+
+
+
+
         String etat = utilisateur.getEtat();
+        byte[] encryptedEtatBytes = cipher.doFinal(etat.getBytes());
+        String encryptedEtat = Base64.getEncoder().encodeToString(encryptedEtatBytes);
+
+
+
         String prenom = utilisateur.getPrenom();
-
-        String encryptedRole = encryptor.encrypt(role);
-
-
-
-        String encryptedetat = encryptor.encrypt(etat);
-
-        String encryptedprenom = encryptor.encrypt(prenom);
+        byte[] encryptedPrenomBytes = cipher.doFinal(prenom.getBytes());
+        String encryptedPrenom = Base64.getEncoder().encodeToString(encryptedPrenomBytes);
 
 
         String token = Jwts.builder()
@@ -130,16 +137,11 @@ public class UtilisateurController {
                 .signWith(SignatureAlgorithm.HS256, "secret_key")
                 .compact();
 
-
-
-
-// Créer un objet JSON contenant le rôle et le token
         JsonObject jsonResponse = new JsonObject();
-
         jsonResponse.addProperty("a", token);
-        jsonResponse.addProperty("b", encryptedprenom);
+        jsonResponse.addProperty("b", encryptedPrenom);
         jsonResponse.addProperty("c", encryptedRole);
-        jsonResponse.addProperty("d", encryptedetat);
+        jsonResponse.addProperty("d", encryptedEtat);
 
 
 // Ajouter l'objet JSON à l'en-tête de la réponse
@@ -147,10 +149,28 @@ public class UtilisateurController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("a", "Bearer " + token);
         headers.add("c", encryptedRole);
-        headers.add("b", encryptedprenom);
-        headers.add("d", encryptedetat );
+        headers.add("b", encryptedPrenom);
+        headers.add("d", encryptedEtat );
         headers.add("Access-Control-Expose-Headers", "a, c");
         headers.add("X-Content-Type-Options", "nosniff");
+
+//        // récupérer le texte chiffré depuis la réponse JSON
+//        String encryptedRole1 = jsonResponse.get("c").getAsString();
+//
+//// décoder le texte chiffré avec Base64
+//        byte[] encryptedRoleBytes1 = Base64.getDecoder().decode(encryptedRole1);
+//
+//// déchiffrer le texte avec AES
+//        SecretKeySpec secretKeySpec1 = new SecretKeySpec(secretKey.getBytes(), "AES");
+//        Cipher cipher1 = Cipher.getInstance("AES");
+//        cipher1.init(Cipher.DECRYPT_MODE, secretKeySpec1);
+//        byte[] decryptedRoleBytes = cipher1.doFinal(encryptedRoleBytes1);
+//
+//// convertir le texte déchiffré en chaîne de caractères
+//        String decryptedRole = new String(decryptedRoleBytes);
+//
+//// afficher la chaîne de caractères déchiffrée
+//        System.out.println(decryptedRole);
 
 // Renvoyer une réponse réussie avec l'en-tête d'autorisation et le corps JSON
         return new ResponseEntity<>(jsonResponse.toString(), headers, HttpStatus.OK);

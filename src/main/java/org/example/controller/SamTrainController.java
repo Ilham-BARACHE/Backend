@@ -133,8 +133,12 @@ public class SamTrainController {
                 if (fichier.isFile() && fichier.getName().endsWith(".json")) {
                     Map<String, JsonNode> map = new HashMap<>();
                     map.put("nomFichier", mapper.valueToTree(fichier.getName())); // Ajout de la clé "nomFichier"
-                    map.put("cheminFichier",mapper.valueToTree(dossier+"/"+fichier.getName())); // Ajout de la clé "cheminFichier" avec le chemin absolu du fichier
+                    String cheminFichier = dossier+"/"+fichier.getName();
+                    String encodedURL = Base64.getEncoder().encodeToString(cheminFichier.getBytes()); // Décoder l'URL en base64
+                    System.out.println(encodedURL);
+                    map.put("cheminFichier", mapper.valueToTree(encodedURL)); // Ajout de la clé "cheminFichier" avec l'URL encodée en base64
                     result.add(map);
+System.out.println(cheminFichier);
                 }
 
             }
@@ -160,13 +164,15 @@ public class SamTrainController {
         List<Map<String, JsonNode>> capteurs = new ArrayList<>();
         int index = 0; // Initialisation de l'index
         for (Sam sam : sams) {
-
-            String urlsamList =sam.getUrlSam();
+            String urlsamList = sam.getUrlSam();
+            System.out.println(urlsamList);
 
             List<Map<String, JsonNode>> fichiers = lireFichiersJson(urlsamList, index);
+            System.out.println(fichiers);
             capteurs.addAll(fichiers);
             index += fichiers.size(); // Mise à jour de l'index
         }
+
         return capteurs;
     }
 
