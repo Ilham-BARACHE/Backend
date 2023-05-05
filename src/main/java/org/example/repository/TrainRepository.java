@@ -20,9 +20,10 @@ public interface TrainRepository extends JpaRepository<Train, Long> {
     List<Train> findBySiteAndDateFichier(String site, Date dateFichier);
     List<Train> findBySiteAndDateFichierAndHeureFichier(String site , Date dateFichier , Time heure);
     List<Train> findAll();
-
-
+    List<Train> findByNumTrain(String num);
+    int countBySiteAndDateFichierBetweenAndNumTrainIn(String site, Date startDate, Date endDate, List<String> numTrains);
     List<Train> findBySiteAndDateFichierBetween(String site, Date dateFichier , Date dateF);
+
 
     boolean existsByfileName(String nomFichier);
 
