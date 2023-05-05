@@ -102,7 +102,7 @@ public class UtilisateurController {
         }
 
         // Vérifiez si le mot de passe est correct pour l'utilisateur spécifié
-        if (!utilisateur.getPassword().equals(hashedPassword) || user.getEtat().equals("inactif")) {
+        if (!utilisateur.getPassword().equals(hashedPassword) || utilisateur.getEtat().equals("inactif")) {
             return new ResponseEntity<>("Mot de passe incorrect ou bien etat est inactif", HttpStatus.UNAUTHORIZED);
         }
 

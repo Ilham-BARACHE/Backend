@@ -906,45 +906,244 @@ synthesesam.put("SAMNOK" ,SAMNOK);
 
 
 //Api pour statistique
-
     @GetMapping("/dataBetweenstatistique")
     public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetweenstatistique(
             @RequestParam("site") String site,
             @RequestParam("typemr") List<String> typemrList,
+            @RequestParam(name = "statutsam", required = false) String statutSam,
+            @RequestParam(name = "statut50592", required = false) String statut50592 ,
+            @RequestParam(name = "capteursd", required = false) String capteurd,
+            @RequestParam(name = "capteurshorsd", required = false) String capteurhorsd ,
             @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
+    ) throws IOException {
 
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
-
-
+        List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetweenAndStatut50592(site, start, end ,statut50592);
+        List<Sam> sams = samRepository.findBySiteAndStatutSAMAndDateFichierBetween(site,statutSam, start, end);
+        int total = 0;
+        Map<Integer, Map<String, Integer>> counters = new HashMap<>(); // modification
+        Map<Integer, Integer> indexTotals = new HashMap<>();
         List<Map<String, Object>> result = new ArrayList<>();
-
         for (String typemr : typemrList) {
             List<Mr> mrs = mrRepository.findByMr(typemr);
             List<String> numTrains = new ArrayList<>();
+            List<String> Trainssamnok = new ArrayList<>();
+            List<String> Trainssamok = new ArrayList<>();
+            List<String> Trains50592ok = new ArrayList<>();
+            List<String> Trains50592nok = new ArrayList<>();
+            int statutbednok =0;
+            int statutbehdnok =0;
+
+            int statutbedok =0;
+            int statutbehdok =0;
             for (Mr mr : mrs) {
                 List<Train> trains = trainRepository.findByNumTrain(mr.getNumTrain());
                 for (Train train : trains) {
                     numTrains.add(train.getNumTrain());
-                }
+                    boolean allSamsOk = true;
+                    for (Sam sam : sams) {
+                        if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
+                                && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
+                                && train.getDateFichier().equals(sam.getDateFichier())) {
+                            if (!sam.getStatutSAM().equals("OK")) {
+                                Trainssamnok.add(train.getNumTrain());
+                                List<Integer> nbOccultations = sam.getNbOccultations();
+                                Integer nbEssieux = sam.getNbEssieux();
+                                if (nbOccultations != null && nbOccultations.size() > 0) {
+                                    List<Integer> indexes = new ArrayList<>(); // modification
+                                    for (int i = 0; i < nbOccultations.size(); i++) { // modification
+                                        if (!nbOccultations.get(i).equals(nbEssieux)) {
+                                            indexes.add(i); // modification
+                                        }
+                                    }
+                                    if (!indexes.isEmpty()) { // modification
+                                        for (Integer index : indexes) { // modification
+                                            int key = index + 1; // modification
+                                            if (counters.containsKey(key)) {
+                                                Map<String, Integer> map = counters.get(key);
+                                                int count = map.getOrDefault(nbOccultations.get(index).toString(), 0);
+                                                map.put(nbOccultations.get(index).toString(), count + 1);
+                                                indexTotals.put(key, indexTotals.getOrDefault(key, 0) + count + 1); // ajout
+                                            } else {
+                                                Map<String, Integer> map = new HashMap<>();
+                                                map.put(nbOccultations.get(index).toString(), 1);
+                                                counters.put(key, map);
+                                                indexTotals.put(key, indexTotals.getOrDefault(key, 0) + 1); // ajout
+                                            }
+                                        }
+                                    }
+                                }
+                                allSamsOk = false;
+                                break;
+                            }
+
+                            if (allSamsOk) {
+                                Trainssamok.add(train.getNumTrain());
+
+                            }
+                            else if(statutSam.equals("uniquement sam")) {
+
+                            }
+                        }
+                    }
+                    boolean all50592Ok = true;
+
+
+                    for (M_50592 m50592 : m50592s) {
+                        if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours()
+                                && train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes()
+                                && train.getDateFichier().equals(m50592.getDateFichier())) {
+                            Properties prop = new Properties();
+                            InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                            prop.load(input);
+
+                            String outputFolderPath = prop.getProperty("output.folder.path");
+
+                            File inputFile = new File(outputFolderPath, m50592.getFileName()); // use output folder path as parent directory
+                            ObjectMapper mapper = new ObjectMapper();
+                            JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class); // read from input file
+                            JsonNode parametreBENode = rootNode.get("ParametresBE");
+                            if (!m50592.getStatut50592().equals("OK")) {
+                                Trains50592nok.add(train.getNumTrain());
+
+                                    for (int i = 0; i < parametreBENode.size(); i++) {
+                                        JsonNode entete = parametreBENode.get(i).get(0);
+                                        if (entete.equals("D39") == capteurd.equals("D39") && entete.equals("D50") == capteurd.equals("D50")) {
+
+                                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                                statutbednok = 1;
+                                            }
+                                        }else {
+                                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                                statutbehdnok = 1;
+                                            }
+                                        }
+                                    }
+
+
+
+                                all50592Ok = false;
+                                break;
+                            }if (all50592Ok) {
+                                Trains50592ok.add(train.getNumTrain());
+                                for (int i = 0; i < parametreBENode.size(); i++) {
+                                    JsonNode entete = parametreBENode.get(i).get(0);
+                                    if (entete.equals("D39") == capteurd.equals("D39") && entete.equals("D50") == capteurd.equals("D50")) {
+
+                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                            statutbedok = 1;
+                                        }
+                                    }else {
+                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                            statutbehdok = 1;
+                                        }
+                                    }
+                                }
+                            }
+                            else if(statut50592.equals("uniquement 50592")) {
+
+                            }
+                        }
+
+                        }
+                    }
+
+
+
+            }
+            if (!counters.isEmpty()) {
+
+                Map<String, Object> trainMap = new HashMap<>();
+                trainMap.put("Counters", counters);
+                trainMap.put("IndexTotals", indexTotals); // ajout
+
+                result.add(trainMap);
             }
             int count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
-            Map<String, Object> map = new HashMap<>();
-            map.put("typemr", typemr);
-            map.put("count", count);
-            result.add(map);
+            int countsamok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trainssamok);
+            int countsamnok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trainssamnok);
+            int count50592ok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trains50592ok);
+            int count50592nok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trains50592nok);
+            total += countsamok; // incrémenter la somme
+           int pourcentagesamok = (countsamok / count) * 100;
+           int pourcentage50592nokd =(statutbednok/count50592nok) *100;
+            int pourcentage50592nokhd =(statutbehdnok/count50592nok) *100;
+            int pourcentage50592nok = pourcentage50592nokd+pourcentage50592nokhd ;
+
+            int pourcentage50592okd =(statutbedok/count50592ok) *100;
+            int pourcentage50592okhd =(statutbehdok/count50592ok) *100;
+            int pourcentage50592ok = pourcentage50592okd+pourcentage50592okhd ;
+
+
+            Map<String, Object> trainMap = new HashMap<>();
+            trainMap.put("count", count);
+            trainMap.put("countsam",countsamok);
+            trainMap.put("somme de tous les types mrs",total);
+            trainMap.put("pourcentage sam ok" ,pourcentagesamok);
+            trainMap.put("pourcentage 50592 nok" ,pourcentage50592nok);
+            trainMap.put("pourcentage 50592 ok" ,pourcentage50592ok);
+            result.add(trainMap);
         }
 
+
+
+
         return ResponseEntity.ok(result);
-
-
-    }
-
+        }
 
 
 
+
+
+
+
+
+//
+//                    for (Sam sam : sams) {
+//                        if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
+//                                && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
+//                                && train.getDateFichier().equals(sam.getDateFichier())) {
+//                            List<Integer> nbOccultations = sam.getNbOccultations();
+//                            Integer nbEssieux = sam.getNbEssieux();
+//                            if (nbOccultations != null && nbOccultations.size() > 0) {
+//                                List<Integer> indexes = new ArrayList<>(); // modification
+//                                for (int i = 0; i < nbOccultations.size(); i++) { // modification
+//                                    if (!nbOccultations.get(i).equals(nbEssieux)) {
+//                                        indexes.add(i); // modification
+//                                    }
+//                                }
+//                                if (!indexes.isEmpty()) { // modification
+//                                    for (Integer index : indexes) { // modification
+//                                        int key = index + 1; // modification
+//                                        if (counters.containsKey(key)) {
+//                                            Map<String, Integer> map = counters.get(key);
+//                                            int count = map.getOrDefault(nbOccultations.get(index).toString(), 0);
+//                                            map.put(nbOccultations.get(index).toString(), count + 1);
+//                                            indexTotals.put(key, indexTotals.getOrDefault(key, 0) + count + 1); // ajout
+//                                        } else {
+//                                            Map<String, Integer> map = new HashMap<>();
+//                                            map.put(nbOccultations.get(index).toString(), 1);
+//                                            counters.put(key, map);
+//                                            indexTotals.put(key, indexTotals.getOrDefault(key, 0) + 1); // ajout
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                    }
+//
+//                    if (!counters.isEmpty()) {
+//
+//                        Map<String, Object> trainMap = new HashMap<>();
+//                        trainMap.put("NumTrain", train.getNumTrain());
+//                        trainMap.put("Counters", counters);
+//                        trainMap.put("IndexTotals", indexTotals); // ajout
+//
+//                        result.add(trainMap);
+//                    }
 
 
 
