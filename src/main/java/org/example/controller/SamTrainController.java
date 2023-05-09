@@ -912,8 +912,6 @@ synthesesam.put("SAMNOK" ,SAMNOK);
             @RequestParam("typemr") List<String> typemrList,
             @RequestParam(name = "statutsam", required = false) String statutSam,
             @RequestParam(name = "statut50592", required = false) String statut50592 ,
-            @RequestParam(name = "capteursd", required = false) String capteurd,
-            @RequestParam(name = "capteurshorsd", required = false) String capteurhorsd ,
             @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws IOException {
@@ -921,13 +919,16 @@ synthesesam.put("SAMNOK" ,SAMNOK);
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetweenAndStatut50592(site, start, end ,statut50592);
-        List<Sam> sams = samRepository.findBySiteAndStatutSAMAndDateFichierBetween(site,statutSam, start, end);
-        int total = 0;
-        Map<Integer, Map<String, Integer>> counters = new HashMap<>(); // modification
-        Map<Integer, Integer> indexTotals = new HashMap<>();
+        List<Sam> sams = samRepository.findBySiteAndDateFichierBetweenAndStatutSAM(site, start, end,statutSam);
+
+
         List<Map<String, Object>> result = new ArrayList<>();
         for (String typemr : typemrList) {
             List<Mr> mrs = mrRepository.findByMr(typemr);
+            Map<String, Integer> m505952nokIndexValueMap = new HashMap<>();
+            Map<String, Integer> samnokIndexValueMap = new HashMap<>();
+            Map<String, Integer> redHeadersCountMap = new HashMap<>();
+            Map<Integer, Integer> redHeadersCountSamMap = new HashMap<>();
             List<String> numTrains = new ArrayList<>();
             List<String> Trainssamnok = new ArrayList<>();
             List<String> Trainssamok = new ArrayList<>();
@@ -947,40 +948,32 @@ synthesesam.put("SAMNOK" ,SAMNOK);
                         if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
                                 && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
                                 && train.getDateFichier().equals(sam.getDateFichier())) {
+
                             if (!sam.getStatutSAM().equals("OK")) {
                                 Trainssamnok.add(train.getNumTrain());
-                                List<Integer> nbOccultations = sam.getNbOccultations();
-                                Integer nbEssieux = sam.getNbEssieux();
-                                if (nbOccultations != null && nbOccultations.size() > 0) {
-                                    List<Integer> indexes = new ArrayList<>(); // modification
-                                    for (int i = 0; i < nbOccultations.size(); i++) { // modification
-                                        if (!nbOccultations.get(i).equals(nbEssieux)) {
-                                            indexes.add(i); // modification
-                                        }
-                                    }
-                                    if (!indexes.isEmpty()) { // modification
-                                        for (Integer index : indexes) { // modification
-                                            int key = index + 1; // modification
-                                            if (counters.containsKey(key)) {
-                                                Map<String, Integer> map = counters.get(key);
-                                                int count = map.getOrDefault(nbOccultations.get(index).toString(), 0);
-                                                map.put(nbOccultations.get(index).toString(), count + 1);
-                                                indexTotals.put(key, indexTotals.getOrDefault(key, 0) + count + 1); // ajout
-                                            } else {
-                                                Map<String, Integer> map = new HashMap<>();
-                                                map.put(nbOccultations.get(index).toString(), 1);
-                                                counters.put(key, map);
-                                                indexTotals.put(key, indexTotals.getOrDefault(key, 0) + 1); // ajout
-                                            }
+
+                                if (sam.getNbOccultations() != null && sam.getNbOccultations().size() > 0) {
+                                    for (int i = 0; i < sam.getNbOccultations().size(); i++) {
+                                        if (!sam.getNbOccultations().get(i).equals(sam.getNbEssieux())) {
+                                            int index = i;
+                                            int occurrenceCount = redHeadersCountSamMap.getOrDefault(index, 0) + 1;
+                                            redHeadersCountSamMap.put(index, occurrenceCount);
                                         }
                                     }
                                 }
+
                                 allSamsOk = false;
                                 break;
                             }
 
+
                             if (allSamsOk) {
-                                Trainssamok.add(train.getNumTrain());
+
+
+                                    System.out.println("je sus la2");
+                                    System.out.println("sam "+sam.getStatutSAM());
+                                    Trainssamok.add(train.getNumTrain());
+
 
                             }
                             else if(statutSam.equals("uniquement sam")) {
@@ -1010,16 +1003,25 @@ synthesesam.put("SAMNOK" ,SAMNOK);
 
                                     for (int i = 0; i < parametreBENode.size(); i++) {
                                         JsonNode entete = parametreBENode.get(i).get(0);
-                                        if (entete.equals("D39") == capteurd.equals("D39") && entete.equals("D50") == capteurd.equals("D50")) {
 
-                                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
-                                                statutbednok = 1;
-                                            }
-                                        }else {
-                                            if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
-                                                statutbehdnok = 1;
-                                            }
+
+                                        boolean isRedHeader = false;
+
+
+                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                            isRedHeader = true;
+                                            String enteteValue = entete.asText();
+
+                                            // Mise à jour du compteur pour l'en-tête rouge
+                                            redHeadersCountMap.put(enteteValue, redHeadersCountMap.getOrDefault(enteteValue, 0) + 1);
                                         }
+                                        if (!isRedHeader) {
+                                            String enteteValue = entete.asText();
+                                            redHeadersCountMap.putIfAbsent(enteteValue, 0);
+                                        }
+
+
+
                                     }
 
 
@@ -1030,15 +1032,20 @@ synthesesam.put("SAMNOK" ,SAMNOK);
                                 Trains50592ok.add(train.getNumTrain());
                                 for (int i = 0; i < parametreBENode.size(); i++) {
                                     JsonNode entete = parametreBENode.get(i).get(0);
-                                    if (entete.equals("D39") == capteurd.equals("D39") && entete.equals("D50") == capteurd.equals("D50")) {
 
-                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
-                                            statutbedok = 1;
-                                        }
-                                    }else {
-                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
-                                            statutbehdok = 1;
-                                        }
+
+                                    boolean isRedHeader = false;
+
+                                    if (m50592.getBeR1().getxFond().get(i).equals("00EF2F") || m50592.getBeR1().getyFond().get(i).equals("00EF2F") || m50592.getBeR1().getzFond().get(i).equals("00EF2F") || m50592.getBeR2().getxFond1().get(i).equals("00EF2F") || m50592.getBeR2().getyFond1().get(i).equals("00EF2F") || m50592.getBeR2().getzFond1().get(i).equals("00EF2F")) {
+                                        String enteteValue = entete.asText();
+
+                                        // Mise à jour du compteur pour l'en-tête rouge
+                                        redHeadersCountMap.put(enteteValue, redHeadersCountMap.getOrDefault(enteteValue, 0) + 1);
+                                    }
+
+                                    if (!isRedHeader) {
+                                        String enteteValue = entete.asText();
+                                        redHeadersCountMap.putIfAbsent(enteteValue, 0);
                                     }
                                 }
                             }
@@ -1048,50 +1055,199 @@ synthesesam.put("SAMNOK" ,SAMNOK);
                         }
 
                         }
+
+
                     }
 
 
 
             }
-            if (!counters.isEmpty()) {
-
-                Map<String, Object> trainMap = new HashMap<>();
-                trainMap.put("Counters", counters);
-                trainMap.put("IndexTotals", indexTotals); // ajout
-
-                result.add(trainMap);
-            }
+            Map<String, Object> trainMapSam = new HashMap<>();
+            Map<String, Object> trainMap50592 = new HashMap<>();
             int count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
-            int countsamok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trainssamok);
-            int countsamnok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trainssamnok);
-            int count50592ok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trains50592ok);
-            int count50592nok = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, Trains50592nok);
-            total += countsamok; // incrémenter la somme
-           int pourcentagesamok = (countsamok / count) * 100;
-           int pourcentage50592nokd =(statutbednok/count50592nok) *100;
-            int pourcentage50592nokhd =(statutbehdnok/count50592nok) *100;
-            int pourcentage50592nok = pourcentage50592nokd+pourcentage50592nokhd ;
 
-            int pourcentage50592okd =(statutbedok/count50592ok) *100;
-            int pourcentage50592okhd =(statutbehdok/count50592ok) *100;
-            int pourcentage50592ok = pourcentage50592okd+pourcentage50592okhd ;
+            int countsamok = Trainssamok.size();
+            int countsamnok = Trainssamnok.size();
+            int count50592ok = Trains50592ok.size();
+            int count50592nok = Trains50592nok.size();
+
+            double pourcentagesamok = ((double) countsamok / count) * 100;
+
+            // Affichage des en-têtes rouges et leur nombre de fois 50592 not ok / 50592 ok
+            Map<String, Double> percentageMap = new HashMap<>();
+            for (Map.Entry<String, Integer> entry : redHeadersCountMap.entrySet()) {
+                String entete = entry.getKey();
+                Integer countbe = entry.getValue();
+                System.out.println("Entête: " + entete + ", Nombre de fois: " + countbe);
+                m505952nokIndexValueMap.put(entete,countbe);
+
+if(!Trains50592nok.isEmpty()) {
+    // Calcul du pourcentage
+    double percentagenok = (double) countbe / count50592nok * 100;
+    percentageMap.put(entete, percentagenok);
+}
+                if(!Trains50592ok.isEmpty()) {
+                    double percentageok = (double) countbe / count50592ok * 100;
+                    percentageMap.put(entete, percentageok);
+                }
+            }
 
 
-            Map<String, Object> trainMap = new HashMap<>();
-            trainMap.put("count", count);
-            trainMap.put("countsam",countsamok);
-            trainMap.put("somme de tous les types mrs",total);
-            trainMap.put("pourcentage sam ok" ,pourcentagesamok);
-            trainMap.put("pourcentage 50592 nok" ,pourcentage50592nok);
-            trainMap.put("pourcentage 50592 ok" ,pourcentage50592ok);
-            result.add(trainMap);
+
+// sam ok
+            if (!Trainssamok.isEmpty()) {
+                System.out.println("je suis ici ");
+                trainMapSam.put("count", count);
+                trainMapSam.put("mr",typemr);
+                trainMapSam.put("countsamok", countsamok);
+
+
+                trainMapSam.put("pourcentage sam ok", pourcentagesamok);
+            }
+
+
+            // Affichage des index et leur nombr de fois sam not ok
+            Map<String, Double> percentagesamnokMap = new HashMap<>();
+            for (Map.Entry<Integer, Integer> entry : redHeadersCountSamMap.entrySet()) {
+                int index = entry.getKey();
+                int countbe = entry.getValue();
+                System.out.println("Index : " + index + ", Nombre de fois : " + countbe);
+
+                // Ajout à samnokIndexValueMap
+                samnokIndexValueMap.put(String.valueOf(index), countbe);
+
+                // Calcul du pourcentage
+                double pourentagesam = (double) countbe / countsamnok * 100;
+                percentagesamnokMap.put(String.valueOf(index), pourentagesam);
+            }
+            //sam not ok
+            if (!Trainssamnok.isEmpty()) {
+                System.out.println("je suis ici ");
+                trainMapSam.put("count", count);
+                trainMapSam.put("mr",typemr);
+                trainMapSam.put("countsamnok", countsamnok);
+                trainMapSam.put("counters sam", samnokIndexValueMap);
+//                trainMap.put("somme de tous les types mrs", total);
+                trainMapSam.put("pourcentage sam nok", percentagesamnokMap);
+            }
+            //50592 not ok
+            if (!Trains50592nok.isEmpty()) {
+                trainMap50592.put("count", count);
+                trainMap50592.put("mr",typemr);
+                trainMap50592.put("count50592NOK", count50592nok);
+                trainMap50592.put("counters 50592", m505952nokIndexValueMap);
+                trainMap50592.put("percentage50592nok", percentageMap);
+            }
+
+            //50592  ok
+            if (!Trains50592ok.isEmpty()) {
+                trainMap50592.put("count", count);
+                trainMap50592.put("mr",typemr);
+                trainMap50592.put("count50592OK", count50592ok);
+                trainMap50592.put("counters 50592", m505952nokIndexValueMap);
+                trainMap50592.put("percentage50592ok", percentageMap);
+            }
+if (!trainMapSam.isEmpty() ) {
+
+    result.add(trainMapSam);
+}
+            if (!trainMap50592.isEmpty() ) {
+                result.add(trainMap50592);
+            }
+
+        }
+
+
+        Map<String, Object> totalPourcentageMap50592nok = new HashMap<>();
+        Map<String, Object> totalPourcentageMap50592ok = new HashMap<>();
+        Map<String, Object> totalPourcentageMapSamnok = new HashMap<>();
+        Map<String, Object> totalPourcentageMapSamok = new HashMap<>();
+//50592 not ok
+        for (Map<String, Object> resultMap50592 : result) {
+            if (resultMap50592.containsKey("percentage50592nok")) {
+                Map<String, Double> pourcentage50592NOkMap = (Map<String, Double>) resultMap50592.get("percentage50592nok");
+
+                for (Map.Entry<String, Double> entry : pourcentage50592NOkMap.entrySet()) {
+                    String capteur = entry.getKey();
+                    Double pourcentage = entry.getValue();
+
+                    if (totalPourcentageMap50592nok.containsKey(capteur)) {
+                        Double totalPourcentage = (Double) totalPourcentageMap50592nok.get(capteur);
+                        totalPourcentageMap50592nok.put(capteur, totalPourcentage + pourcentage);
+                    } else {
+                        totalPourcentageMap50592nok.put(capteur, pourcentage);
+                    }
+                }
+            }
+
+
+
+                if (resultMap50592.containsKey("percentage50592ok")) {
+                    Map<String, Double> pourcentage50592OkMap = (Map<String, Double>) resultMap50592.get("percentage50592ok");
+
+                    for (Map.Entry<String, Double> entry : pourcentage50592OkMap.entrySet()) {
+                        String capteur = entry.getKey();
+                        Double pourcentage = entry.getValue();
+
+                        if (totalPourcentageMap50592ok.containsKey(capteur)) {
+                            Double totalPourcentage = (Double) totalPourcentageMap50592ok.get(capteur);
+                            totalPourcentageMap50592ok.put(capteur, totalPourcentage + pourcentage);
+                        } else {
+                            totalPourcentageMap50592ok.put(capteur, pourcentage);
+                        }
+                    }
+                }
+            double sommePourcentageSamOk = 0;
+            if (resultMap50592.containsKey("pourcentage sam nok")) {
+                Map<String, Double> pourcentageSamNOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam nok");
+
+                for (Map.Entry<String, Double> entry : pourcentageSamNOkMap.entrySet()) {
+                    String capteur = entry.getKey();
+                    Double pourcentage = entry.getValue();
+
+                    if (totalPourcentageMapSamnok.containsKey(capteur)) {
+                        Double totalPourcentage = (Double) totalPourcentageMapSamnok.get(capteur);
+                        totalPourcentageMapSamnok.put(capteur, totalPourcentage + pourcentage);
+                    } else {
+                        totalPourcentageMapSamnok.put(capteur, pourcentage);
+                    }
+                }
+            }
+
+
+            if (resultMap50592.containsKey("pourcentage sam ok")) {
+                Map<String, Double> pourcentageSamOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam ok");
+                for (Double pourcentage : pourcentageSamOkMap.values()) {
+                    sommePourcentageSamOk += pourcentage;
+
+                }
+                totalPourcentageMapSamok.put("Total pourcentage sam ok", sommePourcentageSamOk);
+
+
+            }
+
+
         }
 
 
 
+        result.add(totalPourcentageMap50592nok);
+        result.add(totalPourcentageMap50592ok);
+        result.add(totalPourcentageMapSamnok);
+        result.add(totalPourcentageMapSamok);
 
-        return ResponseEntity.ok(result);
+
+
+
+        if (result.isEmpty()) {
+            // Le résultat est vide, vous pouvez renvoyer une réponse spécifique
+            return ResponseEntity.noContent().build();
         }
+            return ResponseEntity.ok(result);
+
+
+
+    }
 
 
 

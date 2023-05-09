@@ -268,6 +268,7 @@ public class UtilisateurController {
                     utilisateur.setEtat(user.getEtat());
 
                     utilisateur.setPassword(hashedPassword);
+                    utilisateur.setSite(user.getSite());
 
                     return utilisateurRepository.save(utilisateur);
                 })
