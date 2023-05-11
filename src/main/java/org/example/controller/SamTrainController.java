@@ -604,10 +604,10 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     train.getDateFichier().equals(m50592.getDateFichier())) {
                 trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                 trainMap.put("heure50592",m50592.getHeureFichier());
-                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxSortie());
+
                 trainMap.put("statut50592", m50592.getStatut50592());
                 trainMap.put("url50592", m50592.getUrl50592());
-                trainMap.put("compteur",m50592.getEnvironnement().getCompteurEssieuxEntree());
+
 
 
                 trainMap.put("ber1",m50592.getBeR1());
@@ -1087,12 +1087,12 @@ if(!Trains50592nok.isEmpty()) {
 // sam ok
             if (!Trainssamok.isEmpty()) {
                 System.out.println("je suis ici ");
-                trainMapSam.put("count", count);
+                trainMapSam.put("nombre de train passé", count);
                 trainMapSam.put("mr",typemr);
-                trainMapSam.put("countsamok", countsamok);
+                trainMapSam.put("nombre de train passé avec sam ok", countsamok);
 
 
-                trainMapSam.put("pourcentage sam ok", pourcentagesamok);
+                trainMapSam.put("pourcentage des ses train dans un type mr précis", pourcentagesamok);
             }
 
 
@@ -1113,25 +1113,25 @@ if(!Trains50592nok.isEmpty()) {
             //sam not ok
             if (!Trainssamnok.isEmpty()) {
                 System.out.println("je suis ici ");
-                trainMapSam.put("count", count);
+                trainMapSam.put("nombre de train passé", count);
                 trainMapSam.put("mr",typemr);
-                trainMapSam.put("countsamnok", countsamnok);
-                trainMapSam.put("counters sam", samnokIndexValueMap);
+                trainMapSam.put("nombr de train passé sam nok", countsamnok);
+                trainMapSam.put("index occultation et le total de fois de perturbation dans tous les trains  ", samnokIndexValueMap);
 //                trainMap.put("somme de tous les types mrs", total);
-                trainMapSam.put("pourcentage sam nok", percentagesamnokMap);
+                trainMapSam.put("pourcentage sam nok de chaque occultation", percentagesamnokMap);
             }
             //50592 not ok
             if (!Trains50592nok.isEmpty()) {
-                trainMap50592.put("count", count);
+                trainMap50592.put("nombre de train passé", count);
                 trainMap50592.put("mr",typemr);
                 trainMap50592.put("count50592NOK", count50592nok);
-                trainMap50592.put("counters 50592", m505952nokIndexValueMap);
+                trainMap50592.put("nom du capteur et le ", m505952nokIndexValueMap);
                 trainMap50592.put("percentage50592nok", percentageMap);
             }
 
             //50592  ok
             if (!Trains50592ok.isEmpty()) {
-                trainMap50592.put("count", count);
+                trainMap50592.put("nombre de train passé", count);
                 trainMap50592.put("mr",typemr);
                 trainMap50592.put("count50592OK", count50592ok);
                 trainMap50592.put("counters 50592", m505952nokIndexValueMap);
@@ -1187,9 +1187,9 @@ if (!trainMapSam.isEmpty() ) {
                         }
                     }
                 }
-            double sommePourcentageSamOk = 0;
-            if (resultMap50592.containsKey("pourcentage sam nok")) {
-                Map<String, Double> pourcentageSamNOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam nok");
+
+            if (resultMap50592.containsKey("pourcentage sam nok de chaque occultation")) {
+                Map<String, Double> pourcentageSamNOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam nok de chaque occultation");
 
                 for (Map.Entry<String, Double> entry : pourcentageSamNOkMap.entrySet()) {
                     String capteur = entry.getKey();
@@ -1204,27 +1204,35 @@ if (!trainMapSam.isEmpty() ) {
                 }
             }
 
+            double sommePourcentageSamOk = 0.0;
 
-            if (resultMap50592.containsKey("pourcentage sam ok")) {
-                Map<String, Double> pourcentageSamOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam ok");
-                for (Double pourcentage : pourcentageSamOkMap.values()) {
-                    sommePourcentageSamOk += pourcentage;
-
+                if (resultMap50592.containsKey("pourcentage des ses train dans un type mr précis")) {
+                    double pourcentageSamOk = (double) resultMap50592.get("pourcentage des ses train dans un type mr précis");
+                    sommePourcentageSamOk += pourcentageSamOk;
                 }
-                totalPourcentageMapSamok.put("Total pourcentage sam ok", sommePourcentageSamOk);
 
+            totalPourcentageMapSamok.put("Total pourcentage sam ok dans tous les type mr", sommePourcentageSamOk);
 
-            }
 
 
         }
 
 
+if(!totalPourcentageMapSamnok.isEmpty()){
+    result.add(totalPourcentageMapSamnok);
+}
 
-        result.add(totalPourcentageMap50592nok);
-        result.add(totalPourcentageMap50592ok);
-        result.add(totalPourcentageMapSamnok);
-        result.add(totalPourcentageMapSamok);
+if(!totalPourcentageMap50592nok.isEmpty()){
+    result.add(totalPourcentageMap50592nok);
+}
+        if(!totalPourcentageMap50592ok.isEmpty()){
+            result.add(totalPourcentageMap50592ok);
+        }
+       if(!totalPourcentageMapSamok.equals("0.0")){
+           result.add(totalPourcentageMapSamok);
+       }
+
+
 
 
 
