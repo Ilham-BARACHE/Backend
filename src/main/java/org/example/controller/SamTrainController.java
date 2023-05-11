@@ -1258,7 +1258,8 @@ if(!totalPourcentageMap50592nok.isEmpty()){
         Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
         List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
 
-        Map<String, Integer> trainCountByMr = new HashMap<>();
+        Map<String, Integer> categoryCounts = new HashMap<>();
+        Map<String, Map<String, Integer>> categoryCountsByType = new HashMap<>();
 
         for (Train train : trains) {
             String trainNumber = train.getNumTrain();
@@ -1266,20 +1267,59 @@ if(!totalPourcentageMap50592nok.isEmpty()){
 
             for (Mr mr : mrs) {
                 String mrType = mr.getMr();
-                trainCountByMr.put(mrType, trainCountByMr.getOrDefault(mrType, 0) + 1);
+                String category = getCategory(mrType);
+
+                // Count total occurrences of each category
+                categoryCounts.put(category, categoryCounts.getOrDefault(category, 0) + 1);
+
+                // Count occurrences of each type within each category
+                Map<String, Integer> typeCounts = categoryCountsByType.getOrDefault(category, new HashMap<>());
+                typeCounts.put(mrType, typeCounts.getOrDefault(mrType, 0) + 1);
+                categoryCountsByType.put(category, typeCounts);
             }
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
 
-        for (Map.Entry<String, Integer> entry : trainCountByMr.entrySet()) {
+        for (Map.Entry<String, Map<String, Integer>> categoryEntry : categoryCountsByType.entrySet()) {
+            String category = categoryEntry.getKey();
+            Map<String, Integer> typeCounts = categoryEntry.getValue();
+
+            for (Map.Entry<String, Integer> typeEntry : typeCounts.entrySet()) {
+                String type = typeEntry.getKey();
+                Integer count = typeEntry.getValue();
+
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put("category", category);
+                resultMap.put("typeMR", type);
+                resultMap.put("count", count);
+                result.add(resultMap);
+            }
+        }
+
+        // Add "Other" category with count of MRs not falling into any specific category
+        Integer otherCount = categoryCounts.getOrDefault("Other", 0);
+        if (otherCount > 0) {
             Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("typeMR", entry.getKey());
-            resultMap.put("count", entry.getValue());
+            resultMap.put("category", "Other");
+            resultMap.put("typeMR", "Other");
+            resultMap.put("count", otherCount);
             result.add(resultMap);
         }
 
         return ResponseEntity.ok(result);
+    }
+
+    private String getCategory(String mrType) {
+        if (mrType.startsWith("B")) {
+            return "BB";
+        } else if (mrType.startsWith("C")) {
+            return "CC";
+        } else if (mrType.startsWith("Z")) {
+            return "Z";
+        } else {
+            return "Autre";
+        }
     }
 
 
