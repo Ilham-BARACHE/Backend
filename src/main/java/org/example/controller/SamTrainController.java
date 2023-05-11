@@ -1250,6 +1250,39 @@ if (!trainMapSam.isEmpty() ) {
     }
 
 
+    @GetMapping("/dataBetweenrMr")
+    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetweenRapportmr(
+            @RequestParam("site") String site,
+            @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
+
+        Map<String, Integer> trainCountByMr = new HashMap<>();
+
+        for (Train train : trains) {
+            String trainNumber = train.getNumTrain();
+            List<Mr> mrs = mrRepository.findAllByNumTrain(trainNumber);
+
+            for (Mr mr : mrs) {
+                String mrType = mr.getMr();
+                trainCountByMr.put(mrType, trainCountByMr.getOrDefault(mrType, 0) + 1);
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : trainCountByMr.entrySet()) {
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("typeMR", entry.getKey());
+            resultMap.put("count", entry.getValue());
+            result.add(resultMap);
+        }
+
+        return ResponseEntity.ok(result);
+    }
 
 
 
