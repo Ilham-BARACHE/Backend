@@ -911,7 +911,7 @@ if (sam.getStatutSAM().equals("NOK")){
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetweenAndStatut50592(site, start, end ,statut50592);
         List<Sam> sams = samRepository.findBySiteAndDateFichierBetweenAndStatutSAM(site, start, end,statutSam);
 
-
+        int count = 0;
         List<Map<String, Object>> result = new ArrayList<>();
         for (String typemr : typemrList) {
             List<Mr> mrs = mrRepository.findByMr(typemr);
@@ -938,7 +938,7 @@ if (sam.getStatutSAM().equals("NOK")){
                         if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
                                 && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
                                 && train.getDateFichier().equals(sam.getDateFichier())) {
-
+                              count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
                             if (!sam.getStatutSAM().equals("OK")) {
                                 Trainssamnok.add(train.getNumTrain());
 
@@ -960,7 +960,7 @@ if (sam.getStatutSAM().equals("NOK")){
                             if (allSamsOk) {
 
 
-                                    System.out.println("je sus la2");
+
                                     System.out.println("sam "+sam.getStatutSAM());
                                     Trainssamok.add(train.getNumTrain());
 
@@ -978,6 +978,7 @@ if (sam.getStatutSAM().equals("NOK")){
                         if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours()
                                 && train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes()
                                 && train.getDateFichier().equals(m50592.getDateFichier())) {
+                             count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
                             Properties prop = new Properties();
                             InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
                             prop.load(input);
@@ -1054,7 +1055,7 @@ if (sam.getStatutSAM().equals("NOK")){
             }
             Map<String, Object> trainMapSam = new HashMap<>();
             Map<String, Object> trainMap50592 = new HashMap<>();
-            int count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
+
 
             int countsamok = Trainssamok.size();
             int countsamnok = Trainssamnok.size();
@@ -1086,13 +1087,13 @@ if(!Trains50592nok.isEmpty()) {
 
 // sam ok
             if (!Trainssamok.isEmpty()) {
-                System.out.println("je suis ici ");
+
                 trainMapSam.put("nombre de train passé", count);
                 trainMapSam.put("mr",typemr);
                 trainMapSam.put("nombre de train passé avec sam ok", countsamok);
 
 
-                trainMapSam.put("pourcentage des ses train dans un type mr précis", pourcentagesamok);
+
             }
 
 
@@ -1115,27 +1116,27 @@ if(!Trains50592nok.isEmpty()) {
                 System.out.println("je suis ici ");
                 trainMapSam.put("nombre de train passé", count);
                 trainMapSam.put("mr",typemr);
-                trainMapSam.put("nombr de train passé sam nok", countsamnok);
+                trainMapSam.put("nombre de train passé sam nok", countsamnok);
                 trainMapSam.put("index occultation et le total de fois de perturbation dans tous les trains  ", samnokIndexValueMap);
 //                trainMap.put("somme de tous les types mrs", total);
-                trainMapSam.put("pourcentage sam nok de chaque occultation", percentagesamnokMap);
+
             }
             //50592 not ok
             if (!Trains50592nok.isEmpty()) {
                 trainMap50592.put("nombre de train passé", count);
                 trainMap50592.put("mr",typemr);
-                trainMap50592.put("count50592NOK", count50592nok);
-                trainMap50592.put("nom du capteur et le ", m505952nokIndexValueMap);
-                trainMap50592.put("percentage50592nok", percentageMap);
+                trainMap50592.put("nombre de train passé 50592 nok", count50592nok);
+                trainMap50592.put("nom du capteur et le nombre de perturbations", m505952nokIndexValueMap);
+
             }
 
             //50592  ok
             if (!Trains50592ok.isEmpty()) {
                 trainMap50592.put("nombre de train passé", count);
                 trainMap50592.put("mr",typemr);
-                trainMap50592.put("count50592OK", count50592ok);
-                trainMap50592.put("counters 50592", m505952nokIndexValueMap);
-                trainMap50592.put("percentage50592ok", percentageMap);
+                trainMap50592.put("nombre de train passé 50592 ok", count50592ok);
+                trainMap50592.put("nom du capteur et le nombre de non perturbé", m505952nokIndexValueMap);
+
             }
 if (!trainMapSam.isEmpty() ) {
 
@@ -1146,76 +1147,168 @@ if (!trainMapSam.isEmpty() ) {
             }
 
         }
-
-
+        Map<String, Integer> indexcapteurCountMap = new HashMap<>();
+        int total50592nOk = 0;
+        Map<String, Integer> indexcapteurokCountMap = new HashMap<>();
+        int total50592Ok = 0;
         Map<String, Object> totalPourcentageMap50592nok = new HashMap<>();
         Map<String, Object> totalPourcentageMap50592ok = new HashMap<>();
         Map<String, Object> totalPourcentageMapSamnok = new HashMap<>();
         Map<String, Object> totalPourcentageMapSamok = new HashMap<>();
 //50592 not ok
         for (Map<String, Object> resultMap50592 : result) {
-            if (resultMap50592.containsKey("percentage50592nok")) {
-                Map<String, Double> pourcentage50592NOkMap = (Map<String, Double>) resultMap50592.get("percentage50592nok");
+            if (resultMap50592.containsKey("nom du capteur et le nombre de perturbations")) {
 
-                for (Map.Entry<String, Double> entry : pourcentage50592NOkMap.entrySet()) {
+                Map<String, Integer> pourcentage50592NOkMap = (Map<String, Integer>) resultMap50592.get("nom du capteur et le nombre de perturbations");
+
+                int train50592nOk = (int) resultMap50592.get("nombre de train passé 50592 nok");
+
+                total50592nOk += train50592nOk;
+                for (Map.Entry<String, Integer> entry : pourcentage50592NOkMap.entrySet()) {
                     String capteur = entry.getKey();
-                    Double pourcentage = entry.getValue();
+                    int totalFoisPerturbation = entry.getValue();
 
-                    if (totalPourcentageMap50592nok.containsKey(capteur)) {
-                        Double totalPourcentage = (Double) totalPourcentageMap50592nok.get(capteur);
-                        totalPourcentageMap50592nok.put(capteur, totalPourcentage + pourcentage);
-                    } else {
-                        totalPourcentageMap50592nok.put(capteur, pourcentage);
-                    }
+                    int currentCount = indexcapteurCountMap.getOrDefault(capteur, 0);
+                    indexcapteurCountMap.put(capteur, currentCount + totalFoisPerturbation);
                 }
             }
 
 
 
-                if (resultMap50592.containsKey("percentage50592ok")) {
-                    Map<String, Double> pourcentage50592OkMap = (Map<String, Double>) resultMap50592.get("percentage50592ok");
 
-                    for (Map.Entry<String, Double> entry : pourcentage50592OkMap.entrySet()) {
-                        String capteur = entry.getKey();
-                        Double pourcentage = entry.getValue();
+            if (resultMap50592.containsKey("nom du capteur et le nombre de non perturbé")) {
 
-                        if (totalPourcentageMap50592ok.containsKey(capteur)) {
-                            Double totalPourcentage = (Double) totalPourcentageMap50592ok.get(capteur);
-                            totalPourcentageMap50592ok.put(capteur, totalPourcentage + pourcentage);
-                        } else {
-                            totalPourcentageMap50592ok.put(capteur, pourcentage);
-                        }
-                    }
-                }
+                Map<String, Integer> pourcentage50592OkMap = (Map<String, Integer>) resultMap50592.get("nom du capteur et le nombre de non perturbé");
 
-            if (resultMap50592.containsKey("pourcentage sam nok de chaque occultation")) {
-                Map<String, Double> pourcentageSamNOkMap = (Map<String, Double>) resultMap50592.get("pourcentage sam nok de chaque occultation");
+                int train50592Ok = (int) resultMap50592.get("nombre de train passé 50592 ok");
 
-                for (Map.Entry<String, Double> entry : pourcentageSamNOkMap.entrySet()) {
+                total50592Ok += train50592Ok;
+                for (Map.Entry<String, Integer> entry : pourcentage50592OkMap.entrySet()) {
                     String capteur = entry.getKey();
-                    Double pourcentage = entry.getValue();
+                    int totalFoisPerturbation = entry.getValue();
 
-                    if (totalPourcentageMapSamnok.containsKey(capteur)) {
-                        Double totalPourcentage = (Double) totalPourcentageMapSamnok.get(capteur);
-                        totalPourcentageMapSamnok.put(capteur, totalPourcentage + pourcentage);
-                    } else {
-                        totalPourcentageMapSamnok.put(capteur, pourcentage);
-                    }
+                    int currentCount = indexcapteurokCountMap.getOrDefault(capteur, 0);
+                    indexcapteurokCountMap.put(capteur, currentCount + totalFoisPerturbation);
                 }
             }
-
-            double sommePourcentageSamOk = 0.0;
-
-                if (resultMap50592.containsKey("pourcentage des ses train dans un type mr précis")) {
-                    double pourcentageSamOk = (double) resultMap50592.get("pourcentage des ses train dans un type mr précis");
-                    sommePourcentageSamOk += pourcentageSamOk;
-                }
-
-            totalPourcentageMapSamok.put("Total pourcentage sam ok dans tous les type mr", sommePourcentageSamOk);
-
-
 
         }
+// 50592 ok
+        Map<String, Object> totalPourcentage50592ok = new HashMap<>();
+        double percentage50592ok = 0.0;
+// Calculate and display the percentages for each index of occultation
+        for (Map.Entry<String, Integer> entry : indexcapteurokCountMap.entrySet()) {
+            String indexOccultation = entry.getKey();
+            int totalFoisPerturbation = entry.getValue();
+            percentage50592ok = ((double) totalFoisPerturbation / total50592nOk) * 100;
+
+            totalPourcentage50592ok.put(indexOccultation, percentage50592ok);
+        }
+if(!indexcapteurokCountMap.isEmpty()){
+    totalPourcentageMap50592ok.put("total d'index capteurs ok", indexcapteurokCountMap);
+    totalPourcentageMap50592ok.put("pourcentage des capteurs ok dans tous les types mr", totalPourcentage50592ok);
+}
+
+
+
+// 50592 nok
+
+        Map<String, Object> totalPourcentage50592nok = new HashMap<>();
+        double percentage50592 = 0.0;
+// Calculate and display the percentages for each index of occultation
+        for (Map.Entry<String, Integer> entry : indexcapteurCountMap.entrySet()) {
+            String indexOccultation = entry.getKey();
+            int totalFoisPerturbation = entry.getValue();
+            percentage50592 = ((double) totalFoisPerturbation / total50592nOk) * 100;
+
+            totalPourcentage50592nok.put(indexOccultation, percentage50592);
+        }
+if(!indexcapteurCountMap.isEmpty()){
+    totalPourcentageMap50592nok.put("total d'index capteurs", indexcapteurCountMap);
+    totalPourcentageMap50592nok.put("pourcentage des capteurs dans tous les types mr", totalPourcentage50592nok);
+
+}
+
+
+
+
+
+
+
+            double sommePourcentageSamOk = 0.0;
+            int trainsSamOk = 0;
+            int trainsSam = 0;
+
+
+
+//sam ok
+            for (Map<String, Object> resultMap : result) {
+                if (resultMap.containsKey("nombre de train passé avec sam ok") && resultMap.containsKey("nombre de train passé")) {
+                    int trainSamOk = (int) resultMap.get("nombre de train passé avec sam ok");
+                    int trainSam = (int) resultMap.get("nombre de train passé");
+
+                    trainsSamOk += trainSamOk;
+                    trainsSam += trainSam;
+                }
+
+
+
+            }
+
+            sommePourcentageSamOk = ((double) trainsSamOk / trainsSam) * 100;
+        if (!Double.isNaN(sommePourcentageSamOk)) {
+            totalPourcentageMapSamok.put("le pourcentage de tous les sam ok et de tous les types mr", sommePourcentageSamOk);
+        }
+
+
+        //sam nok
+            Map<String, Integer> indexOccultationCountMap = new HashMap<>();
+            int totalSamnOk = 0;
+
+            for (Map<String, Object> resultMap : result) {
+                if (resultMap.containsKey("index occultation et le total de fois de perturbation dans tous les trains  ")) {
+                    Map<String, Integer> indexOccultationMap = (Map<String, Integer>) resultMap.get("index occultation et le total de fois de perturbation dans tous les trains  ");
+
+                    int trainSamnOk = (int) resultMap.get("nombre de train passé sam nok");
+
+                    totalSamnOk += trainSamnOk;
+                    System.out.println("je suis total ici  "+totalSamnOk);
+                    for (Map.Entry<String, Integer> entry : indexOccultationMap.entrySet()) {
+                        String indexOccultation = entry.getKey();
+                        int totalFoisPerturbation = entry.getValue();
+
+                        int currentCount = indexOccultationCountMap.getOrDefault(indexOccultation, 0);
+                        indexOccultationCountMap.put(indexOccultation, currentCount + totalFoisPerturbation);
+                    }
+                }
+            }
+            System.out.println("je suis total "+totalSamnOk);
+            Map<String, Object> totalPourcentageSamnok = new HashMap<>();
+            double percentage = 0.0;
+// Calculate and display the percentages for each index of occultation
+            for (Map.Entry<String, Integer> entry : indexOccultationCountMap.entrySet()) {
+                String indexOccultation = entry.getKey();
+                int totalFoisPerturbation = entry.getValue();
+                percentage = ((double) totalFoisPerturbation / totalSamnOk) * 100;
+
+                totalPourcentageSamnok.put(indexOccultation, percentage);
+            }
+if(!indexOccultationCountMap.isEmpty()){
+    totalPourcentageMapSamnok.put("total d'index", indexOccultationCountMap);
+    totalPourcentageMapSamnok.put("pourcentage des EV dans tous les types mr", totalPourcentageSamnok);
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 if(!totalPourcentageMapSamnok.isEmpty()){
