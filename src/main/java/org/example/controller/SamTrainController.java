@@ -815,21 +815,11 @@ trainMap.put("entetehorsbande",enteteshb);
                                     }
                                 }
 
-                                allSamsOk = false;
-                                break;
-                            }
-
-
-                            if (allSamsOk) {
-
-
-                                System.out.println("sam " + sam.getStatutSAM());
-                                Trainssamok.add(train.getNumTrain());
-
-
-                            } else if (statutSam.equals("uniquement sam")) {
 
                             }
+
+
+
                         }
                     }
                     boolean all50592Ok = true;
@@ -876,32 +866,9 @@ trainMap.put("entetehorsbande",enteteshb);
                                 }
 
 
-                                all50592Ok = false;
-                                break;
-                            }
-                            if (all50592Ok) {
-                                Trains50592ok.add(train.getNumTrain());
-                                for (int i = 0; i < parametreBENode.size(); i++) {
-                                    JsonNode entete = parametreBENode.get(i).get(0);
-
-
-                                    boolean isRedHeader = false;
-
-                                    if (m50592.getBeR1().getxFond().get(i).equals("00EF2F") || m50592.getBeR1().getyFond().get(i).equals("00EF2F") || m50592.getBeR1().getzFond().get(i).equals("00EF2F") || m50592.getBeR2().getxFond1().get(i).equals("00EF2F") || m50592.getBeR2().getyFond1().get(i).equals("00EF2F") || m50592.getBeR2().getzFond1().get(i).equals("00EF2F")) {
-                                        String enteteValue = entete.asText();
-
-                                        // Mise à jour du compteur pour l'en-tête rouge
-                                        redHeadersCountMap.put(enteteValue, redHeadersCountMap.getOrDefault(enteteValue, 0) + 1);
-                                    }
-
-                                    if (!isRedHeader) {
-                                        String enteteValue = entete.asText();
-                                        redHeadersCountMap.putIfAbsent(enteteValue, 0);
-                                    }
-                                }
-                            } else if (statut50592.equals("uniquement 50592")) {
 
                             }
+
                         }
 
                     }
@@ -911,12 +878,12 @@ trainMap.put("entetehorsbande",enteteshb);
 
 
 
-                int countsamok = Trainssamok.size();
+
                 int countsamnok = Trainssamnok.size();
-                int count50592ok = Trains50592ok.size();
+
                 int count50592nok = Trains50592nok.size();
 
-                double pourcentagesamok = ((double) countsamok / count) * 100;
+
 
                 // Affichage des en-têtes rouges et leur nombre de fois 50592 not ok / 50592 ok
                 Map<String, Double> percentageMap = new HashMap<>();
@@ -931,22 +898,11 @@ trainMap.put("entetehorsbande",enteteshb);
                         double percentagenok = (double) countbe / count50592nok * 100;
                         percentageMap.put(entete, percentagenok);
                     }
-                    if (!Trains50592ok.isEmpty()) {
-                        double percentageok = (double) countbe / count50592ok * 100;
-                        percentageMap.put(entete, percentageok);
-                    }
-                }
-
-
-// sam ok
-                if (!Trainssamok.isEmpty()) {
-
-                    trainMapSam.put("nombre de train passé", count);
-
-                    trainMapSam.put("nombre de train passé avec sam ok", countsamok);
-
 
                 }
+
+
+
 
 
                 // Affichage des index et leur nombr de fois sam not ok
@@ -987,15 +943,7 @@ trainMap.put("entetehorsbande",enteteshb);
 
                 }
 
-                //50592  ok
-                if (!Trains50592ok.isEmpty()) {
-                    trainMap50592.put("nombre de train passé", count);
 
-//                trainMap50592.put("nombre de train passé 50592 ok", count50592ok);
-                    trainMap50592.put("le poucentage de chaque capteur", percentageMap);
-                    trainMap50592.put("nom du capteur et le nombre de non perturbé", m505952nokIndexValueMap);
-
-                }
                 if (!trainMapSam.isEmpty()) {
 
                     result.add(trainMapSam);
@@ -1058,21 +1006,7 @@ trainMap.put("entetehorsbande",enteteshb);
             }
 
         }
-// 50592 ok
-        Map<String, Object> totalPourcentage50592ok = new HashMap<>();
-        double percentage50592ok = 0.0;
-// Calculate and display the percentages for each index of occultation
-        for (Map.Entry<String, Integer> entry : indexcapteurokCountMap.entrySet()) {
-            String indexOccultation = entry.getKey();
-            int totalFoisPerturbation = entry.getValue();
-            percentage50592ok = ((double) totalFoisPerturbation / total50592nOk) * 100;
 
-            totalPourcentage50592ok.put(indexOccultation, percentage50592ok);
-        }
-        if(!indexcapteurokCountMap.isEmpty()){
-            totalPourcentageMap50592ok.put("total d'index capteurs ok", indexcapteurokCountMap);
-            totalPourcentageMap50592ok.put("pourcentage des capteurs ok dans tous les types mr", totalPourcentage50592ok);
-        }
 
 
 
@@ -1106,24 +1040,6 @@ trainMap.put("entetehorsbande",enteteshb);
 
 
 
-//sam ok
-        for (Map<String, Object> resultMap : result) {
-            if (resultMap.containsKey("nombre de train passé avec sam ok") && resultMap.containsKey("nombre de train passé")) {
-                int trainSamOk = (int) resultMap.get("nombre de train passé avec sam ok");
-                int trainSam = (int) resultMap.get("nombre de train passé");
-
-                trainsSamOk += trainSamOk;
-                trainsSam += trainSam;
-            }
-
-
-
-        }
-
-        sommePourcentageSamOk = ((double) trainsSamOk / trainsSam) * 100;
-        if (!Double.isNaN(sommePourcentageSamOk)) {
-            totalPourcentageMapSamok.put("le pourcentage de tous les sam ok et de tous les types mr", sommePourcentageSamOk);
-        }
 
 
         //sam nok
@@ -1183,12 +1099,6 @@ trainMap.put("entetehorsbande",enteteshb);
         if(!totalPourcentageMap50592nok.isEmpty()){
             result.add(totalPourcentageMap50592nok);
         }
-        if(!totalPourcentageMap50592ok.isEmpty()){
-            result.add(totalPourcentageMap50592ok);
-        }
-        if(!totalPourcentageMapSamok.equals("0.0")){
-            result.add(totalPourcentageMapSamok);
-        }
 
 
 
@@ -1222,7 +1132,9 @@ trainMap.put("entetehorsbande",enteteshb);
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichierBetweenAndStatut50592(site, start, end ,statut50592);
+        List<M_50592> m50592s1 = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
         List<Sam> sams = samRepository.findBySiteAndDateFichierBetweenAndStatutSAM(site, start, end,statutSam);
+        List<Sam> samuniquement = samRepository.findBySiteAndDateFichierBetween(site, start, end);
 
         int count = 0;
         List<Map<String, Object>> result = new ArrayList<>();
@@ -1251,7 +1163,7 @@ trainMap.put("entetehorsbande",enteteshb);
                         if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
                                 && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
                                 && train.getDateFichier().equals(sam.getDateFichier())) {
-                              count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
+                            count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
                             if (!sam.getStatutSAM().equals("OK")) {
                                 Trainssamnok.add(train.getNumTrain());
 
@@ -1273,16 +1185,44 @@ trainMap.put("entetehorsbande",enteteshb);
                             if (allSamsOk) {
 
 
+                                System.out.println("sam " + sam.getStatutSAM());
+                                Trainssamok.add(train.getNumTrain());
 
-                                    System.out.println("sam "+sam.getStatutSAM());
-                                    Trainssamok.add(train.getNumTrain());
-
-
-                            }
-                            else if(statutSam.equals("uniquement sam")) {
 
                             }
                         }
+                        }
+                            if (statutSam.equals("uniquement sam")) {
+                                for (Sam sam1 : samuniquement) {
+                                    if (train.getHeureFichier().getHours() == sam1.getHeureFichier().getHours()
+                                            && train.getHeureFichier().getMinutes() == sam1.getHeureFichier().getMinutes()
+                                            && train.getDateFichier().equals(sam1.getDateFichier())) {
+                                        count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
+                                        if (!sam1.getStatutSAM().equals("OK")) {
+                                            Trainssamnok.add(train.getNumTrain());
+
+                                            if (sam1.getNbOccultations() != null && sam1.getNbOccultations().size() > 0) {
+                                                for (int i = 0; i < sam1.getNbOccultations().size(); i++) {
+                                                    if (!sam1.getNbOccultations().get(i).equals(sam1.getNbEssieux())) {
+                                                        int index = i;
+                                                        int occurrenceCount = redHeadersCountSamMap.getOrDefault(index, 0) + 1;
+                                                        redHeadersCountSamMap.put(index, occurrenceCount);
+                                                    }
+                                                }
+                                            }
+
+                                            allSamsOk = false;
+                                            break;
+                                        }
+
+
+                                        Trainssamok.add(train.getNumTrain());
+
+
+                                    }
+                                }
+
+
                     }
                     boolean all50592Ok = true;
 
@@ -1336,12 +1276,69 @@ trainMap.put("entetehorsbande",enteteshb);
                                 Trains50592ok.add(train.getNumTrain());
 
                             }
-                            else if(statut50592.equals("uniquement 50592")) {
+
+                        }
+
+                        }
+
+                    if(statut50592.equals("uniquement 50592")) {
+                        for (M_50592 m50592 : m50592s1) {
+
+                            if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours()
+                                    && train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes()
+                                    && train.getDateFichier().equals(m50592.getDateFichier())) {
+
+
+                                count = trainRepository.countBySiteAndDateFichierBetweenAndNumTrainIn(site, start, end, numTrains);
+                                Properties prop = new Properties();
+                                InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                                prop.load(input);
+
+                                String outputFolderPath = prop.getProperty("output.folder.path");
+
+                                File inputFile = new File(outputFolderPath, m50592.getFileName()); // use output folder path as parent directory
+                                ObjectMapper mapper = new ObjectMapper();
+                                JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class); // read from input file
+                                JsonNode parametreBENode = rootNode.get("ParametresBE");
+                                if (!m50592.getStatut50592().equals("OK")) {
+                                    Trains50592nok.add(train.getNumTrain());
+
+                                    for (int i = 0; i < parametreBENode.size(); i++) {
+                                        JsonNode entete = parametreBENode.get(i).get(0);
+
+
+                                        boolean isRedHeader = false;
+
+
+                                        if (m50592.getBeR1().getxFond().get(i).equals("FF382A") || m50592.getBeR1().getyFond().get(i).equals("FF382A") || m50592.getBeR1().getzFond().get(i).equals("FF382A") || m50592.getBeR2().getxFond1().get(i).equals("FF382A") || m50592.getBeR2().getyFond1().get(i).equals("FF382A") || m50592.getBeR2().getzFond1().get(i).equals("FF382A")) {
+                                            isRedHeader = true;
+                                            String enteteValue = entete.asText();
+
+                                            // Mise à jour du compteur pour l'en-tête rouge
+                                            redHeadersCountMap.put(enteteValue, redHeadersCountMap.getOrDefault(enteteValue, 0) + 1);
+                                        }
+                                        if (!isRedHeader) {
+                                            String enteteValue = entete.asText();
+                                            redHeadersCountMap.putIfAbsent(enteteValue, 0);
+                                        }
+
+
+                                    }
+
+
+                                    all50592Ok = false;
+                                    break;
+                                }
+                                Trains50592ok.add(train.getNumTrain());
+
 
                             }
                         }
 
-                        }
+                    }
+
+
+
 
 
                     }
@@ -1415,18 +1412,18 @@ if(!Trains50592nok.isEmpty()) {
             //sam not ok
             if (!Trainssamnok.isEmpty()) {
                 System.out.println("je suis ici ");
-                trainMapSam.put("nombre de train passé", count);
-                trainMapSam.put("mr",typemr);
-//                trainMapSam.put("nombre de train passé sam nok", countsamnok);
-                trainMapSam.put("index occultation et le total de fois de perturbation dans tous les trains  ", samnokIndexValueMap);
+                trainMapSam.put("nombre de train passé (sam nok)", count);
+                trainMapSam.put("mr(sam nok)",typemr);
+                trainMapSam.put("nombre de train passé sam nok", countsamnok);
+                trainMapSam.put("index occultation et le total de fois de perturbation dans tous les trains", samnokIndexValueMap);
 //                trainMap.put("somme de tous les types mrs", total);
 
             }
             //50592 not ok
             if (!Trains50592nok.isEmpty()) {
-                trainMap50592.put("nombre de train passé", count);
-                trainMap50592.put("mr",typemr);
-//                trainMap50592.put("nombre de train passé 50592 nok", count50592nok);
+                trainMap50592.put("nombre de train passé(50592 nok)", count);
+                trainMap50592.put("mr(50592 nok)",typemr);
+                trainMap50592.put("nombre de train passé 50592 nok", count50592nok);
                 trainMap50592.put("le poucentage de chaque capteur",percentageMap);
                 trainMap50592.put("nom du capteur et le nombre de perturbations", m505952nokIndexValueMap);
 
@@ -1551,8 +1548,8 @@ if(!indexcapteurCountMap.isEmpty()){
             int totalSamnOk = 0;
 
             for (Map<String, Object> resultMap : result) {
-                if (resultMap.containsKey("index occultation et le total de fois de perturbation dans tous les trains  ")) {
-                    Map<String, Integer> indexOccultationMap = (Map<String, Integer>) resultMap.get("index occultation et le total de fois de perturbation dans tous les trains  ");
+                if (resultMap.containsKey("index occultation et le total de fois de perturbation dans tous les trains")) {
+                    Map<String, Integer> indexOccultationMap = (Map<String, Integer>) resultMap.get("index occultation et le total de fois de perturbation dans tous les trains");
 
                     int trainSamnOk = (int) resultMap.get("nombre de train passé sam nok");
 
