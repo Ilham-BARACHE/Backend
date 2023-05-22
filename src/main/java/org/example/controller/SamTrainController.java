@@ -783,15 +783,10 @@ trainMap.put("entetehorsbande",enteteshb);
             List<String> Trainssamok = new ArrayList<>();
             List<String> Trains50592ok = new ArrayList<>();
             List<String> Trains50592nok = new ArrayList<>();
-            int statutbednok =0;
-            int statutbehdnok =0;
 
-            int statutbedok =0;
-            int statutbehdok =0;
+
         for (Train train : trains) {
-            List<Mr> mrs = mrRepository.findDistinctByNumTrain(train.getNumTrain());
-            for (Mr mr : mrs) {
-                System.out.println("je suis le type "+mr);
+
 
 
                     numTrains.add(train.getNumTrain());
@@ -842,7 +837,7 @@ trainMap.put("entetehorsbande",enteteshb);
                             JsonNode parametreBENode = rootNode.get("ParametresBE");
                             if (!m50592.getStatut50592().equals("OK")) {
                                 Trains50592nok.add(train.getNumTrain());
-                              trainMap50592.put("mr",mr.getMr());
+
                                    for (int i = 0; i < parametreBENode.size(); i++) {
                                     JsonNode entete = parametreBENode.get(i).get(0);
 
@@ -952,7 +947,7 @@ trainMap.put("entetehorsbande",enteteshb);
                     result.add(trainMap50592);
                 }
 
-            }
+
 
 
 
@@ -1034,9 +1029,7 @@ trainMap.put("entetehorsbande",enteteshb);
 
 
 
-        double sommePourcentageSamOk = 0.0;
-        int trainsSamOk = 0;
-        int trainsSam = 0;
+
 
 
 
@@ -1169,10 +1162,13 @@ trainMap.put("entetehorsbande",enteteshb);
 
                                 if (sam.getNbOccultations() != null && sam.getNbOccultations().size() > 0) {
                                     for (int i = 0; i < sam.getNbOccultations().size(); i++) {
+                                        int index = i;
                                         if (!sam.getNbOccultations().get(i).equals(sam.getNbEssieux())) {
-                                            int index = i;
+
                                             int occurrenceCount = redHeadersCountSamMap.getOrDefault(index, 0) + 1;
                                             redHeadersCountSamMap.put(index, occurrenceCount);
+                                        }else {
+                                            redHeadersCountSamMap.put(index, 0);
                                         }
                                     }
                                 }
@@ -1192,7 +1188,7 @@ trainMap.put("entetehorsbande",enteteshb);
                             }
                         }
                         }
-                            if (statutSam.equals("uniquement sam")) {
+                            if (statutSam != null && !statutSam.isEmpty() &&statutSam.equals("uniquement sam")) {
                                 for (Sam sam1 : samuniquement) {
                                     if (train.getHeureFichier().getHours() == sam1.getHeureFichier().getHours()
                                             && train.getHeureFichier().getMinutes() == sam1.getHeureFichier().getMinutes()
@@ -1281,7 +1277,7 @@ trainMap.put("entetehorsbande",enteteshb);
 
                         }
 
-                    if(statut50592.equals("uniquement 50592")) {
+                    if(statut50592 != null && !statut50592.isEmpty() && statut50592.equals("uniquement 50592")) {
                         for (M_50592 m50592 : m50592s1) {
 
                             if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours()
@@ -1333,6 +1329,7 @@ trainMap.put("entetehorsbande",enteteshb);
 
 
                             }
+                            break;
                         }
 
                     }
