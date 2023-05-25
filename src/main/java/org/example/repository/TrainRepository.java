@@ -1,6 +1,7 @@
 package org.example.repository;
 
 
+import org.example.model.Result;
 import org.example.model.Sam;
 import org.example.model.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,16 +16,13 @@ import java.util.List;
 
 public interface TrainRepository extends JpaRepository<Train, Long> {
 
-    List<Train> findByDateFichierAndSite(Date dateFichier, String site);
-
+  List<Train> findByDateFichierAndSite(Date dateFichier, String site);
+//
     List<Train> findBySiteAndDateFichier(String site, Date dateFichier);
+ List<Train> findBySiteAndDateFichierBetween(String site, Date dateFichier , Date dateF);
+
+
     List<Train> findBySiteAndDateFichierAndHeureFichier(String site , Date dateFichier , Time heure);
-    List<Train> findAll();
-    List<Train> findByNumTrain(String num);
-    int countBySiteAndDateFichierBetweenAndNumTrainIn(String site, Date startDate, Date endDate, List<String> numTrains);
-    List<Train> findBySiteAndDateFichierBetween(String site, Date dateFichier , Date dateF);
 
-
-    boolean existsByfileName(String nomFichier);
 
 }

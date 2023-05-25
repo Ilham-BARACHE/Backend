@@ -47,14 +47,14 @@ private M_50592Repository m50592Repository;
     @GetMapping({"/50592"})
     public ResponseEntity<?> getAll50592() {
         try {
-            List<EntityModel<M_50592>> confs = m50592Repository.findAll().stream()
+            List<EntityModel<M_50592>> m50592s = m50592Repository.findAll().stream()
                     .map(m50592Assembler::toModel)
                     .collect(Collectors.toList());
-            if (confs.isEmpty()) {
+            if (m50592s.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(CollectionModel.of(confs,
-                    linkTo(methodOn(SamController.class).getAllConf()).withSelfRel()),
+            return new ResponseEntity<>(CollectionModel.of(m50592s,
+                    linkTo(methodOn(M_50592Controller.class).getAll50592()).withSelfRel()),
                     HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -64,9 +64,9 @@ private M_50592Repository m50592Repository;
 
     @GetMapping({"/50592/{id}"})
     public ResponseEntity<EntityModel<M_50592>> get50592ById(@PathVariable("id") Long id) {
-        M_50592 conf = m50592Repository.findById(id)
+        M_50592 m50592 = m50592Repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver la configuration des marques habilitées par activité " + id));
 
-        return new ResponseEntity(m50592Assembler.toModel(conf), HttpStatus.OK);
+        return new ResponseEntity(m50592Assembler.toModel(m50592), HttpStatus.OK);
     }
 }

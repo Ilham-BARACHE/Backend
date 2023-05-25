@@ -15,7 +15,7 @@ public class SamAssembler implements RepresentationModelAssembler<Sam, EntityMod
     @Override
     public EntityModel<Sam> toModel(Sam entity) {
         return EntityModel.of(entity,
-                WebMvcLinkBuilder.linkTo(methodOn(SamController.class).getConfById(entity.getId())).withSelfRel(),
-                linkTo(methodOn(SamController.class).getAllConf()).withRel("SAM"));
+                WebMvcLinkBuilder.linkTo(methodOn(SamController.class).getSamById(entity.getId())).withSelfRel(),
+                linkTo(methodOn(SamController.class).getAllSam()).withRel("SAM"));
     }
 }

@@ -47,14 +47,14 @@ public class TypeMrController {
     @GetMapping({"/mr"})
     public ResponseEntity<?> getAllMr() {
         try {
-            List<EntityModel<Mr>> confs = mrRepository.findAll().stream()
+            List<EntityModel<Mr>> mrs = mrRepository.findAll().stream()
                     .map(mrAssembler::toModel)
                     .collect(Collectors.toList());
-            if (confs.isEmpty()) {
+            if (mrs.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(CollectionModel.of(confs,
-                    linkTo(methodOn(SamController.class).getAllConf()).withSelfRel()),
+            return new ResponseEntity<>(CollectionModel.of(mrs,
+                    linkTo(methodOn(TypeMrController.class).getAllMr()).withSelfRel()),
                     HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -62,11 +62,11 @@ public class TypeMrController {
     }
 
     @GetMapping({"/mr/{id}"})
-    public ResponseEntity<EntityModel<Mr>> getConfById(@PathVariable("id") Long id) {
-        Mr conf = mrRepository.findById(id)
+    public ResponseEntity<EntityModel<Mr>> getMrById(@PathVariable("id") Long id) {
+        Mr mr = mrRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver la configuration des marques habilitées par activité " + id));
 
-        return new ResponseEntity(mrAssembler.toModel(conf), HttpStatus.OK);
+        return new ResponseEntity(mrAssembler.toModel(mr), HttpStatus.OK);
     }
 
     @GetMapping(path = {"/typemr"}, produces = {"application/json"}

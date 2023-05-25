@@ -59,10 +59,7 @@ public class Sam  {
     private String fileName;
 
 
-    @Column(name = "durePassage")
-    @ElementCollection
-    @JsonProperty("DureePassage_s")
-    private List<Double> durePassage;
+
 
 
     @Column(name = "date_Fichier")
@@ -86,13 +83,7 @@ public class Sam  {
 
 
 
-    public List<Double> getDurePassage() {
-        return durePassage;
-    }
 
-    public void setDurePassage(List<Double> durePassage) {
-        this.durePassage = durePassage;
-    }
 
     public Integer getNbEssieux() {
         return nb_Essieux;

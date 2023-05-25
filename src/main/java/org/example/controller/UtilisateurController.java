@@ -154,23 +154,6 @@ public class UtilisateurController {
         headers.add("Access-Control-Expose-Headers", "a, c");
         headers.add("X-Content-Type-Options", "nosniff");
 
-//        // récupérer le texte chiffré depuis la réponse JSON
-//        String encryptedRole1 = jsonResponse.get("c").getAsString();
-//
-//// décoder le texte chiffré avec Base64
-//        byte[] encryptedRoleBytes1 = Base64.getDecoder().decode(encryptedRole1);
-//
-//// déchiffrer le texte avec AES
-//        SecretKeySpec secretKeySpec1 = new SecretKeySpec(secretKey.getBytes(), "AES");
-//        Cipher cipher1 = Cipher.getInstance("AES");
-//        cipher1.init(Cipher.DECRYPT_MODE, secretKeySpec1);
-//        byte[] decryptedRoleBytes = cipher1.doFinal(encryptedRoleBytes1);
-//
-//// convertir le texte déchiffré en chaîne de caractères
-//        String decryptedRole = new String(decryptedRoleBytes);
-//
-//// afficher la chaîne de caractères déchiffrée
-//        System.out.println(decryptedRole);
 
 // Renvoyer une réponse réussie avec l'en-tête d'autorisation et le corps JSON
         return new ResponseEntity<>(jsonResponse.toString(), headers, HttpStatus.OK);
@@ -208,7 +191,7 @@ public class UtilisateurController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             return new ResponseEntity<>(CollectionModel.of(users,
-                    linkTo(methodOn(SamController.class).getAllConf()).withSelfRel()),
+                    linkTo(methodOn(UtilisateurController.class).getAllUser()).withSelfRel()),
                     HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -235,6 +218,7 @@ public class UtilisateurController {
 
 
     @PostMapping("/NewUser")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> createUser(@Valid @RequestBody Utilisateur user){
         try{
             if (utilisateurRepository.exists(user.getLogin())){
@@ -256,6 +240,7 @@ public class UtilisateurController {
 
 
     @PutMapping("/updateuser/{id}")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> updateUser(@Valid @RequestBody Utilisateur user,
                                         @PathVariable(value = "id") Long id){
         String password = user.getPassword();   // Vérifiez si l'utilisateur avec l'email spécifié existe dans la base de données
@@ -282,6 +267,7 @@ public class UtilisateurController {
 
 
     @DeleteMapping("/deleteuser/{id}")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id){
         try{
             utilisateurRepository.deleteById(id);

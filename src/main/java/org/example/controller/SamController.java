@@ -43,16 +43,16 @@ public class SamController {
     }
 
     @GetMapping("/SAM")
-    public ResponseEntity<?> getAllConf() {
+    public ResponseEntity<?> getAllSam() {
         try {
-            List<EntityModel<Sam>> confs = samRepository.findAll().stream()
+            List<EntityModel<Sam>> sams = samRepository.findAll().stream()
                     .map(samAssembler::toModel)
                     .collect(Collectors.toList());
-            if (confs.isEmpty()) {
+            if (sams.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(CollectionModel.of(confs,
-                    linkTo(methodOn(SamController.class).getAllConf()).withSelfRel()),
+            return new ResponseEntity<>(CollectionModel.of(sams,
+                    linkTo(methodOn(SamController.class).getAllSam()).withSelfRel()),
                     HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -61,39 +61,13 @@ public class SamController {
 
 
     @GetMapping("/SAM/{id}")
-    public ResponseEntity<EntityModel<Sam>> getConfById(@PathVariable(value = "id") Long id) {
-        Sam conf = samRepository.findById(id)
+    public ResponseEntity<EntityModel<Sam>> getSamById(@PathVariable(value = "id") Long id) {
+        Sam sam = samRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Impossible de trouver la configuration des marques habilitées par activité " + id));
-        return new ResponseEntity<>(samAssembler.toModel(conf), HttpStatus.OK);
+        return new ResponseEntity<>(samAssembler.toModel(sam), HttpStatus.OK);
     }
 
 
-    // Endpoint pour envoyer les temps_ms à une API externe
-//    @PostMapping("/envoyer_temps_ms")
-//    public ResponseEntity<String> envoyerTempsMs(@RequestBody List<Double> tempsMsList) {
-//        // Récupérer l'URL de l'API externe
-//        String apiUrl = "https://exemple.com/api";
-//
-//        // Envoyer les temps_ms à l'API externe
-//        try {
-//            HttpResponse response = Request.Post(apiUrl)
-//                    .bodyString(new Gson().toJson(tempsMsList), ContentType.APPLICATION_JSON)
-//                    .execute().returnResponse();
-//            return ResponseEntity.ok(response.toString());
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-//        }
-//    }
-//}
 
 
-
-
-//    @GetMapping("/SAM/Date")
-//    public List<Sam> getFilmsBetweenDates(
-//            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
-//            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate) {
-//        return samRepository.findByDateBetween(startDate, endDate);
-//
-//    }
 }

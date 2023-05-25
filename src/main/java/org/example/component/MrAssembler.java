@@ -19,6 +19,6 @@ public class MrAssembler implements RepresentationModelAssembler<Mr, EntityModel
     }
 
     public EntityModel<Mr> toModel(Mr entity) {
-        return EntityModel.of(entity, new Link[]{WebMvcLinkBuilder.linkTo(((TypeMrController)WebMvcLinkBuilder.methodOn(TypeMrController.class, new Object[0])).getConfById(entity.getId())).withSelfRel(), WebMvcLinkBuilder.linkTo(((TypeMrController)WebMvcLinkBuilder.methodOn(TypeMrController.class, new Object[0])).getAllMr()).withRel("MR")});
+        return EntityModel.of(entity, new Link[]{WebMvcLinkBuilder.linkTo(((TypeMrController)WebMvcLinkBuilder.methodOn(TypeMrController.class, new Object[0])).getMrById(entity.getId())).withSelfRel(), WebMvcLinkBuilder.linkTo(((TypeMrController)WebMvcLinkBuilder.methodOn(TypeMrController.class, new Object[0])).getAllMr()).withRel("MR")});
     }
 }

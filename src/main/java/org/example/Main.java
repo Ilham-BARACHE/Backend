@@ -11,6 +11,11 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.model.*;
+import org.example.repository.M_50592Repository;
+import org.example.repository.ResultRepository;
+import org.example.repository.SamRepository;
+import org.example.repository.TrainRepository;
+import org.example.service.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartPanel;
@@ -21,11 +26,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import org.example.service.M_50592Service;
-
-import org.example.service.MrService;
-import org.example.service.SamService;
-import org.example.service.TrainService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -54,9 +54,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Time;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @SpringBootApplication
 public class Main {
@@ -67,8 +73,9 @@ public class Main {
 
 
     @Bean
-    CommandLineRunner runner(SamService samService, M_50592Service m50592Service , TrainService trainService, MrService mrService) {
+    CommandLineRunner runner(SamService samService, M_50592Service m50592Service , TrainService trainService, MrService mrService , SamRepository samRepository , M_50592Repository m50592Repository , TrainRepository trainRepository , ResultRepository resultRepository , ResultService resultService) {
         return args -> {
+
 
             Properties prop = new Properties();
             InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
@@ -82,49 +89,6 @@ public class Main {
             File inputFolder = new File(inputFolderPath);
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-
-//
-//            String url = "https://test01.rd-vision-dev.com/get_images";
-//            URL jsonUrl = new URL(url);
-//
-//            HttpURLConnection connection = (HttpURLConnection) jsonUrl.openConnection();
-//            connection.setRequestMethod("GET");
-//
-//// Ajouter le header Authorization avec le token
-//            String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QudXNlckB0ZXN0LmNvbSIsImV4cCI6MTY5NjYwMDY5MiwiaXNzIjoiand0dGVzdC5jb20iLCJhdWQiOiJ0cnlzdGFud2lsY29jay5jb20ifQ.LQ6yfa0InJi6N5GjRfVcA8XMZtZZef0PswrM2Io7l-g";
-//            connection.setRequestProperty("Authorization", "Bearer " + token);
-//
-//            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//                InputStream inputStream = connection.getInputStream();
-//                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-//                StringBuilder response = new StringBuilder();
-//                String line;
-//                while ((line = bufferedReader.readLine()) != null) {
-//                    response.append(line);
-//                }
-//                bufferedReader.close();
-//                inputStream.close();
-//
-//                // Afficher la réponse
-//                System.out.println("Response: " + response.toString());
-//
-//                // Parcourir l'objet JSON
-//                JsonNode jsonNode = mapper.readTree(response.toString());
-//                System.out.println("Train id: " + jsonNode.get("results").asText());
-//                // Afficher d'autres valeurs du JSON en utilisant la méthode get() et asText()
-//
-//                connection.disconnect();
-//            } else {
-//                System.out.println("Error response code: " + connection.getResponseCode());
-//            }
-
-
-
-
-
-
-
-
 
 
 
@@ -156,34 +120,6 @@ public class Main {
             }
 
 
-// Liste pour stocker les noms de fichiers train traités
-            List<String> processedFiles = new ArrayList<>();
-            // Lire tous les fichiers commençant par 'TRAIN'
-            File[] trainFiles = outputFolder.listFiles((dir, name) -> name.startsWith("TRAIN") & name.endsWith(".json"));
-            for (File trainFile : trainFiles) {
-                String fileName = trainFile.getName();
-                if (processedFiles.contains(fileName) || trainService.existsByfileName(trainFile.getName())) {
-                    // Le fichier a déjà été traité, passer au suivant
-                    continue;
-                }
-                TypeReference<List<Train>> trainTypeRef = new TypeReference<List<Train>>() {
-                };
-                try (InputStream trainStream = new FileInputStream(trainFile)) {
-                    List<Train> trains = mapper.readValue(trainStream, trainTypeRef);
-                    trainService.save(trains);
-                    for (Train train : trains) {
-                        train.setFileName(trainFile.getName()); // Définir le nom de fichier dans l'objet M_50592
-                        train.loadStartingWithTRAIN(trainFile.getName());
-                        train.loadSite(trainFile.getName());
-                        String urlt = outputFolderPath+"/"+ train.getFileName().substring(0, train.getFileName().lastIndexOf('.'));
-                        train.setUrl(urlt);
-                        trainService.save(train);
-                    }
-                    processedFiles.add(fileName);
-                } catch (IOException e) {
-                    System.err.println("Erreur lors de la lecture du fichier " + trainFile.getName() + " pour la table T_Passage : " + e.getMessage());
-                }
-            }
 
 
 // Liste pour stocker les numéros de train traités
@@ -229,7 +165,7 @@ public class Main {
             }
 
 
-// Liste pour stocker les noms de fichiers traités
+// Liste pour stocker les noms de fichiers traités sam
             List<String> processedFilessam = new ArrayList<>();
 
 
@@ -291,42 +227,14 @@ public class Main {
                                     double step = 6.0; // step peut être changé selon vos besoins
                                     enveloppeData.saveSampledToJson(outputFile, step);
                                 }
-//                                final int index = i;
-//                                // Vérifier si le fichier de sortie existe et si oui, le traiter
-//                                if (outputFile.exists()) {
-//                                    File[] samFilestraite = outputFolderenvloppe.listFiles((dir, name) -> name.startsWith("SAMCapteur" + index) && name.endsWith(".json"));
-//
-//                                    for (File samFiletraite : samFilestraite) {
-//                                        System.out.println("le i " +i +" sa vleur est "+sam.getDurePassage().get(i-1));
-//                                        enveloppeData.generateGraph(samFiletraite, i ,sam.getDurePassage().get(i-1));
-//                                        System.out.println("voila le fichier " + samFiletraite);
-//                                    }
-//                                }
-                                // Définir l'URL en fonction du nom de fichier
+
                                 String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
 
                                 sam.setUrlSam(urlsam);
 
 
 
-//                            File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderenvloppe.getName().replace("_enveloppes", ""))
-//                                    && (name.endsWith(".png") || name.endsWith(".bmp")));
-//                            if (imageFiles.length > 0) {
-//
-//
-//
-//                                  // Déplacer les fichiers d'image correspondants dans le dossier créé
-//                                for (File imageFile : imageFiles) {
-//                                    File targetFile = new File(outputFolderenvloppe, imageFile.getName());
-//                                    if (!imageFile.renameTo(targetFile)) {
-//                                        System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + outputFolderenvloppe.getName() + ".");
-//                                    } else {
-//                                        System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + outputFolderenvloppe.getName() + ".");
-//                                    }
-//                                }
-//                            } else {
-//                                System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le dossier " + outputFolder + ".");
-//                            }
+
 
 
 
@@ -351,7 +259,9 @@ samService.save(sam);
             }
 
 
-// Liste pour stocker les noms de fichiers traités
+
+
+// Liste pour stocker les noms de fichiers traités 50592
             List<String> processedFiles50592 = new ArrayList<>();
             // Lire tous les fichiers commençant par '50592'
             File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
@@ -449,6 +359,108 @@ processedFiles50592.add(fileName);
 
 
 
+            // Construire l'URL de train en utilisant la date et l'heure
+            List<Sam> sams = samRepository.findAll();
+            List<M_50592> m50592s = m50592Repository.findAll();
+            DateTimeFormatter formatterr = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            Set<String> existingResultIds = new HashSet<>();
+            Set<Date> existingDateTimes = new HashSet<>();
+
+            for (Sam sam : sams) {
+                for (M_50592 m50592 : m50592s) {
+                    if (sam.getDateFichier().equals(m50592.getDateFichier())) {
+                        String url = "https://test01.rd-vision-dev.com/get_images?system=2&dateFrom=" +
+                                sam.getDateFichier() + "T" + sam.getHeureFichier() +
+                                "&dateTo=" + m50592.getDateFichier() + "T" + m50592.getHeureFichier();
+
+                        URL jsonUrl = new URL(url);
+                        HttpURLConnection connection = (HttpURLConnection) jsonUrl.openConnection();
+                        connection.setRequestMethod("GET");
+
+                        // Ajouter le header Authorization avec le token
+                        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QudXNlckB0ZXN0LmNvbSIsImV4cCI6MTY5NjYwMDY5MiwiaXNzIjoiand0dGVzdC5jb20iLCJhdWQiOiJ0cnlzdGFud2lsY29jay5jb20ifQ.LQ6yfa0InJi6N5GjRfVcA8XMZtZZef0PswrM2Io7l-g";
+                        connection.setRequestProperty("Authorization", "Bearer " + token);
+
+                        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                            InputStream inputStream = connection.getInputStream();
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                            StringBuilder response = new StringBuilder();
+                            String line;
+                            while ((line = bufferedReader.readLine()) != null) {
+                                response.append(line);
+                            }
+                            bufferedReader.close();
+                            inputStream.close();
+
+                            // Mapper le JSON sur un objet Train
+                            Train train = mapper.readValue(response.toString(), Train.class);
+
+                            List<Result> results = train.getResults();
+                            int size = results.size();
+
+                            for (int i = 0; i < size; i++) {
+                                Result result = results.get(i);
+                                String dateid = result.getDate();
+
+
+                                // Effectuez une vérification pour déterminer si l'ID du résultat existe déjà
+                                if (existingResultIds.contains(dateid)) {
+                                    // Le résultat existe déjà, passez à l'itération suivante
+                                    continue;
+                                }
+
+                                String dateTimeString = dateid.substring(0, 19);
+                                LocalDateTime dateTime = LocalDateTime.parse(dateTimeString, formatterr);
+                                Date formattedDateTime = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+                                // extraire la date et la convertir en java.util.Date
+                                String[] parts = dateTimeString.split("T");
+                                String datePart = parts[0]; // "2023-04-14"
+                                String timePart = parts[1]; // "14:04:05"
+
+                                SimpleDateFormat dateFormatterr = new SimpleDateFormat("yyyy-MM-dd");
+                                Date datefichier = dateFormatterr.parse(datePart);
+
+                                SimpleDateFormat timeFormatterr = new SimpleDateFormat("HH:mm:ss");
+                                Date timefichier = timeFormatterr.parse(timePart);
+
+                                // Ajoutez l'ID du résultat à la liste des résultats existants
+                                existingResultIds.add(dateid);
+
+                                // Convertir les objets Date en objets Time
+                                Time heurefichier = new Time(timefichier.getTime());
+
+// Vérifier si une instance de Train avec la même date, heure et site existe déjà
+                                List <Train> existingTrain = trainRepository.findBySiteAndDateFichierAndHeureFichier("Chevilly", datefichier, heurefichier);
+                                if (!existingTrain.isEmpty()) {
+                                    // Une instance de Train avec la même date, heure et site existe déjà, passez à l'itération suivante
+                                    continue;
+                                }
+
+
+                                Train trainInstance = new Train(); // Créer une nouvelle instance de Train
+                                trainInstance.setDateFichier(datefichier);
+                                trainInstance.setHeureFichier(timefichier);
+                                trainInstance.setSite("Chevilly");
+
+                                result.setTrain(trainInstance); // Définir la relation train dans Result
+
+
+
+                                trainInstance.getResults().add(result);
+                                System.out.println("je jee " + trainInstance.getSite());
+
+                                trainService.save(trainInstance); // Sauvegarder chaque instance de Train séparément
+                                resultService.save(result); // Sauvegarder chaque instance de Result séparément
+                            }
+                        } else {
+                            System.out.println("Error response code: " + connection.getResponseCode());
+                        }
+
+                        connection.disconnect();
+                    }
+                }
+            }
 
 
 
