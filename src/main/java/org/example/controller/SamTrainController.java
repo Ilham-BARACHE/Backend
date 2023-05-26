@@ -549,12 +549,12 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours() &&
                             train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes() &&
                             train.getDateFichier().equals(m50592.getDateFichier())) {
-                        trainMap.put("numTrain", null);
-                        trainMap.put("dateFichier", null);
-                        trainMap.put("heureFichier", null);
-                        trainMap.put("imagemini", null);
+                        trainMap.put("numTrain", results.getEngine());
+                        trainMap.put("dateFichier", train.getDateFichier());
+                        trainMap.put("heureFichier", train.getHeureFichier());
+                        trainMap.put("imagemini", results.getThumbnail());
 
-                        trainMap.put("site", null);
+                        trainMap.put("site", site);
 
 
 
@@ -638,10 +638,10 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                         }
 
                     }else{
-                        trainMap.put("numTrain", results.getEngine());
-                        trainMap.put("dateFichier", train.getDateFichier());
-                        trainMap.put("heureFichier", train.getHeureFichier());
-                        trainMap.put("imagemini", results.getThumbnail());
+                        trainMap.put("numTrain", null);
+                        trainMap.put("dateFichier", null);
+                        trainMap.put("heureFichier", null);
+                        trainMap.put("imagemini", null);
 
                         trainMap.put("site", site);
 
