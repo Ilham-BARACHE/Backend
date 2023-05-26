@@ -625,10 +625,13 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 result.add(trainMap);
             }
         }
-        if (trains.isEmpty()) {
+
+        //le cas ou y a pas train
+        if (trains.isEmpty() ) {
+            System.out.println("je suis la");
             if (!sams.isEmpty() && !m50592s.isEmpty()) {
                 // Cas 1: train vide, sam et 50592 présents
-
+                System.out.println("je suis la");
                 for (Sam sam : sams) {
                     for (M_50592 m50592 : m50592s) {
                         // Comparer sam et m50592
@@ -710,12 +713,12 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                                 frequencesbe.add(frequence);
                             }
 
-                            for (int i = 0; i < pametreoutofband.size(); i++) {
-                                JsonNode entete = parametreBLNode.get(i).get(0);
-
-                                enteteshb.add(entete);
-
-                            }
+//                            for (int i = 0; i < pametreoutofband.size(); i++) {
+//                                JsonNode entete = parametreBLNode.get(i).get(0);
+//
+//                                enteteshb.add(entete);
+//
+//                            }
 
 
                             trainMap.put("entetesbl", entetesbl);
@@ -733,9 +736,11 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                         }
                     }
                 }
-            } else if (sams.isEmpty() && !m50592s.isEmpty()) {
+            }
+            if (sams.isEmpty() && !m50592s.isEmpty()) {
                 // Cas 2: train vide, sam vide et 50592 présent
                 for (M_50592 m50592 : m50592s) {
+                    System.out.println("je suis la2");
 
                     trainMap.put("numTrain", null);
                     trainMap.put("dateFichier", null);
@@ -827,9 +832,13 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
                 }
 
-            } else if (!sams.isEmpty() && m50592s.isEmpty()) {
+            }
+            if (!sams.isEmpty() && m50592s.isEmpty()) {
+                System.out.println("je suis la3");
+
                 // Cas 3: train vide, 50592 vide et sam présent
                 for (Sam sam : sams) {
+                    System.out.println("je suis la4");
                     // train
                     trainMap.put("numTrain", null);
                     trainMap.put("dateFichier", null);
@@ -862,7 +871,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 }
             }
         }
-
+        result.add(trainMap);
         if (result.isEmpty()) {
         return ResponseEntity.notFound().build();
     }
