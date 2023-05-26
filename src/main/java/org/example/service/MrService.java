@@ -1,9 +1,7 @@
 package org.example.service;
 
 import org.example.model.Mr;
-import org.example.model.Sam;
 import org.example.repository.MrRepository;
-import org.example.repository.SamRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

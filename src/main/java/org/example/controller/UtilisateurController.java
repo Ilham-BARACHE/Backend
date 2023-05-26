@@ -1,21 +1,16 @@
 package org.example.controller;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import org.example.model.Utilisateur;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jdk.jshell.execution.Util;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.example.component.SamAssembler;
 import org.example.component.UtilisateurAssembler;
 import org.example.component.Utils;
 import org.example.exception.ResourceNotFoundException;
-import org.example.model.Sam;
-import org.example.model.Utilisateur;
-import org.example.repository.SamRepository;
 import org.example.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -34,8 +29,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -45,7 +38,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 
 
 @RestController

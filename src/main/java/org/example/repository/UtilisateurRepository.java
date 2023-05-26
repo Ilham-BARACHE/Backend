@@ -1,13 +1,9 @@
 package org.example.repository;
 
-import org.example.model.Sam;
-import org.example.model.Train;
 import org.example.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 

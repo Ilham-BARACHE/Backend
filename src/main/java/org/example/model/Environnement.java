@@ -1,16 +1,10 @@
 package org.example.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.minidev.json.JSONObject;
-import org.w3c.dom.Text;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
 
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"VitesseSortie_km/h","VitesseEntree_km/h","TempsMesure_sec","Voie_2 Active?","CompteurDeMarche","AcquisitionAmbiante","DetecteurEntree","DetecteurSortie","CheminCorrectionCapteur"})

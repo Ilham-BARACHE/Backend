@@ -1,11 +1,8 @@
 package org.example.repository;
 
 import org.example.model.Result;
-import org.example.model.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.sql.Time;
-import java.util.Date;
 import java.util.List;
 
 public interface ResultRepository extends JpaRepository<Result, Long> {

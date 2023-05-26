@@ -1,11 +1,8 @@
 package org.example.component;
 
-import org.example.controller.TypeMrController;
 import org.example.controller.UtilisateurController;
-import org.example.model.Mr;
 import org.example.model.Utilisateur;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Component;
@@ -14,7 +11,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class UtilisateurAssembler implements RepresentationModelAssembler<Utilisateur , EntityModel<Utilisateur>> {
+public class UtilisateurAssembler implements RepresentationModelAssembler<Utilisateur, EntityModel<Utilisateur>> {
 
 
 

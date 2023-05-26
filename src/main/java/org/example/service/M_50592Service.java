@@ -1,15 +1,10 @@
 package org.example.service;
 
-import org.example.model.Environnement;
 import org.example.model.M_50592;
-import org.example.model.Mr;
-import org.example.model.Sam;
 import org.example.repository.M_50592Repository;
-import org.example.repository.SamRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class M_50592Service {

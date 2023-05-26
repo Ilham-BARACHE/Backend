@@ -5,28 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.XYTextAnnotation;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.RectangleInsets;
-import org.jfree.ui.TextAnchor;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.List;
 
@@ -66,7 +47,7 @@ public class EnvloppeData {
             if (enveloppesNode.has("dt_ms") && !enveloppesNode.get("dt_ms").isNull()) {
                 dtMs = enveloppesNode.get("dt_ms").asDouble();
             }
-            System.out.println("voila dt_ms "+dtMs);
+
 
             JsonNode capteursNode = enveloppesNode.has("Capteurs") ? enveloppesNode.get("Capteurs").get(j - 1) : null;
 
@@ -302,7 +283,7 @@ public class EnvloppeData {
         }
 
 
-        System.out.println(xNode.get(1));
+
         capteurNode.set("X", xNode);
         capteurNode.set("Y", yNode);
 

@@ -1,8 +1,6 @@
 package org.example.service;
 
-import org.example.model.Sam;
 import org.example.model.Utilisateur;
-import org.example.repository.SamRepository;
 import org.example.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 

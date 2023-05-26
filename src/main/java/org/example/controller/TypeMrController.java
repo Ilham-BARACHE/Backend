@@ -6,20 +6,16 @@
 package org.example.controller;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 import org.example.component.MrAssembler;
 import org.example.component.Utils;
 import org.example.exception.ResourceNotFoundException;
 import org.example.model.Mr;
-import org.example.model.Train;
 import org.example.repository.MrRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

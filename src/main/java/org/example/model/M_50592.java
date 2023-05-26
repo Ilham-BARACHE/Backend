@@ -1,16 +1,13 @@
 package org.example.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.example.repository.M_50592Repository;
 
 import javax.persistence.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;

@@ -1,15 +1,15 @@
 package org.example.repository;
 
 import org.example.model.M_50592;
-import org.example.model.Sam;
-import org.example.model.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 
+@Repository
 public interface M_50592Repository extends JpaRepository<M_50592, Long> {
 
     List<M_50592> findBySiteAndDateFichier(String site, Date dateFichier);

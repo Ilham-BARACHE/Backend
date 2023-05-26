@@ -1,20 +1,9 @@
 package org.example.model;
 
-import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Time;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Entity

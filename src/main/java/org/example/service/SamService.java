@@ -1,13 +1,11 @@
 package org.example.service;
 
-import org.example.model.Mr;
 import org.example.model.Sam;
 import org.example.repository.SamRepository;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class SamService {

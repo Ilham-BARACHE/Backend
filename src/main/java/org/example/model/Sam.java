@@ -1,29 +1,15 @@
 package org.example.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import lombok.Value;
-import org.example.repository.SamRepository;
-
-import org.w3c.dom.Text;
 
 import javax.persistence.*;
 import java.io.*;
 
-import java.math.BigDecimal;
-import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -80,7 +66,6 @@ public class Sam  {
     @Column(name = "vitesse_moy")
     @JsonProperty("Vitesse_moyenne_km/h")
     private Double vitesse_moy;
-
 
 
 
