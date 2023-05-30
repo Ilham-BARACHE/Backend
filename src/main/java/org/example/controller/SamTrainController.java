@@ -739,17 +739,17 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                                 frequencesbe.add(frequence);
                             }
 
-//                            for (int i = 0; i < pametreoutofband.size(); i++) {
-//                                JsonNode entete = parametreBLNode.get(i).get(0);
-//                                enteteshb.add(entete);
-//                            }
+                            for (int i = 0; i < pametreoutofband.size(); i++) {
+                                JsonNode entete = parametreBLNode.get(i).get(0);
+                                enteteshb.add(entete);
+                            }
 
                             trainMap.put("entetesbl", entetesbl);
                             trainMap.put("frequencebl", frequencesbl);
                             trainMap.put("entetesbe", entetesbe);
                             trainMap.put("frequencebe", frequencesbe);
-//                            trainMap.put("entetehorsbande", enteteshb);
-//                            trainMap.put("outofband", outofband);
+                            trainMap.put("entetehorsbande", enteteshb);
+                            trainMap.put("outofband", outofband);
                             trainMap.put("fondhorsbande", fondoutofband);
                         }
                     }
@@ -859,17 +859,17 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                                     frequencesbe.add(frequence);
                                 }
 
-//                            for (int i = 0; i < pametreoutofband.size(); i++) {
-//                                JsonNode entete = parametreBLNode.get(i).get(0);
-//                                enteteshb.add(entete);
-//                            }
+                            for (int i = 0; i < pametreoutofband.size(); i++) {
+                                JsonNode entete = parametreBLNode.get(i).get(0);
+                                enteteshb.add(entete);
+                            }
 
                                 trainMap.put("entetesbl", entetesbl);
                                 trainMap.put("frequencebl", frequencesbl);
                                 trainMap.put("entetesbe", entetesbe);
                                 trainMap.put("frequencebe", frequencesbe);
-//                            trainMap.put("entetehorsbande", enteteshb);
-//                            trainMap.put("outofband", outofband);
+                            trainMap.put("entetehorsbande", enteteshb);
+                            trainMap.put("outofband", outofband);
                                 trainMap.put("fondhorsbande", fondoutofband);
 
 
