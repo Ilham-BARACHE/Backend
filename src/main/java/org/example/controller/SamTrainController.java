@@ -524,6 +524,10 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 trainMap.put("heureFichier", train.getHeureFichier());
                 trainMap.put("imagemini", results.getThumbnail());
                 trainMap.put("site", site);
+                Mr mr = mrRepository.findByNumTrain(results.getEngine());
+                if (mr != null) {
+                    trainMap.put("mr", mr.getMr());
+                }
 
                 boolean foundSam = false;
                 for (Sam sam : sams) {
