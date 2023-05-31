@@ -531,11 +531,12 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                             train.getDateFichier().equals(sam.getDateFichier())) {
                         trainMap.put("vitesse_moy", sam.getVitesse_moy());
                         trainMap.put("heuresam", sam.getHeureFichier());
+                        trainMap.put("datesam", sam.getDateFichier());
                         trainMap.put("NbEssieux", sam.getNbEssieux());
                         trainMap.put("urlSam", sam.getUrlSam());
                         trainMap.put("statutSAM", sam.getStatutSAM());
                         trainMap.put("NbOccultations", sam.getNbOccultations());
-                        trainMap.put("datesam", sam.getDateFichier());
+
                         foundSam = true;
                         break;
                     }
@@ -615,6 +616,8 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     trainMap.put("statutSAM", null);
                     trainMap.put("NbOccultations", null);
                     trainMap.put("tempsMs", null);
+                    trainMap.put("heuresam", null);
+                    trainMap.put("datesam", null);
                 }
 
                 if (!found50592) {
@@ -625,6 +628,8 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     trainMap.put("BE_R2", null);
                     trainMap.put("BL_R1", null);
                     trainMap.put("BL_R2", null);
+                    trainMap.put("heure50592", null);
+                    trainMap.put("date50592", null);
                 }
             }
             processedDates.add(dateKey);
@@ -753,6 +758,8 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 samTrainMap.put("BE_R2", null);
                 samTrainMap.put("BL_R1", null);
                 samTrainMap.put("BL_R2", null);
+                samTrainMap.put("heure50592", null);
+                samTrainMap.put("date50592", null);
 
 
             }
@@ -833,57 +840,42 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 samTrainMap.put("entetehorsbande", enteteshb);
                 samTrainMap.put("outofband", outofband);
                 samTrainMap.put("fondhorsbande", fondoutofband);
-            boolean foundTrain = false;
-            boolean foundsam = false;
+
             for (Train train : trains) {
-                if (isSameTime(train.getHeureFichier(), m50592.getHeureFichier()) &&
+                if (!isSameTime(train.getHeureFichier(), m50592.getHeureFichier()) &&
                         train.getDateFichier().equals(m50592.getDateFichier())) {
-                    foundTrain = true;
-                    break;
+                    samTrainMap.put("numTrain", null);
+                    samTrainMap.put("dateFichier", null);
+                    samTrainMap.put("heureFichier", null);
+                    samTrainMap.put("imagemini", null);
+                    samTrainMap.put("site", site);
+
                 }
             }
 
 
                 for (Sam sam : sams) {
-                if (isSameTime(m50592.getHeureFichier(), sam.getHeureFichier()) &&
-                        m50592.getDateFichier().equals(sam.getDateFichier())) {
+                    if (!isSameTime(sam.getHeureFichier(), m50592.getHeureFichier()) ||
+                            !sam.getDateFichier().equals(m50592.getDateFichier())) {
+                    samTrainMap.put("vitesse_moy", null);
+                    samTrainMap.put("NbEssieux", null);
+                    samTrainMap.put("urlSam", null);
+                    samTrainMap.put("statutSAM", null);
+                    samTrainMap.put("NbOccultations", null);
+                    samTrainMap.put("tempsMs", null);
+                    samTrainMap.put("heuresam", null);
+                    samTrainMap.put("datesam", null);
 
-                    foundsam = true;
-                    break;
                 }
             }
 
-                if (foundTrain && foundsam) {
-                    continue; // Ignorer si sam, train et 50592 sont égaux
-                }
-                if (foundTrain && !foundsam) {
-                    continue; // Ignorer si sam, train et 50592 sont égaux
-                }
 
 
-                if (!foundTrain) {
-
-                samTrainMap.put("numTrain", null);
-                samTrainMap.put("dateFichier", null);
-                samTrainMap.put("heureFichier", null);
-                samTrainMap.put("imagemini", null);
-                samTrainMap.put("site", site);
 
 
-            }
 
 
-            if (!foundsam) {
 
-                samTrainMap.put("vitesse_moy", null);
-                samTrainMap.put("NbEssieux", null);
-                samTrainMap.put("urlSam", null);
-                samTrainMap.put("statutSAM", null);
-                samTrainMap.put("NbOccultations", null);
-                samTrainMap.put("tempsMs", null);
-
-
-            }
                 processedDates.add(dateKey);
                 processedHours.add(hourKey);
             result.add(samTrainMap);
