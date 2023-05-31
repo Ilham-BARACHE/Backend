@@ -506,17 +506,27 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
         List<Map<String, Object>> result = new ArrayList<>();
         Set<Date> processedDates = new HashSet<>(); // Stocke les dates déjà traitées
-        Set<Date> processedHours = new HashSet<>(); // Stocke les heures déjà traitées
+        Set<String> processedTimes = new HashSet<>(); // Stocke les heures et minutes déjà traitées
+
 
         for (Train train : trains) {
 
             Map<String, Object> trainMap = new HashMap<>();
 
             Date dateKey = train.getDateFichier();
-            Date hourKey = train.getHeureFichier();
-            if (processedDates.contains(dateKey) && processedHours.contains(hourKey)) {
-                continue; // Ignorer si la même date et heure ont déjà été traitées
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(train.getHeureFichier());
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+
+            String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+            if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                continue; // Ignorer si la même heure et minute ont déjà été traitées
             }
+
 
             for (Result results : train.getResults()) {
                 trainMap.put("numTrain", results.getEngine());
@@ -637,7 +647,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                 }
             }
             processedDates.add(dateKey);
-            processedHours.add(hourKey);
+            processedTimes.add(timeKey);
                 result.add(trainMap);
 
         }
@@ -648,9 +658,17 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         for (Sam sam : sams) {
 
             Date dateKey = sam.getDateFichier();
-            Date hourKey = sam.getHeureFichier();
-            if (processedDates.contains(dateKey) && processedHours.contains(hourKey)) {
-                continue; // Ignorer si la même date et heure ont déjà été traitées
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(sam.getHeureFichier());
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+
+            String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+            if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                continue; // Ignorer si la même heure et minute ont déjà été traitées
             }
             Map<String, Object> samTrainMap = new HashMap<>();
             samTrainMap.put("vitesse_moy", sam.getVitesse_moy());
@@ -768,7 +786,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
             }
             processedDates.add(dateKey);
-            processedHours.add(hourKey);
+            processedTimes.add(timeKey);
             result.add(samTrainMap);
 
         }
@@ -782,10 +800,19 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
             for (M_50592 m50592 : m50592s) {
             Map<String, Object> samTrainMap = new HashMap<>();
                 Date dateKey = m50592.getDateFichier();
-                Date hourKey = m50592.getHeureFichier();
-                if (processedDates.contains(dateKey) && processedHours.contains(hourKey)) {
-                    continue; // Ignorer si la même date et heure ont déjà été traitées
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(m50592.getHeureFichier());
+
+                int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                int minute = calendar.get(Calendar.MINUTE);
+
+                String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+                if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                    continue; // Ignorer si la même heure et minute ont déjà été traitées
                 }
+
+
                 samTrainMap.put("meteo", m50592.getEnvironnement().getMeteo());
                 samTrainMap.put("heure50592", m50592.getHeureFichier());
                 samTrainMap.put("date50592", m50592.getDateFichier());
@@ -881,7 +908,8 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
 
                 processedDates.add(dateKey);
-                processedHours.add(hourKey);
+                processedDates.add(dateKey);
+                processedTimes.add(timeKey);
             result.add(samTrainMap);
 
         }
@@ -1289,6 +1317,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                     for (Result results : resultss) {
                         System.out.println("ress " + results.getDate());
                         numTrains.add(train.getResults().get(0).getEngine());
+                        boolean samFound = false; // Variable pour indiquer si un sam correspondant a été trouvé
 
                         boolean allSamsOk = true;
                         for (Sam sam : sams) {
@@ -1296,7 +1325,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
                                     && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
                                     && train.getDateFichier().equals(sam.getDateFichier())) {
 
-
+                                samFound = true; // Un sam correspondant a été trouvé
                                 if (!sam.getStatutSAM().equals("OK")) {
                                     Trainssamnok.add(train.getResults().get(0).getEngine());
 
@@ -1529,7 +1558,6 @@ if(!Trains50592nok.isEmpty()) {
 
             }
 
-
             // Affichage des index et leur nombr de fois sam not ok
             Map<String, Double> percentagesamnokMap = new HashMap<>();
             for (Map.Entry<Integer, Integer> entry : redHeadersCountSamMap.entrySet()) {
@@ -1560,6 +1588,9 @@ if(!Trains50592nok.isEmpty()) {
 
 
             }
+
+
+
             //50592 not ok
             if (!Trains50592nok.isEmpty()) {
                 trainMap50592.put("nombre de train passé(50592 nok)", numTrains.size());
@@ -1603,21 +1634,22 @@ if (!trainMapSam.isEmpty() ) {
             if (resultMap50592.containsKey("nom du capteur et le nombre de perturbations")) {
 
                 Map<String, Integer> pourcentage50592NOkMap = (Map<String, Integer>) resultMap50592.get("nom du capteur et le nombre de perturbations");
+                if (pourcentage50592NOkMap != null) {
+                    int train50592nOk = (int) resultMap50592.get("nombre de train passé 50592 nok");
 
-                int train50592nOk = (int) resultMap50592.get("nombre de train passé 50592 nok");
+                    total50592nOk += train50592nOk;
+                    for (Map.Entry<String, Integer> entry : pourcentage50592NOkMap.entrySet()) {
+                        String capteur = entry.getKey();
+                        int totalFoisPerturbation = entry.getValue();
 
-                total50592nOk += train50592nOk;
-                for (Map.Entry<String, Integer> entry : pourcentage50592NOkMap.entrySet()) {
-                    String capteur = entry.getKey();
-                    int totalFoisPerturbation = entry.getValue();
-
-                    int currentCount = indexcapteurCountMap.getOrDefault(capteur, 0);
-                    indexcapteurCountMap.put(capteur, currentCount + totalFoisPerturbation);
+                        int currentCount = indexcapteurCountMap.getOrDefault(capteur, 0);
+                        indexcapteurCountMap.put(capteur, currentCount + totalFoisPerturbation);
+                    }
                 }
             }
 
 
-           //50592 ok
+            //50592 ok
 
             if (resultMap50592.containsKey("nombre de train passé 50592 ok") && resultMap50592.containsKey("nombre de train passé")) {
                 int train50592Ok = (int) resultMap50592.get("nombre de train passé 50592 ok");
@@ -1625,8 +1657,8 @@ if (!trainMapSam.isEmpty() ) {
 
                 trains50592Ok += train50592Ok;
                 trains50592 += train50592;
-            }
 
+        }
         }
         sommePourcentage50592Ok = ((double) trains50592Ok / trains50592) * 100;
         if (!Double.isNaN(sommePourcentage50592Ok)) {
@@ -1651,7 +1683,6 @@ if(!indexcapteurCountMap.isEmpty()){
     totalPourcentageMap50592nok.put("pourcentage des capteurs dans tous les types mr", totalPourcentage50592nok);
 
 }
-
 
 
 
@@ -1691,11 +1722,11 @@ if(!indexcapteurCountMap.isEmpty()){
             for (Map<String, Object> resultMap : result) {
                 if (resultMap.containsKey("index occultation et le total de fois de perturbation dans tous les trains")) {
                     Map<String, Integer> indexOccultationMap = (Map<String, Integer>) resultMap.get("index occultation et le total de fois de perturbation dans tous les trains");
-
+if(indexOccultationMap != null){
                     int trainSamnOk = (int) resultMap.get("nombre de train passé sam nok");
 
                     totalSamnOk += trainSamnOk;
-                    System.out.println("je suis total ici  "+totalSamnOk);
+                    System.out.println("je suis total ici  " + totalSamnOk);
                     for (Map.Entry<String, Integer> entry : indexOccultationMap.entrySet()) {
                         String indexOccultation = entry.getKey();
                         int totalFoisPerturbation = entry.getValue();
@@ -1703,6 +1734,7 @@ if(!indexcapteurCountMap.isEmpty()){
                         int currentCount = indexOccultationCountMap.getOrDefault(indexOccultation, 0);
                         indexOccultationCountMap.put(indexOccultation, currentCount + totalFoisPerturbation);
                     }
+                }
                 }
             }
             System.out.println("je suis total "+totalSamnOk);

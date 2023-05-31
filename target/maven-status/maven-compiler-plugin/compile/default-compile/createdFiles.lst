@@ -12,8 +12,10 @@ org\example\Main.class
 org\example\model\Sam.class
 org\example\repository\UtilisateurRepository.class
 org\example\controller\SamController.class
+org\example\component\TrainAssembler.class
 org\example\model\EnvloppeData.class
 org\example\model\Meteo.class
+org\example\model\Train.class
 org\example\repository\M_50592Repository.class
 org\example\model\BE_R2.class
 org\example\component\MrAssembler.class
@@ -29,6 +31,9 @@ org\example\component\M50592Assembler.class
 org\example\repository\SamRepository.class
 org\example\config\WebConfig.class
 org\example\controller\TrainController.class
+org\example\repository\MrRepository.class
+org\example\model\Mr.class
+org\example\model\Result.class
 org\example\service\M_50592Service.class
 org\example\model\BE_R1.class
 org\example\service\SamService.class
