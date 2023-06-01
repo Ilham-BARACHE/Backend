@@ -315,7 +315,20 @@ public class SamTrainController {
 
 
 
+    // Méthode utilitaire pour vérifier si deux objets LocalTime sont identiques
+    private boolean isSameTime(Date time1, Date time2) {
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(time1);
+        int hour1 = calendar1.get(Calendar.HOUR_OF_DAY);
+        int minute1 = calendar1.get(Calendar.MINUTE);
 
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTime(time2);
+        int hour2 = calendar2.get(Calendar.HOUR_OF_DAY);
+        int minute2 = calendar2.get(Calendar.MINUTE);
+
+        return hour1 == hour2 && minute1 == minute2;
+    }
 
 
 
@@ -334,24 +347,47 @@ public class SamTrainController {
 
 
         List<Map<String, Object>> result = new ArrayList<>();
+        Set<Date> processedDates = new HashSet<>(); // Stocke les dates déjà traitées
+        Set<String> processedTimes = new HashSet<>(); // Stocke les heures et minutes déjà traitées
+
+
         for (Train train : trains) {
+
+            Map<String, Object> trainMap = new HashMap<>();
+
+            Date dateKey = train.getDateFichier();
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(train.getHeureFichier());
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+
+            String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+            if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                continue; // Ignorer si la même heure et minute ont déjà été traitées
+            }
+
+
             for (Result results : train.getResults()) {
-                Map<String, Object> trainMap = new HashMap<>();
                 trainMap.put("numTrain", results.getEngine());
                 trainMap.put("dateFichier", train.getDateFichier());
                 trainMap.put("heureFichier", train.getHeureFichier());
-//                trainMap.put("url", results.getImage();
+                trainMap.put("imagemini", results.getThumbnail());
                 trainMap.put("site", site);
+                Mr mr = mrRepository.findByNumTrain(results.getEngine());
+                if (mr != null) {
+                    trainMap.put("mr", mr.getMr());
+                }
 
                 boolean foundSam = false;
-                boolean found50592 = false;
-
                 for (Sam sam : sams) {
-                    if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours() &&
-                            train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes() &&
+                    if (isSameTime(train.getHeureFichier(), sam.getHeureFichier()) &&
                             train.getDateFichier().equals(sam.getDateFichier())) {
-                        trainMap.put("heuresam", sam.getHeureFichier());
                         trainMap.put("vitesse_moy", sam.getVitesse_moy());
+                        trainMap.put("heuresam", sam.getHeureFichier());
+                        trainMap.put("datesam", sam.getDateFichier());
                         trainMap.put("NbEssieux", sam.getNbEssieux());
                         trainMap.put("urlSam", sam.getUrlSam());
                         trainMap.put("statutSAM", sam.getStatutSAM());
@@ -362,47 +398,47 @@ public class SamTrainController {
                     }
                 }
 
+                boolean found50592 = false;
                 for (M_50592 m50592 : m50592s) {
-                    if (train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours() &&
-                            train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes() &&
+                    if (isSameTime(train.getHeureFichier(), m50592.getHeureFichier()) &&
                             train.getDateFichier().equals(m50592.getDateFichier())) {
                         trainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                        trainMap.put("heure50592", m50592.getHeureFichier());
+                        trainMap.put("date50592", m50592.getDateFichier());
                         trainMap.put("statut50592", m50592.getStatut50592());
                         trainMap.put("url50592", m50592.getUrl50592());
-                        trainMap.put("heure50592", m50592.getHeureFichier());
-
-
                         trainMap.put("ber1", m50592.getBeR1());
                         trainMap.put("ber2", m50592.getBeR2());
                         trainMap.put("blr1", m50592.getBlR1());
                         trainMap.put("blr2", m50592.getBlR2());
 
-
+                        // Code commun pour les deux objets
                         Properties prop = new Properties();
                         InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
                         prop.load(input);
 
                         String outputFolderPath = prop.getProperty("output.folder.path");
+                        File inputFile = new File(outputFolderPath, m50592.getFileName());
 
-                        File inputFile = new File(outputFolderPath, m50592.getFileName()); // use output folder path as parent directory
                         ObjectMapper mapper = new ObjectMapper();
-                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class); // read from input file
+                        JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
                         JsonNode parametreBENode = rootNode.get("ParametresBE");
                         JsonNode parametreBLNode = rootNode.get("ParametresBL");
                         JsonNode outofband = rootNode.get("OutOfBand");
-                        Map<String, Object> entetesbl = new HashMap<>();
+                        JsonNode pametreoutofband = rootNode.get("ParametresOutOfBand");
+                        JsonNode fondoutofband = rootNode.get("OutOfBand_Fond");
 
-                        Map<String, Object> frequencesbl = new HashMap<>();
-
+                        List<Object> enteteshb = new ArrayList<>();
+                        List<Object> entetesbl = new ArrayList<>();
+                        List<Object> frequencesbl = new ArrayList<>();
                         List<Object> entetesbe = new ArrayList<>();
-
                         List<Object> frequencesbe = new ArrayList<>();
-                        System.out.println("size de mes bl " + parametreBLNode.size());
+
                         for (int i = 0; i < parametreBLNode.size(); i++) {
                             JsonNode entete = parametreBLNode.get(i).get(0);
                             JsonNode frequence = parametreBLNode.get(i).get(1);
-                            entetesbl.put("entete" + i, entete);
-                            frequencesbl.put("frequence" + i, frequence);
+                            entetesbl.add(entete);
+                            frequencesbl.add(frequence);
                         }
 
                         for (int i = 0; i < parametreBENode.size(); i++) {
@@ -412,19 +448,20 @@ public class SamTrainController {
                             frequencesbe.add(frequence);
                         }
 
+                        for (int i = 0; i < pametreoutofband.size(); i++) {
+                            JsonNode entete = parametreBLNode.get(i).get(0);
+                            enteteshb.add(entete);
+                        }
 
                         trainMap.put("entetesbl", entetesbl);
-                        trainMap.put("frequencebl", entetesbl);
-
-                        trainMap.put("entetes", entetesbe);
-                        trainMap.put("frequence", frequencesbe);
-                        ;
-
+                        trainMap.put("frequencebl", frequencesbl);
+                        trainMap.put("entetesbe", entetesbe);
+                        trainMap.put("frequencebe", frequencesbe);
+                        trainMap.put("entetehorsbande", enteteshb);
                         trainMap.put("outofband", outofband);
+                        trainMap.put("fondhorsbande", fondoutofband);
                         found50592 = true;
                         break;
-
-
                     }
                 }
 
@@ -435,6 +472,8 @@ public class SamTrainController {
                     trainMap.put("statutSAM", null);
                     trainMap.put("NbOccultations", null);
                     trainMap.put("tempsMs", null);
+                    trainMap.put("heuresam", null);
+                    trainMap.put("datesam", null);
                 }
 
                 if (!found50592) {
@@ -445,18 +484,277 @@ public class SamTrainController {
                     trainMap.put("BE_R2", null);
                     trainMap.put("BL_R1", null);
                     trainMap.put("BL_R2", null);
+                    trainMap.put("heure50592", null);
+                    trainMap.put("date50592", null);
                 }
-
-                Mr mr = mrRepository.findByNumTrain(results.getEngine());
-                if (mr != null) {
-                    trainMap.put("mr", mr.getMr());
-                }
-                result.add(trainMap);
             }
+            processedDates.add(dateKey);
+            processedTimes.add(timeKey);
+            result.add(trainMap);
+
         }
 
 
 
+// Traiter les cas où sam n'est pas égal à train
+        for (Sam sam : sams) {
+
+            Date dateKey = sam.getDateFichier();
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(sam.getHeureFichier());
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+
+            String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+            if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                continue; // Ignorer si la même heure et minute ont déjà été traitées
+            }
+            Map<String, Object> samTrainMap = new HashMap<>();
+            samTrainMap.put("vitesse_moy", sam.getVitesse_moy());
+            samTrainMap.put("heuresam", sam.getHeureFichier());
+            samTrainMap.put("NbEssieux", sam.getNbEssieux());
+            samTrainMap.put("urlSam", sam.getUrlSam());
+            samTrainMap.put("statutSAM", sam.getStatutSAM());
+            samTrainMap.put("NbOccultations", sam.getNbOccultations());
+            samTrainMap.put("datesam", sam.getDateFichier());
+            boolean foundTrain = false;
+            boolean found50592 = false;
+            for (Train train : trains) {
+                if (isSameTime(train.getHeureFichier(), sam.getHeureFichier()) &&
+                        train.getDateFichier().equals(sam.getDateFichier())) {
+                    foundTrain = true;
+                    break;
+                }
+            }
+
+
+            for (M_50592 m50592 : m50592s) {
+                if (isSameTime(m50592.getHeureFichier(), sam.getHeureFichier()) &&
+                        m50592.getDateFichier().equals(sam.getDateFichier())) {
+                    samTrainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+                    samTrainMap.put("heure50592", m50592.getHeureFichier());
+                    samTrainMap.put("date50592", m50592.getDateFichier());
+                    samTrainMap.put("statut50592", m50592.getStatut50592());
+                    samTrainMap.put("url50592", m50592.getUrl50592());
+                    samTrainMap.put("ber1", m50592.getBeR1());
+                    samTrainMap.put("ber2", m50592.getBeR2());
+                    samTrainMap.put("blr1", m50592.getBlR1());
+                    samTrainMap.put("blr2", m50592.getBlR2());
+
+                    // Code commun pour les deux objets
+                    Properties prop = new Properties();
+                    InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+                    prop.load(input);
+
+                    String outputFolderPath = prop.getProperty("output.folder.path");
+                    File inputFile = new File(outputFolderPath, m50592.getFileName());
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
+                    JsonNode parametreBENode = rootNode.get("ParametresBE");
+                    JsonNode parametreBLNode = rootNode.get("ParametresBL");
+                    JsonNode outofband = rootNode.get("OutOfBand");
+                    JsonNode pametreoutofband = rootNode.get("ParametresOutOfBand");
+                    JsonNode fondoutofband = rootNode.get("OutOfBand_Fond");
+
+                    List<Object> enteteshb = new ArrayList<>();
+                    List<Object> entetesbl = new ArrayList<>();
+                    List<Object> frequencesbl = new ArrayList<>();
+                    List<Object> entetesbe = new ArrayList<>();
+                    List<Object> frequencesbe = new ArrayList<>();
+
+                    for (int i = 0; i < parametreBLNode.size(); i++) {
+                        JsonNode entete = parametreBLNode.get(i).get(0);
+                        JsonNode frequence = parametreBLNode.get(i).get(1);
+                        entetesbl.add(entete);
+                        frequencesbl.add(frequence);
+                    }
+
+                    for (int i = 0; i < parametreBENode.size(); i++) {
+                        JsonNode entete = parametreBENode.get(i).get(0);
+                        JsonNode frequence = parametreBENode.get(i).get(1);
+                        entetesbe.add(entete);
+                        frequencesbe.add(frequence);
+                    }
+
+                    for (int i = 0; i < pametreoutofband.size(); i++) {
+                        JsonNode entete = parametreBLNode.get(i).get(0);
+                        enteteshb.add(entete);
+                    }
+
+                    samTrainMap.put("entetesbl", entetesbl);
+                    samTrainMap.put("frequencebl", frequencesbl);
+                    samTrainMap.put("entetesbe", entetesbe);
+                    samTrainMap.put("frequencebe", frequencesbe);
+                    samTrainMap.put("entetehorsbande", enteteshb);
+                    samTrainMap.put("outofband", outofband);
+                    samTrainMap.put("fondhorsbande", fondoutofband);
+                    found50592 = true;
+                    break;
+                }
+            }
+
+            if (foundTrain && found50592) {
+                continue; // Ignorer si sam, train et 50592 sont égaux
+            }
+
+            if (!foundTrain) {
+
+                samTrainMap.put("numTrain", null);
+                samTrainMap.put("dateFichier", null);
+                samTrainMap.put("heureFichier", null);
+                samTrainMap.put("imagemini", null);
+                samTrainMap.put("site", site);
+
+
+            }
+
+
+            if (!found50592) {
+
+                samTrainMap.put("meteo", null);
+                samTrainMap.put("statut50592", null);
+                samTrainMap.put("url50592", null);
+                samTrainMap.put("BE_R1", null);
+                samTrainMap.put("BE_R2", null);
+                samTrainMap.put("BL_R1", null);
+                samTrainMap.put("BL_R2", null);
+                samTrainMap.put("heure50592", null);
+                samTrainMap.put("date50592", null);
+
+
+            }
+            processedDates.add(dateKey);
+            processedTimes.add(timeKey);
+            result.add(samTrainMap);
+
+        }
+
+
+
+
+        // Traiter les cas où 50592 n'est pas égal à train
+
+
+        for (M_50592 m50592 : m50592s) {
+            Map<String, Object> samTrainMap = new HashMap<>();
+            Date dateKey = m50592.getDateFichier();
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(m50592.getHeureFichier());
+
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+
+            String timeKey = hour + ":" + minute; // Crée une clé de temps au format "heure:minute"
+
+            if (processedDates.contains(dateKey) && processedTimes.contains(timeKey)) {
+                continue; // Ignorer si la même heure et minute ont déjà été traitées
+            }
+
+
+            samTrainMap.put("meteo", m50592.getEnvironnement().getMeteo());
+            samTrainMap.put("heure50592", m50592.getHeureFichier());
+            samTrainMap.put("date50592", m50592.getDateFichier());
+            samTrainMap.put("statut50592", m50592.getStatut50592());
+            samTrainMap.put("url50592", m50592.getUrl50592());
+            samTrainMap.put("ber1", m50592.getBeR1());
+            samTrainMap.put("ber2", m50592.getBeR2());
+            samTrainMap.put("blr1", m50592.getBlR1());
+            samTrainMap.put("blr2", m50592.getBlR2());
+
+            // Code commun pour les deux objets
+            Properties prop = new Properties();
+            InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
+            prop.load(input);
+
+            String outputFolderPath = prop.getProperty("output.folder.path");
+            File inputFile = new File(outputFolderPath, m50592.getFileName());
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readValue(inputFile, JsonNode.class);
+            JsonNode parametreBENode = rootNode.get("ParametresBE");
+            JsonNode parametreBLNode = rootNode.get("ParametresBL");
+            JsonNode outofband = rootNode.get("OutOfBand");
+            JsonNode pametreoutofband = rootNode.get("ParametresOutOfBand");
+            JsonNode fondoutofband = rootNode.get("OutOfBand_Fond");
+
+            List<Object> enteteshb = new ArrayList<>();
+            List<Object> entetesbl = new ArrayList<>();
+            List<Object> frequencesbl = new ArrayList<>();
+            List<Object> entetesbe = new ArrayList<>();
+            List<Object> frequencesbe = new ArrayList<>();
+
+            for (int i = 0; i < parametreBLNode.size(); i++) {
+                JsonNode entete = parametreBLNode.get(i).get(0);
+                JsonNode frequence = parametreBLNode.get(i).get(1);
+                entetesbl.add(entete);
+                frequencesbl.add(frequence);
+            }
+
+            for (int i = 0; i < parametreBENode.size(); i++) {
+                JsonNode entete = parametreBENode.get(i).get(0);
+                JsonNode frequence = parametreBENode.get(i).get(1);
+                entetesbe.add(entete);
+                frequencesbe.add(frequence);
+            }
+
+            for (int i = 0; i < pametreoutofband.size(); i++) {
+                JsonNode entete = parametreBLNode.get(i).get(0);
+                enteteshb.add(entete);
+            }
+
+            samTrainMap.put("entetesbl", entetesbl);
+            samTrainMap.put("frequencebl", frequencesbl);
+            samTrainMap.put("entetesbe", entetesbe);
+            samTrainMap.put("frequencebe", frequencesbe);
+            samTrainMap.put("entetehorsbande", enteteshb);
+            samTrainMap.put("outofband", outofband);
+            samTrainMap.put("fondhorsbande", fondoutofband);
+
+            for (Train train : trains) {
+                if (!isSameTime(train.getHeureFichier(), m50592.getHeureFichier()) &&
+                        train.getDateFichier().equals(m50592.getDateFichier())) {
+                    samTrainMap.put("numTrain", null);
+                    samTrainMap.put("dateFichier", null);
+                    samTrainMap.put("heureFichier", null);
+                    samTrainMap.put("imagemini", null);
+                    samTrainMap.put("site", site);
+
+                }
+            }
+
+
+            for (Sam sam : sams) {
+                if (!isSameTime(sam.getHeureFichier(), m50592.getHeureFichier()) ||
+                        !sam.getDateFichier().equals(m50592.getDateFichier())) {
+                    samTrainMap.put("vitesse_moy", null);
+                    samTrainMap.put("NbEssieux", null);
+                    samTrainMap.put("urlSam", null);
+                    samTrainMap.put("statutSAM", null);
+                    samTrainMap.put("NbOccultations", null);
+                    samTrainMap.put("tempsMs", null);
+                    samTrainMap.put("heuresam", null);
+                    samTrainMap.put("datesam", null);
+
+                }
+            }
+
+
+
+
+
+
+
+
+            processedDates.add(dateKey);
+            processedDates.add(dateKey);
+            processedTimes.add(timeKey);
+            result.add(samTrainMap);
+
+        }
 
 
 
@@ -471,20 +769,7 @@ public class SamTrainController {
 
 
 
-    // Méthode utilitaire pour vérifier si deux objets LocalTime sont identiques
-    private boolean isSameTime(Date time1, Date time2) {
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.setTime(time1);
-        int hour1 = calendar1.get(Calendar.HOUR_OF_DAY);
-        int minute1 = calendar1.get(Calendar.MINUTE);
 
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.setTime(time2);
-        int hour2 = calendar2.get(Calendar.HOUR_OF_DAY);
-        int minute2 = calendar2.get(Calendar.MINUTE);
-
-        return hour1 == hour2 && minute1 == minute2;
-    }
 
 
 
@@ -1500,7 +1785,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
 
                             }
-                            break;
+
                         }
 
                     }
@@ -1524,6 +1809,8 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
             double pourcentagesamok = ((double) countsamok / (numTrains.size())) * 100;
 
+            double percentageok =  ((double) count50592ok / (numTrains.size())) * 100;
+
             // Affichage des en-têtes rouges et leur nombre de fois 50592 not ok / 50592 ok
             Map<String, Double> percentageMap = new HashMap<>();
             for (Map.Entry<String, Integer> entry : redHeadersCountMap.entrySet()) {
@@ -1537,10 +1824,7 @@ if(!Trains50592nok.isEmpty()) {
     double percentagenok = (double) countbe / count50592nok * 100;
     percentageMap.put(entete, percentagenok);
 }
-                if(!Trains50592ok.isEmpty()) {
-                    double percentageok = (double) countbe / count50592ok * 100;
-                    percentageMap.put(entete, percentageok);
-                }
+
             }
 
 
@@ -1606,7 +1890,7 @@ if(!Trains50592nok.isEmpty()) {
                 trainMap50592.put("nombre de train passé(50592 ok )", numTrains.size());
                 trainMap50592.put("mr (50592 ok)",typemr);
                 trainMap50592.put("nombre de train passé 50592 ok", count50592ok);
-                trainMap50592.put("le poucentage de chaque type mr (50592 ok)",percentageMap);
+                trainMap50592.put("le poucentage de chaque type mr (50592 ok)",percentageok);
 
             }
 if (!trainMapSam.isEmpty() ) {

@@ -1,7 +1,9 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.model.*;
 import org.example.model.*;
@@ -26,6 +28,8 @@ import java.io.*;
 
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -38,6 +42,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.nio.file.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootApplication
 public class Main {
@@ -64,6 +70,9 @@ public class Main {
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
+            // Créer une variable de contrôle pour arrêter la surveillance du répertoire
+            boolean isRunning = true;
+
             // Créer un objet WatchService dans un thread séparé
             Thread watchThread = new Thread(() -> {
                 try {
@@ -71,7 +80,9 @@ public class Main {
                     Path inputFolderPathh = inputFolder.toPath();
                     inputFolderPathh.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
 
-                    while (true) {
+                    ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+                    while (isRunning) {
                         WatchKey key;
                         try {
                             key = watchService.take();
@@ -83,7 +94,7 @@ public class Main {
                         // Parcourir les événements
                         for (WatchEvent<?> event : key.pollEvents()) {
                             WatchEvent.Kind<?> kind = event.kind();
-
+                            executorService.submit(() -> {
                             // Vérifier si un nouveau fichier a été créé dans le répertoire "input"
                             if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                 WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
@@ -109,7 +120,7 @@ public class Main {
                                             while (attempt < maxAttempts) {
                                                 attempt++;
                                                 try {
-                                                    Thread.sleep(10); // Pause de quelques millisecondes avant la prochaine tentative
+                                                    Thread.sleep(1000); // Pause de quelques millisecondes avant la prochaine tentative
                                                     Files.move(newFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                                                     System.out.println("Le fichier a été déplacé avec succès !");
                                                     break; // Sortir de la boucle si le déplacement réussit
@@ -124,18 +135,20 @@ public class Main {
                                         } catch (IOException e) {
                                             System.out.println("Erreur lors du déplacement du fichier : " + e.getMessage());
                                         }
-
                                     }
                                 }
 
-
                                 System.out.println("Nouveau fichier détecté : " + filePath);
                             }
-// Réinitialiser la clé
-                            boolean valid = key.reset();
-                            if (!valid) {
-                                break;
-                            }
+                            });
+                        }
+
+                        // Réinitialiser la clé une fois tous les fichiers traités
+                        boolean valid = key.reset();
+                        if (!valid) {
+                            break;
+                        }
+
 
 // Liste pour stocker les numéros de train traités
                             List<String> processedTrainNumbers = new ArrayList<>();
@@ -478,20 +491,26 @@ public class Main {
                             }
 
                         }
-
-                    }
+                    executorService.shutdown();
+                    } catch (ProtocolException e) {
+                    throw new RuntimeException(e);
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                } catch (JsonMappingException e) {
+                    throw new RuntimeException(e);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }
+
+
             });
 
 // Démarrer le thread de surveillance du répertoire "input"
             watchThread.start();
 
-// Attendre un court instant pour permettre au thread de démarrer avant de passer à la boucle suivante
-            Thread.sleep(1000);
+
 
 
 
