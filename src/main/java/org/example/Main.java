@@ -1,11 +1,10 @@
 package org.example;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.model.*;
+import org.apache.commons.io.FileUtils;
 import org.example.model.*;
 import org.example.repository.M_50592Repository;
 import org.example.repository.ResultRepository;
@@ -14,15 +13,11 @@ import org.example.repository.TrainRepository;
 import org.example.service.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.example.service.*;
-import org.example.model.*;
-import org.example.service.*;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 
 import java.io.*;
 
@@ -42,14 +37,27 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.nio.file.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @SpringBootApplication
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class,args);
+
+
     }
+
+    private void deplacerFichiers(File[] files, File outputFolder) {
+        try {
+            for (File file : files) {
+                FileUtils.moveFileToDirectory(file, outputFolder, true);
+            }
+            System.out.println("Les fichiers ont été déplacés avec succès !");
+        } catch (IOException e) {
+            System.out.println("Erreur lors du déplacement des fichiers : " + e.getMessage());
+        }
+    }
+
 
 
 
@@ -70,19 +78,32 @@ public class Main {
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
+
+            List<File> filesToMove = new ArrayList<>();
+
             // Créer une variable de contrôle pour arrêter la surveillance du répertoire
-            boolean isRunning = true;
+            AtomicBoolean isRunning = new AtomicBoolean(true);
+            AtomicBoolean isWorking = new AtomicBoolean(true);
+
 
             // Créer un objet WatchService dans un thread séparé
             Thread watchThread = new Thread(() -> {
                 try {
-                    WatchService watchService = FileSystems.getDefault().newWatchService();
+                    WatchService watchService = null;
+                    try {
+                        watchService = FileSystems.getDefault().newWatchService();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     Path inputFolderPathh = inputFolder.toPath();
-                    inputFolderPathh.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+                    try {
+                        inputFolderPathh.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                    ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-                    while (isRunning) {
+                    while (isRunning.get()) {
                         WatchKey key;
                         try {
                             key = watchService.take();
@@ -94,73 +115,53 @@ public class Main {
                         // Parcourir les événements
                         for (WatchEvent<?> event : key.pollEvents()) {
                             WatchEvent.Kind<?> kind = event.kind();
-                            executorService.submit(() -> {
+
                             // Vérifier si un nouveau fichier a été créé dans le répertoire "input"
                             if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                 WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
                                 Path filePath = inputFolderPathh.resolve(pathEvent.context());
 
                                 File newFile = filePath.toFile();
-
-                                if (newFile.getName().endsWith(".json") || newFile.getName().endsWith(".xlsx") || newFile.getName().endsWith(".png") || newFile.getName().endsWith(".bmp")) {
-                                    File targetFile = new File(outputFolder, newFile.getName());
-                                    if (targetFile.exists()) {
-                                        System.err.println("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
-                                    } else {
-                                        try {
-                                            Files.move(newFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                                            System.out.println("Le fichier a été déplacé avec succès !");
-                                        } catch (FileSystemException e) {
-                                            System.out.println("Erreur lors du déplacement du fichier : " + e.getMessage());
-
-                                            // Tenter de déplacer le fichier à nouveau après une pause
-                                            int maxAttempts = 3; // Nombre maximal de tentatives de déplacement
-                                            int attempt = 0;
-
-                                            while (attempt < maxAttempts) {
-                                                attempt++;
-                                                try {
-                                                    Thread.sleep(1000); // Pause de quelques millisecondes avant la prochaine tentative
-                                                    Files.move(newFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                                                    System.out.println("Le fichier a été déplacé avec succès !");
-                                                    break; // Sortir de la boucle si le déplacement réussit
-                                                } catch (IOException | InterruptedException ex) {
-                                                    System.out.println("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + ex.getMessage());
-                                                }
-                                            }
-
-                                            if (attempt == maxAttempts) {
-                                                System.err.println("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
-                                            }
-                                        } catch (IOException e) {
-                                            System.out.println("Erreur lors du déplacement du fichier : " + e.getMessage());
-                                        }
-                                    }
-                                }
-
-                                System.out.println("Nouveau fichier détecté : " + filePath);
+                                filesToMove.add(newFile);
                             }
-                            });
+
                         }
+                        deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
+                        System.out.println("Les fichiers ont été déplacés avec succès !"+filesToMove);
+                        filesToMove.clear(); // Vider la liste filesToMove
+                        key.reset(); // Réinitialiser la clé pour continuer à surveiller les événements
+                    }
 
-                        // Réinitialiser la clé une fois tous les fichiers traités
-                        boolean valid = key.reset();
-                        if (!valid) {
-                            break;
-                        }
+
+                    } catch (RuntimeException e) {
+                    System.err.println("Erreur lors de la surveillance du répertoire : " + e.getMessage());
+                }
+
+            });
+// Première partie du code pour déplacer les fichiers
 
 
+
+                Thread processThread = new Thread(() -> {
+
+
+
+                    while (isWorking.get()) {
+
+
+// deuxieme partie du code pour le stockage des fichiers deplacé
 // Liste pour stocker les numéros de train traités
-                            List<String> processedTrainNumbers = new ArrayList<>();
+                        List<String> processedTrainNumbers = new ArrayList<>();
 
 // Lire les données de la base de données pour la comparaison avec les nouvelles données
-                            List<Mr> allMrData = mrService.findAll();
-                            for (Mr mr : allMrData) {
-                                processedTrainNumbers.add(mr.getNumTrain());
-                            }
+                        List<Mr> allMrData = mrService.findAll();
+                        for (Mr mr : allMrData) {
+                            processedTrainNumbers.add(mr.getNumTrain());
+                        }
 
 // Lire les fichiers Excel et mettre à jour les données des trains correspondants
-                            File[] excelFiles = outputFolder.listFiles((dir, name) -> name.endsWith(".xlsx"));
+                        File[] excelFiles = outputFolder.listFiles((dir, name) -> name.endsWith(".xlsx"));
+                        if (excelFiles != null) {
                             for (File excelFile : excelFiles) {
                                 try (FileInputStream excelStream = new FileInputStream(excelFile)) {
                                     Workbook workbook = new XSSFWorkbook(excelStream);
@@ -191,28 +192,26 @@ public class Main {
                                     e.printStackTrace();
                                 }
                             }
-
+                        }
 
 // Liste pour stocker les noms de fichiers traités sam
-                            List<String> processedFilessam = new ArrayList<>();
+                        List<String> processedFilessam = new ArrayList<>();
 
 
-
-                            EnvloppeData enveloppeData = new EnvloppeData();
-                            // Lire tous les fichiers commençant par 'Sam'
-                            File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
-
+                        EnvloppeData enveloppeData = new EnvloppeData();
+                        // Lire tous les fichiers commençant par 'Sam'
+                        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
+                        if (samFiles != null) {
                             for (File samFile : samFiles) {
                                 // Charger les enveloppes à partir du fichier JSON
 
 
-
-                                TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {};
+                                TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {
+                                };
                                 try (InputStream samStream = new FileInputStream(samFile)) {
                                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
 
                                     for (Sam sam : sams) {
-
 
 
                                         if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
@@ -229,15 +228,11 @@ public class Main {
                                         }
 
 
-
-
-
                                         samService.save(sam);
 
                                         processedFilessam.add(samFile.getName());
                                         if (sam.getStatutSAM().equals("NOK")) {
                                             for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
-
 
 
                                                 enveloppeData.loadFromJson(samFile, i);
@@ -261,15 +256,7 @@ public class Main {
                                                 sam.setUrlSam(urlsam);
 
 
-
-
-
-
-
-
                                             }
-
-
 
 
                                         }
@@ -278,33 +265,28 @@ public class Main {
                                     }
 
 
-
-
-
                                 } catch (IOException e) {
                                     System.err.println("Erreur lors de la lecture du fichier " + samFile.getName() + " : " + e.getMessage());
                                 }
                             }
 
-
+                        }
 
 
 // Liste pour stocker les noms de fichiers traités 50592
-                            List<String> processedFiles50592 = new ArrayList<>();
-                            // Lire tous les fichiers commençant par '50592'
-                            File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
+                        List<String> processedFiles50592 = new ArrayList<>();
+                        // Lire tous les fichiers commençant par '50592'
+                        File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
+                        if (m50592Files != null) {
                             for (File m50592File : m50592Files) {
 
                                 String fileName = m50592File.getName();
-                                if (processedFiles50592.contains(fileName) ||   m50592Service.existsByfileName(m50592File.getName())) {
+                                if (processedFiles50592.contains(fileName) || m50592Service.existsByfileName(m50592File.getName())) {
                                     // Le fichier a déjà été traité, passer au suivant
                                     continue;
                                 }
-                                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {  };
-
-
-
-
+                                TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {
+                                };
 
 
                                 try (InputStream m50592Stream = new FileInputStream(m50592File)) {
@@ -324,10 +306,10 @@ public class Main {
                                             env.setVilleDepart(villes[0]);
                                             env.setVilleArrivee(villes[1]);
                                         }
-                                        if (m_50592.getBeR1().getxFond().contains("FF382A") || m_50592.getBeR1().getyFond().contains("FF382A") || m_50592.getBeR1().getzFond().contains("FF382A")|| m_50592.getBeR2().getxFond1().contains("FF382A") || m_50592.getBeR2().getyFond1().contains("FF382A") || m_50592.getBeR2().getzFond1().contains("FF382A") || m_50592.getBlR1().getxFondl().contains("FF382A") || m_50592.getBlR1().getyFondl().contains("FF382A")|| m_50592.getBlR1().getzFondl().contains("FF382A") || m_50592.getBlR2().getxFondl2().contains("FF382A") || m_50592.getBlR2().getyFondl2().contains("FF382A") || m_50592.getBlR2().getzFondl2().contains("FF382A")) {
-                                            m_50592.setStatut50592("NOK") ;
+                                        if (m_50592.getBeR1().getxFond().contains("FF382A") || m_50592.getBeR1().getyFond().contains("FF382A") || m_50592.getBeR1().getzFond().contains("FF382A") || m_50592.getBeR2().getxFond1().contains("FF382A") || m_50592.getBeR2().getyFond1().contains("FF382A") || m_50592.getBeR2().getzFond1().contains("FF382A") || m_50592.getBlR1().getxFondl().contains("FF382A") || m_50592.getBlR1().getyFondl().contains("FF382A") || m_50592.getBlR1().getzFondl().contains("FF382A") || m_50592.getBlR2().getxFondl2().contains("FF382A") || m_50592.getBlR2().getyFondl2().contains("FF382A") || m_50592.getBlR2().getzFondl2().contains("FF382A")) {
+                                            m_50592.setStatut50592("NOK");
                                         } else {
-                                            m_50592.setStatut50592("OK") ;
+                                            m_50592.setStatut50592("OK");
                                         }
                                         m50592Service.save(m_50592);
 
@@ -335,13 +317,12 @@ public class Main {
                                         String jsonFileName = m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
 
                                         File outputFolderFile = new File(outputFolder, jsonFileName);
-                                        System.out.println("voila dossier crée"+outputFolderFile.getName());
-                                        String url50592 = outputFolderFile.getAbsolutePath().replace("\\","/");
-
+                                        System.out.println("voila dossier crée" + outputFolderFile.getName());
+                                        String url50592 = outputFolderFile.getAbsolutePath().replace("\\", "/");
 
 
                                         // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
-                                        File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderFile.getName().substring(0,m_50592.getFileName().lastIndexOf('_')))
+                                        File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderFile.getName().substring(0, m_50592.getFileName().lastIndexOf('_')))
                                                 && (name.endsWith(".png") || name.endsWith(".bmp")));
                                         if (imageFiles.length > 0) {
 
@@ -363,10 +344,8 @@ public class Main {
                                             }
 
 
-
                                         } else {
                                             System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-
 
 
                                         }
@@ -384,31 +363,46 @@ public class Main {
                                 }
                             }
 
+                        }
 
 
+                        // Construire l'URL de train en utilisant la date et l'heure
+                        List<Sam> sams = samRepository.findAll();
+                        List<M_50592> m50592s = m50592Repository.findAll();
+                        DateTimeFormatter formatterr = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                        Set<String> existingResultIds = new HashSet<>();
 
-                            // Construire l'URL de train en utilisant la date et l'heure
-                            List<Sam> sams = samRepository.findAll();
-                            List<M_50592> m50592s = m50592Repository.findAll();
-                            DateTimeFormatter formatterr = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-                            Set<String> existingResultIds = new HashSet<>();
-                            Set<Date> existingDateTimes = new HashSet<>();
 
-                            for (Sam sam : sams) {
-                                for (M_50592 m50592 : m50592s) {
-                                    if (sam.getDateFichier().equals(m50592.getDateFichier())) {
-                                        String url = "https://test01.rd-vision-dev.com/get_images?system=2&dateFrom=" +
-                                                sam.getDateFichier() + "T" + sam.getHeureFichier() +
-                                                "&dateTo=" + m50592.getDateFichier() + "T" + m50592.getHeureFichier();
+                        for (Sam sam : sams) {
+                            for (M_50592 m50592 : m50592s) {
+                                if (sam.getDateFichier().equals(m50592.getDateFichier())) {
+                                    String url = "https://test01.rd-vision-dev.com/get_images?system=2&dateFrom=" +
+                                            sam.getDateFichier() + "T" + sam.getHeureFichier() +
+                                            "&dateTo=" + m50592.getDateFichier() + "T" + m50592.getHeureFichier();
 
-                                        URL jsonUrl = new URL(url);
-                                        HttpURLConnection connection = (HttpURLConnection) jsonUrl.openConnection();
+                                    URL jsonUrl = null;
+                                    try {
+                                        jsonUrl = new URL(url);
+                                    } catch (MalformedURLException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    HttpURLConnection connection = null;
+                                    try {
+                                        connection = (HttpURLConnection) jsonUrl.openConnection();
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    try {
                                         connection.setRequestMethod("GET");
+                                    } catch (ProtocolException e) {
+                                        throw new RuntimeException(e);
+                                    }
 
-                                        // Ajouter le header Authorization avec le token
-                                        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QudXNlckB0ZXN0LmNvbSIsImV4cCI6MTY5NjYwMDY5MiwiaXNzIjoiand0dGVzdC5jb20iLCJhdWQiOiJ0cnlzdGFud2lsY29jay5jb20ifQ.LQ6yfa0InJi6N5GjRfVcA8XMZtZZef0PswrM2Io7l-g";
-                                        connection.setRequestProperty("Authorization", "Bearer " + token);
+                                    // Ajouter le header Authorization avec le token
+                                    String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InRlc3QudXNlckB0ZXN0LmNvbSIsImV4cCI6MTY5NjYwMDY5MiwiaXNzIjoiand0dGVzdC5jb20iLCJhdWQiOiJ0cnlzdGFud2lsY29jay5jb20ifQ.LQ6yfa0InJi6N5GjRfVcA8XMZtZZef0PswrM2Io7l-g";
+                                    connection.setRequestProperty("Authorization", "Bearer " + token);
 
+                                    try {
                                         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                                             InputStream inputStream = connection.getInputStream();
                                             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -458,8 +452,8 @@ public class Main {
                                                 // Convertir les objets Date en objets Time
                                                 Time heurefichier = new Time(timefichier.getTime());
 
-// Vérifier si une instance de Train avec la même date, heure et site existe déjà
-                                                List <Train> existingTrain = trainRepository.findBySiteAndDateFichierAndHeureFichier("Chevilly", datefichier, heurefichier);
+                                                // Vérifier si une instance de Train avec la même date, heure et site existe déjà
+                                                List<Train> existingTrain = trainRepository.findBySiteAndDateFichierAndHeureFichier("Chevilly", datefichier, heurefichier);
                                                 if (!existingTrain.isEmpty()) {
                                                     // Une instance de Train avec la même date, heure et site existe déjà, passez à l'itération suivante
                                                     continue;
@@ -474,7 +468,6 @@ public class Main {
                                                 result.setTrain(trainInstance); // Définir la relation train dans Result
 
 
-
                                                 trainInstance.getResults().add(result);
                                                 System.out.println("je jee " + trainInstance.getSite());
 
@@ -484,38 +477,42 @@ public class Main {
                                         } else {
                                             System.out.println("Error response code: " + connection.getResponseCode());
                                         }
-
-                                        connection.disconnect();
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    } catch (ParseException e) {
+                                        throw new RuntimeException(e);
                                     }
+
+                                    connection.disconnect();
                                 }
                             }
-
                         }
-                    executorService.shutdown();
-                    } catch (ProtocolException e) {
-                    throw new RuntimeException(e);
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
-                } catch (JsonMappingException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
+
+                        // Pause de quelques secondes entre chaque exécution
+                        try {
+                            Thread.sleep(5000); // Réglage de la durée de pause selon vos besoins
+                        } catch (InterruptedException e) {
+                            System.err.println("Le thread de traitement a été interrompu : " + e.getMessage());
+                            break;
+                        }
 
 
-            });
-
-// Démarrer le thread de surveillance du répertoire "input"
-            watchThread.start();
+                    }
+                });
 
 
+// Démarrer les threads de surveillance et de traitement
+                watchThread.start();
+                processThread.start();
 
 
-
-
-
+// Attendre que les deux threads aient terminé leur exécution
+            try {
+                watchThread.join();
+                processThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
         };
 

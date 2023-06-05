@@ -44,8 +44,8 @@ public class EnvloppeData {
         JsonNode enveloppesNode = rootNode.has("Enveloppes") ? rootNode.get("Enveloppes") : null;
 
         if (enveloppesNode != null) {
-            if (enveloppesNode.has("dt_ms") && !enveloppesNode.get("dt_ms").isNull()) {
-                dtMs = enveloppesNode.get("dt_ms").asDouble();
+            if (enveloppesNode.has("dt_s") && !enveloppesNode.get("dt_s").isNull()) {
+                dtMs = enveloppesNode.get("dt_s").asDouble();
             }
 
 
