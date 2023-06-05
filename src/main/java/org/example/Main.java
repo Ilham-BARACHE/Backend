@@ -1,10 +1,13 @@
 package org.example;
 
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
+
+
 import org.example.model.*;
 import org.example.repository.M_50592Repository;
 import org.example.repository.ResultRepository;
@@ -14,6 +17,7 @@ import org.example.service.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,27 +42,43 @@ import java.util.*;
 import java.util.List;
 import java.nio.file.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.logging.ErrorManager;
+
 
 @SpringBootApplication
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+
     public static void main(String[] args) {
-        SpringApplication.run(Main.class,args);
+        SpringApplication.run(Main.class, args);
 
+        logger.info("Le programme a démarré.");
 
+        // Autres opérations de votre application
+
+        logger.info("Le programme s'est terminé.");
     }
+
+
+
+
 
     private void deplacerFichiers(File[] files, File outputFolder) {
 
         for (File file : files) {
             File targetFile = new File(outputFolder, file.getName());
             if (targetFile.exists()) {
-                System.err.println("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
+                logger.info("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
             } else {
                 try {
                     Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    System.out.println("Le fichier a été déplacé avec succès !");
+                    logger.info("Le fichier a été déplacé avec succès !");
                 } catch (FileSystemException e) {
-                    System.out.println("Erreur lors du déplacement du fichier : " + e.getMessage());
+                    logger.info("Erreur lors du déplacement du fichier : " + e.getMessage());
 
                     // Tenter de déplacer le fichier à nouveau après une pause
                     int maxAttempts = 3; // Nombre maximal de tentatives de déplacement
@@ -69,22 +89,22 @@ public class Main {
                         try {
                             Thread.sleep(1000); // Pause de quelques millisecondes avant la prochaine tentative
                             Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("Le fichier a été déplacé avec succès !");
+                            logger.info("Le fichier a été déplacé avec succès !");
                             break; // Sortir de la boucle si le déplacement réussit
                         } catch (IOException | InterruptedException ex) {
-                            System.out.println("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + ex.getMessage());
+                            logger.info("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + ex.getMessage());
                         }
                     }
 
                     if (attempt == maxAttempts) {
-                        System.err.println("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
+                        logger.info("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
                     }
                 } catch (IOException e) {
-                    System.out.println("Erreur lors du déplacement du fichier : " + e.getMessage());
+                    logger.info("Erreur lors du déplacement du fichier : " + e.getMessage());
                 }
             }
         }
-        System.out.println("Les fichiers ont été déplacés avec succès !");
+        logger.info("Les fichiers ont été déplacés avec succès !");
     }
 
 
@@ -161,14 +181,14 @@ public class Main {
 
                         }
                         deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
-                        System.out.println("Les fichiers ont été déplacés avec succès !"+filesToMove);
+                        logger.info("Les fichiers ont été déplacés avec succès !"+filesToMove);
                         filesToMove.clear(); // Vider la liste filesToMove
                         key.reset(); // Réinitialiser la clé pour continuer à surveiller les événements
                     }
 
 
                     } catch (RuntimeException e) {
-                    System.err.println("Erreur lors de la surveillance du répertoire : " + e.getMessage());
+                    logger.info("Erreur lors de la surveillance du répertoire : " + e.getMessage());
                 }
 
             });
