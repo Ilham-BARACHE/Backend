@@ -48,6 +48,7 @@ public class Main {
     }
 
     private void deplacerFichiers(File[] files, File outputFolder) {
+
         for (File file : files) {
             File targetFile = new File(outputFolder, file.getName());
             if (targetFile.exists()) {
@@ -85,6 +86,10 @@ public class Main {
         }
         System.out.println("Les fichiers ont été déplacés avec succès !");
     }
+
+
+
+
 
 
 
