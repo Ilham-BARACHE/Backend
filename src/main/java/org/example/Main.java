@@ -30,6 +30,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.Time;
@@ -67,45 +70,67 @@ public class Main {
 
 
 
-    private void deplacerFichiers(File[] files, File outputFolder) {
+    private void deplacerFichiers(File[] files, File outputFolder) throws InterruptedException {
+        List<File> fichiersEnCours = new ArrayList<>();
 
         for (File file : files) {
             File targetFile = new File(outputFolder, file.getName());
             if (targetFile.exists()) {
                 logger.info("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
             } else {
-                try {
-                    Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    logger.info("Le fichier a été déplacé avec succès !");
-                } catch (FileSystemException e) {
-                    logger.info("Erreur lors du déplacement du fichier : " + e.getMessage());
-
-                    // Tenter de déplacer le fichier à nouveau après une pause
-                    int maxAttempts = 3; // Nombre maximal de tentatives de déplacement
-                    int attempt = 0;
-
-                    while (attempt < maxAttempts) {
-                        attempt++;
-                        try {
-                            Thread.sleep(1000); // Pause de quelques millisecondes avant la prochaine tentative
-                            Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            logger.info("Le fichier a été déplacé avec succès !");
-                            break; // Sortir de la boucle si le déplacement réussit
-                        } catch (IOException | InterruptedException ex) {
-                            logger.info("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + ex.getMessage());
-                        }
-                    }
-
-                    if (attempt == maxAttempts) {
-                        logger.info("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
-                    }
+                try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+                    // Le fichier est actuellement ouvert en écriture, il sera ignoré
+                    logger.info("Le fichier est actuellement ouvert en écriture, il sera ignoré : " + file.getAbsolutePath());
+                    fichiersEnCours.add(file);
                 } catch (IOException e) {
-                    logger.info("Erreur lors du déplacement du fichier : " + e.getMessage());
+                    // Le fichier n'est pas ouvert en mode écriture, on peut le déplacer
+                    try {
+                        Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        logger.info("Le fichier a été déplacé avec succès oui !");
+                    } catch (FileSystemException ex) {
+                        logger.info("Erreur lors du déplacement du fichier : " + ex.getMessage());
+
+                        // Tenter de déplacer le fichier à nouveau après une pause
+                        int maxAttempts = 3; // Nombre maximal de tentatives de déplacement
+                        int attempt = 0;
+
+                        while (attempt < maxAttempts) {
+                            attempt++;
+                            try {
+                                Thread.sleep(1000); // Pause de quelques millisecondes avant la prochaine tentative
+                                Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                logger.info("Le fichier a été déplacé avec succès ok !");
+                                break; // Sortir de la boucle si le déplacement réussit
+                            } catch (IOException | InterruptedException exx) {
+                                logger.info("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + exx.getMessage());
+                            }
+                        }
+
+                        if (attempt == maxAttempts) {
+                            logger.info("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
+                        }
+                    } catch (IOException ex) {
+                        logger.info("Erreur lors du déplacement du fichier : " + ex.getMessage());
+                    }
                 }
             }
         }
+
+
+
         logger.info("Les fichiers ont été déplacés avec succès !");
     }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -189,6 +214,8 @@ public class Main {
 
                     } catch (RuntimeException e) {
                     logger.info("Erreur lors de la surveillance du répertoire : " + e.getMessage());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
 
             });

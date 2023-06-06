@@ -3,6 +3,9 @@ package org.example.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.example.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.File;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 @Data
 @Table(name = "T_50592")
 public class M_50592 {
+    private static final Logger logger = LoggerFactory.getLogger(M_50592.class);
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     private Long id;
@@ -236,16 +240,16 @@ public class M_50592 {
             if (lastIndex > index) {
                 String dateTimePart = fileName.substring(index+1, lastIndex); // Extraire la partie qui contient la date et l'heure en excluant l'extension du fichier (.json)
 
-                System.out.println("dateTimePart: " + dateTimePart);
+                logger.info("dateTimePart: " + dateTimePart);
 
                 String[] dateTimeParts = dateTimePart.split("[_ .hms]+");
-                System.out.println("dateTimeParts: " + Arrays.toString(dateTimeParts));
+                logger.info("dateTimeParts: " + Arrays.toString(dateTimeParts));
 
                 if (dateTimeParts.length == 6) { // Vérifier si la partie date-heure a été correctement divisée
                     String datePart = dateTimeParts[0] + "." + dateTimeParts[1] + "." + dateTimeParts[2]; // Concaténer les parties pour former la date
                     String heurePart = dateTimeParts[3] + "h" + dateTimeParts[4] + "m" + dateTimeParts[5]+ "s"; // Concaténer les parties pour former l'heure
-                    System.out.println("datePart: " + datePart); // Ajouter un log pour afficher la partie date
-                    System.out.println("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
+                    logger.info("datePart: " + datePart); // Ajouter un log pour afficher la partie date
+                    logger.info("heurePart: " + heurePart); // Ajouter un log pour afficher la partie heure
 
                     // Convertir la date et l'heure en objets Date et Time
                     try {
