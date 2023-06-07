@@ -1,10 +1,13 @@
 package org.example;
 
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
+
+
 import org.example.model.*;
 import org.example.repository.M_50592Repository;
 import org.example.repository.ResultRepository;
@@ -14,6 +17,7 @@ import org.example.service.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,6 +30,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.Time;
@@ -37,26 +44,126 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.nio.file.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.slf4j.LoggerFactory;
+
+import java.util.logging.ErrorManager;
+
 
 @SpringBootApplication
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+
     public static void main(String[] args) {
-        SpringApplication.run(Main.class,args);
+        SpringApplication.run(Main.class, args);
+
+        logger.info("Le programme a démarré.");
+
+        // Autres opérations de votre application
+
+        logger.info("Le programme s'est terminé.");
+    }
+
+
+
+    List<File> fichiersIgnorés = new CopyOnWriteArrayList<>();
+
+
+
+    private void deplacerFichiers(File[] files, File outputFolder) throws InterruptedException {
+        for (File file : files) {
+            File targetFile = new File(outputFolder, file.getName());
+            if (targetFile.exists()) {
+                logger.info("Le fichier cible existe déjà : " + targetFile.getAbsolutePath());
+            } else {
+                boolean fileInUse = isFileOpen(file);
+                System.out.println(fileInUse+ " voila");
+                if (fileInUse) {
+                    logger.info("Le fichier est actuellement ouvert en écriture, il sera ignoré : " + file.getAbsolutePath());
+                    synchronized (fichiersIgnorés) {
+                        fichiersIgnorés.add(file);
+                    }
+                    continue;
+                }
+                System.out.println(fichiersIgnorés+" iciiiiii");
+                try {
+                    Thread.sleep(2000);
+                    Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Le fichier a été déplacé avec succès ok! "+file);
+                } catch (FileSystemException ex) {
+                    logger.info("Erreur lors du déplacement du fichier : " + ex.getMessage());
+
+                    // Attempt to move the file again after a pause
+                    int maxAttempts = 3; // Maximum number of move attempts
+                    int attempt = 0;
+
+                    while (attempt < maxAttempts) {
+                        attempt++;
+                        try {
+                            Thread.sleep(2000); // Pause for a few milliseconds before the next attempt
+                            Files.move(file.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            logger.info("Le fichier a été déplacé avec succès yes! "+file);
+                            break; // Exit the loop if the move is successful
+                        } catch (IOException | InterruptedException exx) {
+                            logger.info("Erreur lors du déplacement du fichier (tentative " + attempt + " sur " + maxAttempts + ") : " + exx.getMessage());
+                        }
+                    }
+
+                    if (attempt == maxAttempts) {
+                        logger.info("Impossible de déplacer le fichier après " + maxAttempts + " tentatives.");
+                    }
+                } catch (IOException ex) {
+                    logger.info("Erreur lors du déplacement du fichier : " + ex.getMessage());
+                }
+            }
+        }
 
 
     }
 
-    private void deplacerFichiers(File[] files, File outputFolder) {
+
+    private boolean isFileOpen(File file) {
         try {
-            for (File file : files) {
-                FileUtils.moveFileToDirectory(file, outputFolder, true);
+            FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE);
+            FileLock lock = channel.tryLock();
+            if (lock != null) {
+                lock.release();
+                channel.close();
+                return false;
+            } else {
+                channel.close();
+                return true;
             }
-            System.out.println("Les fichiers ont été déplacés avec succès !");
         } catch (IOException e) {
-            System.out.println("Erreur lors du déplacement des fichiers : " + e.getMessage());
+            return true;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -77,6 +184,13 @@ public class Main {
             File inputFolder = new File(inputFolderPath);
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+
+// Déplacer les fichiers existants dans le répertoire "input" avant de commencer la surveillance
+            File[] existingFiles = inputFolder.listFiles();
+
+
+
+                deplacerFichiers(existingFiles, outputFolder);
 
 
             List<File> filesToMove = new ArrayList<>();
@@ -112,6 +226,7 @@ public class Main {
                             break;
                         }
 
+
                         // Parcourir les événements
                         for (WatchEvent<?> event : key.pollEvents()) {
                             WatchEvent.Kind<?> kind = event.kind();
@@ -123,22 +238,66 @@ public class Main {
 
                                 File newFile = filePath.toFile();
                                 filesToMove.add(newFile);
+
+
                             }
 
                         }
-                        deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
-                        System.out.println("Les fichiers ont été déplacés avec succès !"+filesToMove);
-                        filesToMove.clear(); // Vider la liste filesToMove
-                        key.reset(); // Réinitialiser la clé pour continuer à surveiller les événements
+
+
+
+                        // La surveillance est terminée, vérifier si les fichiers peuvent être déplacés
+
+
+                            deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
+                            logger.info("Les fichiers ont été déplacés avec succès okeyyyy!" + filesToMove);
+                            filesToMove.clear(); // Vider la liste filesToMove
+key.reset();
                     }
 
-
                     } catch (RuntimeException e) {
-                    System.err.println("Erreur lors de la surveillance du répertoire : " + e.getMessage());
+                    logger.info("Erreur lors de la surveillance du répertoire : " + e.getMessage());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
 
             });
-// Première partie du code pour déplacer les fichiers
+
+
+            // Nouveau thread pour le déplacement des fichiers ignorés
+            Thread ignoredFilesThread = new Thread(() -> {
+                while (isRunning.get()) {
+                    List<File> filesToMoveIgnored = new ArrayList<>();
+
+                    for (File file : fichiersIgnorés) {
+                        if (!isFileOpen(file)) {
+                            logger.info("Le fichier n'est pas actuellement ouvert en écriture : " + file.getAbsolutePath());
+                            filesToMoveIgnored.add(file);
+                            System.out.println(filesToMoveIgnored + " iciiiiii");
+                        }
+                    }
+
+// Déplacer les fichiers ignorés
+                    try {
+                        deplacerFichiers(filesToMoveIgnored.toArray(new File[0]), outputFolder);
+                        filesToMoveIgnored.clear();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+
+
+                    try {
+                            Thread.sleep(2000); // Attendre avant de vérifier à nouveau les fichiers ignorés
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+            });
+
+
+            ignoredFilesThread.start(); // Démarrer le thread du déplacement des fichiers ignorés
 
 
 
@@ -164,6 +323,8 @@ public class Main {
                         if (excelFiles != null) {
                             for (File excelFile : excelFiles) {
                                 try (FileInputStream excelStream = new FileInputStream(excelFile)) {
+                                    logger.info("Lecture du fichier Excel : " + excelFile.getAbsolutePath());
+
                                     Workbook workbook = new XSSFWorkbook(excelStream);
                                     Sheet sheet = workbook.getSheetAt(0);
                                     for (Row row : sheet) {
@@ -175,24 +336,32 @@ public class Main {
                                             } else if (numTrainCell.getCellType() == CellType.NUMERIC) {
                                                 numTrain = String.valueOf((int) numTrainCell.getNumericCellValue());
                                             }
+
                                             String mr = row.getCell(1).getStringCellValue();
+
                                             if (!processedTrainNumbers.contains(numTrain)) {
+                                                logger.info("Traitement du numéro de train : " + numTrain);
+
                                                 // Vérifier si le numéro de train a déjà été traité
                                                 // Si le numéro de train n'a pas encore été traité, ajouter une nouvelle entrée dans la base de données
                                                 Mr newMr = new Mr();
                                                 newMr.setMr(mr);
                                                 newMr.setNumTrain(numTrain);
                                                 mrService.save(newMr);
+
                                                 // Ajouter le numéro de train traité à la liste des numéros de train traités
                                                 processedTrainNumbers.add(numTrain);
                                             }
                                         }
                                     }
+
+                                    logger.info("Fichier Excel traité avec succès : " + excelFile.getAbsolutePath());
                                 } catch (IOException e) {
-                                    e.printStackTrace();
+                                    logger.error("Erreur lors de la lecture du fichier Excel : " + excelFile.getAbsolutePath(), e);
                                 }
                             }
                         }
+
 
 // Liste pour stocker les noms de fichiers traités sam
                         List<String> processedFilessam = new ArrayList<>();
@@ -203,38 +372,37 @@ public class Main {
                         File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005") && name.endsWith(".json"));
                         if (samFiles != null) {
                             for (File samFile : samFiles) {
+                                logger.info("Traitement du fichier SAM : " + samFile.getAbsolutePath());
+
                                 // Charger les enveloppes à partir du fichier JSON
-
-
                                 TypeReference<List<Sam>> samTypeRef = new TypeReference<List<Sam>>() {
                                 };
+
                                 try (InputStream samStream = new FileInputStream(samFile)) {
                                     List<Sam> sams = mapper.readValue(samStream, samTypeRef);
 
                                     for (Sam sam : sams) {
-
-
                                         if (processedFilessam.contains(samFile.getName()) || samService.existsByfileName(samFile.getName())) {
                                             // Le fichier a déjà été traité, passer au suivant
                                             continue;
                                         }
-                                        sam.checkOccultations();
 
+                                        logger.info("Traitement du SAM : " + sam.getId());
+
+                                        sam.checkOccultations();
                                         sam.setFileName(samFile.getName()); // Définir le nom de fichier dans l'objet M_50592
                                         sam.loadStartingWithSam(samFile.getName());
                                         sam.loadSite(samFile.getName());
+
                                         if (sam.getStatutSAM().equals("OK")) {
                                             sam.setUrlSam(null); // Définir l'URL à null
                                         }
 
-
                                         samService.save(sam);
-
                                         processedFilessam.add(samFile.getName());
+
                                         if (sam.getStatutSAM().equals("NOK")) {
                                             for (int i = 1; i <= sam.getNbOccultations().size(); i++) {
-
-
                                                 enveloppeData.loadFromJson(samFile, i);
 
                                                 // Créer un dossier avec le nom du fichier sans extension
@@ -252,117 +420,102 @@ public class Main {
                                                 }
 
                                                 String urlsam = outputFolderenvloppe.getPath().replaceAll("\\\\", "/");
-
                                                 sam.setUrlSam(urlsam);
-
-
                                             }
-
-
                                         }
-                                        samService.save(sam);
 
+                                        samService.save(sam);
                                     }
 
-
+                                    logger.info("Fichier SAM traité avec succès : " + samFile.getAbsolutePath());
                                 } catch (IOException e) {
-                                    System.err.println("Erreur lors de la lecture du fichier " + samFile.getName() + " : " + e.getMessage());
+                                    logger.error("Erreur lors de la lecture du fichier " + samFile.getName() + " : " + e.getMessage(), e);
                                 }
                             }
-
                         }
 
 
 // Liste pour stocker les noms de fichiers traités 50592
                         List<String> processedFiles50592 = new ArrayList<>();
                         // Lire tous les fichiers commençant par '50592'
-                        File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") & name.endsWith(".json"));
+                        File[] m50592Files = outputFolder.listFiles((dir, name) -> name.startsWith("50592") && name.endsWith(".json"));
                         if (m50592Files != null) {
                             for (File m50592File : m50592Files) {
+                                logger.info("Traitement du fichier 50592 : " + m50592File.getAbsolutePath());
 
                                 String fileName = m50592File.getName();
                                 if (processedFiles50592.contains(fileName) || m50592Service.existsByfileName(m50592File.getName())) {
                                     // Le fichier a déjà été traité, passer au suivant
                                     continue;
                                 }
+
                                 TypeReference<List<M_50592>> m50592TypeRef = new TypeReference<List<M_50592>>() {
                                 };
-
 
                                 try (InputStream m50592Stream = new FileInputStream(m50592File)) {
                                     List<M_50592> m_50592s = mapper.readValue(m50592Stream, m50592TypeRef);
 
-
                                     for (M_50592 m_50592 : m_50592s) {
-
-
                                         m_50592.setFileName(m50592File.getName()); // Définir le nom de fichier dans l'objet M_50592
                                         m_50592.loadStartingWith50592(m50592File.getName());
                                         m_50592.loadSite(m50592File.getName());
+
                                         Environnement env = m_50592.getEnvironnement();
                                         String[] villes = env.extraireVilles(env.getSens());
-
                                         if (villes != null) {
                                             env.setVilleDepart(villes[0]);
                                             env.setVilleArrivee(villes[1]);
                                         }
+
                                         if (m_50592.getBeR1().getxFond().contains("FF382A") || m_50592.getBeR1().getyFond().contains("FF382A") || m_50592.getBeR1().getzFond().contains("FF382A") || m_50592.getBeR2().getxFond1().contains("FF382A") || m_50592.getBeR2().getyFond1().contains("FF382A") || m_50592.getBeR2().getzFond1().contains("FF382A") || m_50592.getBlR1().getxFondl().contains("FF382A") || m_50592.getBlR1().getyFondl().contains("FF382A") || m_50592.getBlR1().getzFondl().contains("FF382A") || m_50592.getBlR2().getxFondl2().contains("FF382A") || m_50592.getBlR2().getyFondl2().contains("FF382A") || m_50592.getBlR2().getzFondl2().contains("FF382A")) {
                                             m_50592.setStatut50592("NOK");
                                         } else {
                                             m_50592.setStatut50592("OK");
                                         }
+
                                         m50592Service.save(m_50592);
+                                        logger.info("M_50592 traité : " + m_50592.getFileName());
 
-                                        System.out.println("je suis ici dans 50592");
                                         String jsonFileName = m_50592.getFileName().substring(0, m_50592.getFileName().lastIndexOf('.'));
-
                                         File outputFolderFile = new File(outputFolder, jsonFileName);
-                                        System.out.println("voila dossier crée" + outputFolderFile.getName());
+
                                         String url50592 = outputFolderFile.getAbsolutePath().replace("\\", "/");
-
-
-                                        // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
-                                        File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(outputFolderFile.getName().substring(0, m_50592.getFileName().lastIndexOf('_')))
-                                                && (name.endsWith(".png") || name.endsWith(".bmp")));
-                                        if (imageFiles.length > 0) {
-
-
-                                            if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
-                                                System.err.println("Erreur lors de la création du dossier " + jsonFileName + ".");
-                                            } else {
-                                                System.out.println("Le dossier " + jsonFileName + " a été créé.");
-                                            }
-
-// Déplacer les fichiers d'image correspondants dans le dossier créé
-                                            for (File imageFile : imageFiles) {
-                                                File targetFile = new File(outputFolderFile, imageFile.getName());
-                                                if (!imageFile.renameTo(targetFile)) {
-                                                    System.err.println("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName + ".");
-                                                } else {
-                                                    System.out.println("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName + ".");
-                                                }
-                                            }
-
-
-                                        } else {
-                                            System.err.println("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName + ".");
-
-
-                                        }
-
                                         m_50592.setUrl50592(url50592);
                                         m50592Service.save(m_50592);
 
+                                        // Vérifier si le nom du fichier image correspondant contient le nom du fichier JSON
+                                        File[] imageFiles = outputFolder.listFiles((dir, name) -> name.contains(jsonFileName)
+                                                && (name.endsWith(".png") || name.endsWith(".bmp")));
+
+                                        if (imageFiles.length > 0) {
+                                            logger.info("Création du dossier " + jsonFileName);
+
+                                            if (!outputFolderFile.exists() && !outputFolderFile.mkdir()) {
+                                                logger.error("Erreur lors de la création du dossier " + jsonFileName);
+                                            } else {
+                                                logger.info("Le dossier " + jsonFileName + " a été créé.");
+                                            }
+
+                                            // Déplacer les fichiers d'image correspondants dans le dossier créé
+                                            for (File imageFile : imageFiles) {
+                                                File targetFile = new File(outputFolderFile, imageFile.getName());
+                                                if (!imageFile.renameTo(targetFile)) {
+                                                    logger.error("Erreur lors du déplacement du fichier " + imageFile.getName() + " dans le dossier " + jsonFileName);
+                                                } else {
+                                                    logger.info("Le fichier " + imageFile.getName() + " a été déplacé dans le dossier " + jsonFileName);
+                                                }
+                                            }
+                                        } else {
+                                            logger.error("Aucun fichier d'image correspondant n'a été trouvé pour le fichier JSON " + jsonFileName);
+                                        }
                                     }
 
                                     processedFiles50592.add(fileName);
-
-
+                                    logger.info("Fichier 50592 traité avec succès : " + m50592File.getAbsolutePath());
                                 } catch (IOException e) {
-                                    System.err.println("Erreur lors de la lecture du fichier " + m50592File.getName() + " : " + e.getMessage());
+                                    logger.error("Erreur lors de la lecture du fichier " + m50592File.getName() + " : " + e.getMessage(), e);
                                 }
                             }
-
                         }
 
 
@@ -372,13 +525,15 @@ public class Main {
                         DateTimeFormatter formatterr = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
                         Set<String> existingResultIds = new HashSet<>();
 
-
                         for (Sam sam : sams) {
                             for (M_50592 m50592 : m50592s) {
                                 if (sam.getDateFichier().equals(m50592.getDateFichier())) {
+                                    logger.info("Sam et M_50592 correspondent pour la date de fichier : " + sam.getDateFichier());
+
                                     String url = "https://test01.rd-vision-dev.com/get_images?system=2&dateFrom=" +
                                             sam.getDateFichier() + "T" + sam.getHeureFichier() +
                                             "&dateTo=" + m50592.getDateFichier() + "T" + m50592.getHeureFichier();
+                                    logger.info("URL de requête : " + url);
 
                                     URL jsonUrl = null;
                                     try {
@@ -416,6 +571,7 @@ public class Main {
 
                                             // Mapper le JSON sur un objet Train
                                             Train train = mapper.readValue(response.toString(), Train.class);
+                                            logger.info("JSON mappé sur un objet Train");
 
                                             List<Result> results = train.getResults();
                                             int size = results.size();
@@ -423,11 +579,11 @@ public class Main {
                                             for (int i = 0; i < size; i++) {
                                                 Result result = results.get(i);
                                                 String dateid = result.getDate();
-
+                                                logger.info("Traitement du résultat avec l'ID : " + dateid);
 
                                                 // Effectuez une vérification pour déterminer si l'ID du résultat existe déjà
                                                 if (existingResultIds.contains(dateid)) {
-                                                    // Le résultat existe déjà, passez à l'itération suivante
+                                                    logger.info("Le résultat avec l'ID " + dateid + " existe déjà, passer à l'itération suivante");
                                                     continue;
                                                 }
 
@@ -455,10 +611,9 @@ public class Main {
                                                 // Vérifier si une instance de Train avec la même date, heure et site existe déjà
                                                 List<Train> existingTrain = trainRepository.findBySiteAndDateFichierAndHeureFichier("Chevilly", datefichier, heurefichier);
                                                 if (!existingTrain.isEmpty()) {
-                                                    // Une instance de Train avec la même date, heure et site existe déjà, passez à l'itération suivante
+                                                    logger.info("Une instance de Train avec la même date, heure et site existe déjà, passer à l'itération suivante");
                                                     continue;
                                                 }
-
 
                                                 Train trainInstance = new Train(); // Créer une nouvelle instance de Train
                                                 trainInstance.setDateFichier(datefichier);
@@ -467,38 +622,35 @@ public class Main {
 
                                                 result.setTrain(trainInstance); // Définir la relation train dans Result
 
-
                                                 trainInstance.getResults().add(result);
-                                                System.out.println("je jee " + trainInstance.getSite());
+                                                logger.info("Train : " + trainInstance.getSite());
 
                                                 trainService.save(trainInstance); // Sauvegarder chaque instance de Train séparément
                                                 resultService.save(result); // Sauvegarder chaque instance de Result séparément
+                                                logger.info("Train et Result sauvegardés dans la base de données");
                                             }
                                         } else {
-                                            System.out.println("Error response code: " + connection.getResponseCode());
+                                            logger.error("Error response code: " + connection.getResponseCode());
                                         }
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
                                     } catch (ParseException e) {
                                         throw new RuntimeException(e);
+                                    } finally {
+                                        connection.disconnect();
                                     }
-
-                                    connection.disconnect();
                                 }
                             }
                         }
 
-                        // Pause de quelques secondes entre chaque exécution
+// Pause de quelques secondes entre chaque exécution
                         try {
                             Thread.sleep(5000); // Réglage de la durée de pause selon vos besoins
                         } catch (InterruptedException e) {
-                            System.err.println("Le thread de traitement a été interrompu : " + e.getMessage());
-                            break;
+                            logger.error("Le thread de traitement a été interrompu : " + e.getMessage());
                         }
-
-
                     }
-                });
+                    });
 
 
 // Démarrer les threads de surveillance et de traitement

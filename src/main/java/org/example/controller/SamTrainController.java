@@ -2,6 +2,7 @@ package org.example.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.Main;
 import org.example.component.Utils;
 
 import org.apache.commons.io.FileUtils;
@@ -10,6 +11,8 @@ import org.example.repository.*;
 
 import org.example.model.*;
 import org.example.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -55,55 +58,87 @@ public class SamTrainController {
     }
 
 
+    private static final Logger logger = LoggerFactory.getLogger(SamTrainController.class);
 
 
 
 
 
-
-
-
+    /**
+     * Récupère le fichier correspondant à un site, une date et une heure donnés.
+     * @param site Le nom du site.
+     * @param dateFichier La date du fichier.
+     * @param heure L'heure du fichier.
+     * @return Le fichier correspondant, s'il existe ; sinon, null.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     private File getFileBySiteAndDateFichier(String site, Date dateFichier, Time heure) throws IOException {
+        // Charger les propriétés à partir du fichier "application.properties"
         Properties prop = new Properties();
         InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties");
         prop.load(input);
 
+        // Récupérer le chemin du dossier de sortie à partir des propriétés
         String outputFolderPath = prop.getProperty("output.folder.path");
 
+        // Créer un objet File représentant le dossier de sortie
         File outputFolder = new File(outputFolderPath);
-        System.out.println( heure);
+
+        // Formater la date et l'heure en chaînes de caractères
         String dateFichierStr = new SimpleDateFormat("yyyy.MM.dd").format(dateFichier);
         String heureStr = new SimpleDateFormat("HH'h'mm'm'ss's'").format(new Date(heure.getTime()));
-        System.out.println("SAM005-" + site + "_" + dateFichierStr + "_" + heureStr + ".json");
-        File[] samFiles = outputFolder.listFiles((dir, name) -> name.startsWith("SAM005-" + site + "_" + dateFichierStr + "_" + heureStr) && name.endsWith(".json"));
 
-        System.out.println(samFiles.length == 0 ? "Le tableau est vide" : "Le tableau contient des éléments");
+        // Rechercher les fichiers correspondants dans le dossier de sortie
+        File[] samFiles = outputFolder.listFiles((dir, name) ->
+                name.startsWith("SAM005-" + site + "_" + dateFichierStr + "_" + heureStr) && name.endsWith(".json"));
 
+        // Afficher un message indiquant si le tableau de fichiers est vide ou non
+        logger.info(samFiles.length == 0 ? "Le tableau est vide" : "Le tableau contient des éléments");
 
+        // Vérifier si des fichiers ont été trouvés
         if (samFiles != null && samFiles.length > 0) {
-            System.out.println(samFiles[0]);
+            // Utiliser un logger pour enregistrer le fichier trouvé
+            logger.info("Fichier trouvé : " + samFiles[0]);
             return samFiles[0];
-
-
         } else {
+            // Utiliser un logger pour enregistrer l'absence de fichier trouvé
+            logger.info("Aucun fichier trouvé");
             return null;
         }
     }
 
 
+
+    /**
+     * Récupère les temps en millisecondes pour un site donné, une heure et une date spécifiées.
+     * @param site Le nom du site.
+     * @param heure L'heure spécifiée (au format ISO TIME, ex : 10:30:00).
+     * @param date La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @return Une liste de maps contenant les temps en millisecondes pour chaque t1, t2 et t3.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/temps")
     public List<Map<String, JsonNode>> getTempsMs(@RequestParam("site") String site,
                                                   @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
                                                   @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
+        // Convertir les types de date et d'heure
         Time heureTime = Time.valueOf(heure);
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        // Récupérer le fichier correspondant
         File file = getFileBySiteAndDateFichier(site, dateFichier, heureTime);
+
+        // Liste des noeuds tempsMs
         List<Map<String, JsonNode>> tempsMsNodesList = new ArrayList<>();
 
+        // Vérifier si un fichier a été trouvé
         if (file != null) {
+            // Lire le contenu du fichier JSON
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(file);
+
+            // Récupérer les noeuds tempsMs, t1, t2 et t3
             JsonNode tempsMsNodes = rootNode.get("Temps_ms");
             JsonNode t1Nodes = tempsMsNodes.get("t1");
             JsonNode t2Nodes = tempsMsNodes.get("t2");
@@ -112,6 +147,7 @@ public class SamTrainController {
             // Vérifier que les trois tableaux ont la même longueur
             if (t1Nodes.size() == t2Nodes.size() && t2Nodes.size() == t3Nodes.size()) {
                 for (int i = 0; i < t1Nodes.size(); i++) {
+                    // Créer une map pour stocker les tempsMs pour chaque t1, t2 et t3
                     Map<String, JsonNode> tempsMsMap = new HashMap<>();
                     tempsMsMap.put("t1", t1Nodes.get(i));
                     tempsMsMap.put("t2", t2Nodes.get(i));
@@ -121,8 +157,19 @@ public class SamTrainController {
             }
         }
 
+        // Utiliser un logger pour enregistrer la taille de la liste des tempsMs
+        logger.info("Nombre de tempsMs récupérés : " + tempsMsNodesList.size());
+
         return tempsMsNodesList;
     }
+
+    /**
+     * Lit les fichiers JSON à partir d'un dossier spécifié et retourne une liste de maps contenant les noms des fichiers et leur contenu.
+     * @param dossier Le chemin du dossier contenant les fichiers JSON.
+     * @param startIndex L'index de départ pour les clés "capteur".
+     * @return Une liste de maps contenant les noms des fichiers et leur contenu.
+     * @throws IOException En cas d'erreur lors de la lecture des fichiers.
+     */
     private List<Map<String, JsonNode>> lireFichiersJson(String dossier, int startIndex) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         List<Map<String, JsonNode>> result = new ArrayList<>();
@@ -137,41 +184,55 @@ public class SamTrainController {
                     JsonNode jsonContenuFichier = mapper.readTree(contenuFichier);
                     map.put("contenuFichier", jsonContenuFichier); // Ajout du contenu du fichier
                     result.add(map);
-
                 }
-
             }
             for (int i = 0; i < result.size(); i++) {
                 Map<String, JsonNode> map = result.get(i);
                 map.put("capteur", mapper.valueToTree("capteur" + (startIndex + i))); // Ajout de la clé "capteur" avec index incrémenté
             }
         }
+
+        // Utiliser un logger pour enregistrer le nombre de fichiers lus
+        logger.info("Nombre de fichiers lus : " + result.size());
+
         return result;
     }
 
 
-
+    /**
+     * Récupère les enveloppes pour un site donné, une heure et une date spécifiées.
+     * @param site Le nom du site.
+     * @param heure L'heure spécifiée (au format ISO TIME, ex : 10:30:00).
+     * @param date La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @return Une liste de maps contenant les enveloppes pour chaque capteur.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/echantillonage")
     public List<Map<String, JsonNode>> getEnveloppes(@RequestParam("site") String site,
                                                      @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
                                                      @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
+        // Convertir les types de date et d'heure
         Time heureTime = Time.valueOf(heure);
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site,dateFichier,heureTime);
+        // Récupérer les Sams correspondants à la requête
+        List<Sam> sams = samRepository.findBySiteAndDateFichierAndHeureFichier(site, dateFichier, heureTime);
 
+        // Liste des capteurs
         List<Map<String, JsonNode>> capteurs = new ArrayList<>();
         int index = 0; // Initialisation de l'index
         for (Sam sam : sams) {
             String urlsamList = sam.getUrlSam();
-            System.out.println(urlsamList);
 
+            // Lire les fichiers JSON du dossier et ajouter les résultats à la liste des capteurs
             List<Map<String, JsonNode>> fichiers = lireFichiersJson(urlsamList, index);
-            System.out.println(fichiers);
             capteurs.addAll(fichiers);
             index += fichiers.size(); // Mise à jour de l'index
         }
+
+        // Utiliser un logger pour enregistrer le nombre de capteurs récupérés
+        logger.info("Nombre de capteurs récupérés : " + capteurs.size());
 
         return capteurs;
     }
@@ -181,6 +242,11 @@ public class SamTrainController {
 
 
 
+    /**
+     * Récupère la liste des capteurs.
+     * @return Une liste de chaînes de caractères représentant les capteurs.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/capteurs")
     public List<String> getCapteurs() throws IOException {
         List<String> capteurs = new ArrayList<>();
@@ -200,30 +266,33 @@ public class SamTrainController {
                 JsonNode entete = parametreBENode.get(i).get(0);
                 String enteteText = entete.asText();
                 if (!entetesDejaAjoutes.contains(enteteText)) { // vérifier si l'entête n'a pas déjà été ajoutée
-                if (!(enteteText.contains("D39") || enteteText.contains("D50"))) { // vérifier si l'entête ne commence pas par D39 ou D50
-                    capteurs.add(enteteText);
-                    entetesDejaAjoutes.add(enteteText); // ajouter l'entête à l'ensemble temporaire
-                }
+                    if (!(enteteText.contains("D39") || enteteText.contains("D50"))) { // vérifier si l'entête ne commence pas par D39 ou D50
+                        capteurs.add(enteteText);
+                        entetesDejaAjoutes.add(enteteText); // ajouter l'entête à l'ensemble temporaire
+                    }
                 }
             }
         }
+
+        // Utiliser un logger pour enregistrer le nombre de capteurs récupérés
+        logger.info("Nombre de capteurs récupérés : " + capteurs.size());
 
         return capteurs;
     }
 
 
-
-
-
-
-
-
-
-    //Api pour les urls des images
+    /**
+     * Récupère les URLs des images pour un site donné, une heure et une date spécifiées.
+     * @param site Le nom du site.
+     * @param heure L'heure spécifiée (au format ISO TIME, ex : 10:30:00).
+     * @param date La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @return Une réponse contenant une liste de maps représentant les URLs des images.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/urls")
     public ResponseEntity<List<Map<String, Object>>> geturl(@RequestParam("site") String site,
-                                                  @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
-                                                  @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
+                                                            @RequestParam("heure") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime heure,
+                                                            @RequestParam("dateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
 
         Time heureTime = Time.valueOf(heure);
         Date dateFichier = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -231,79 +300,67 @@ public class SamTrainController {
         List<Train> trains = trainRepository.findBySiteAndDateFichierAndHeureFichier(site, dateFichier, heureTime);
         List<M_50592> m50592s = m50592Repository.findBySiteAndDateFichier(site, dateFichier);
 
-
         List<Map<String, Object>> result = new ArrayList<>();
         for (Train train : trains) {
             for (Result results : train.getResults()) {
-            Map<String, Object> trainMap = new HashMap<>();
+                Map<String, Object> trainMap = new HashMap<>();
 
-            trainMap.put("dateFichier", train.getDateFichier());
-            trainMap.put("heureFichier", train.getHeureFichier());
+                trainMap.put("dateFichier", train.getDateFichier());
+                trainMap.put("heureFichier", train.getHeureFichier());
 
+                trainMap.put("image", results.getImage());
+                trainMap.put("imagemini", results.getThumbnail());
 
+                boolean found50592 = false;
 
+                for (M_50592 m50592 : m50592s) {
+                    if (heureTime.getHours() == m50592.getHeureFichier().getHours() &&
+                            heureTime.getMinutes() == m50592.getHeureFichier().getMinutes() &&
+                            train.getDateFichier().equals(m50592.getDateFichier())) {
 
-            trainMap.put("image", results.getImage());
+                        // Créer une liste de noms d'images PNG à partir de l'URL
+                        List<Map<String, Object>> images50592 = new ArrayList<>();
+                        String url50592 = m50592.getUrl50592() + '/';
+                        int index50592 = url50592.lastIndexOf('/');
+                        String directory50592 = url50592.substring(0, index50592 + 1);
+                        File folder50592 = new File(directory50592);
+                        File[] files50592 = folder50592.listFiles();
+                        if (files50592 != null) {
+                            for (File file : files50592) {
+                                if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
+                                    Map<String, Object> image = new HashMap<>();
+                                    image.put("name", file.getName());
 
-            trainMap.put("imagemini", results.getThumbnail());
-
-
-
-            boolean found50592 = false;
-
-
-            for (M_50592 m50592 : m50592s) {
-                if (heureTime .getHours() == m50592.getHeureFichier().getHours() &&
-                        heureTime.getMinutes() == m50592.getHeureFichier().getMinutes() &&
-                        train.getDateFichier().equals(m50592.getDateFichier())) {
-
-                    // Créer une liste de noms d'images PNG à partir de l'URL
-                    List<Map<String, Object>> images50592 = new ArrayList<>();
-                    String url50592 = m50592.getUrl50592() + '/';
-                    int index50592 = url50592.lastIndexOf('/');
-                    String directory50592 = url50592.substring(0, index50592 + 1);
-                    File folder50592 = new File(directory50592);
-                    File[] files50592 = folder50592.listFiles();
-                    if (files50592 != null) {
-                        for (File file : files50592) {
-                            if (file.isFile() && file.getName().toLowerCase().endsWith(".png")) {
-                                Map<String, Object> image = new HashMap<>();
-                                image.put("name", file.getName());
-
-                                try {
-                                    byte[] fileContent = FileUtils.readFileToByteArray(file);
-                                    String base64 = Base64.getEncoder().encodeToString(fileContent);
-                                    image.put("content", base64);
-                                    images50592.add(image);
-                                } catch (IOException e) {
-                                    // handle exception
+                                    try {
+                                        byte[] fileContent = FileUtils.readFileToByteArray(file);
+                                        String base64 = Base64.getEncoder().encodeToString(fileContent);
+                                        image.put("content", base64);
+                                        images50592.add(image);
+                                    } catch (IOException e) {
+                                        // handle exception
+                                    }
                                 }
                             }
                         }
+
+                        trainMap.put("images50592", images50592);
+                        trainMap.put("url50592", m50592.getUrl50592());
+
+                        found50592 = true;
+                        break;
                     }
-
-                    trainMap.put("images50592", images50592);
-                    trainMap.put("url50592", m50592.getUrl50592());
-
-
-                    found50592 = true;
-                    break;
-
-
                 }
+
+                if (!found50592) {
+                    trainMap.put("url50592", null);
+                }
+
+                result.add(trainMap);
             }
-
-
-
-            if (!found50592) {
-
-                trainMap.put("url50592", null);
-
-            }
-
-            result.add(trainMap);
         }
-    }
+
+        // Utiliser un logger pour enregistrer le nombre de résultats récupérés
+        logger.info("Nombre de résultats récupérés : " + result.size());
 
         if (result.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -315,7 +372,12 @@ public class SamTrainController {
 
 
 
-    // Méthode utilitaire pour vérifier si deux objets LocalTime sont identiques
+    /**
+     * Vérifie si deux objets Date représentent le même moment dans le temps (heure et minute identiques).
+     * @param time1 Le premier objet Date.
+     * @param time2 Le deuxième objet Date.
+     * @return true si les objets Date représentent le même moment dans le temps, sinon false.
+     */
     private boolean isSameTime(Date time1, Date time2) {
         Calendar calendar1 = Calendar.getInstance();
         calendar1.setTime(time1);
@@ -327,13 +389,28 @@ public class SamTrainController {
         int hour2 = calendar2.get(Calendar.HOUR_OF_DAY);
         int minute2 = calendar2.get(Calendar.MINUTE);
 
-        return hour1 == hour2 && minute1 == minute2;
+        // Affichage des heures et minutes pour débogage
+        logger.debug("Heure 1: {}:{} - Heure 2: {}:{}", hour1, minute1, hour2, minute2);
+
+        boolean sameTime = hour1 == hour2 && minute1 == minute2;
+        // Affichage du résultat de la comparaison pour débogage
+        logger.debug("Les heures et les minutes sont identiques : {}", sameTime);
+
+        return sameTime;
     }
 
 
 
 
+
     //Api pour la partie Jour J
+    /**
+     * Récupère les informations des trains & SAM005 & 50592 pour un site donné et une date spécifiées.
+     * @param site Le nom du site.
+     * @param date La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @return Une réponse contenant une liste de maps représentant les infos de train & SAM005 & 50592.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/data")
     public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichier(
             @RequestParam("site") String site,
@@ -350,7 +427,7 @@ public class SamTrainController {
         Set<Date> processedDates = new HashSet<>(); // Stocke les dates déjà traitées
         Set<String> processedTimes = new HashSet<>(); // Stocke les heures et minutes déjà traitées
 
-
+// le cas où train & SAM005 & 50592 sont présents
         for (Train train : trains) {
 
             Map<String, Object> trainMap = new HashMap<>();
@@ -637,8 +714,6 @@ public class SamTrainController {
 
 
         // Traiter les cas où 50592 n'est pas égal à train
-
-
         for (M_50592 m50592 : m50592s) {
             Map<String, Object> samTrainMap = new HashMap<>();
             Date dateKey = m50592.getDateFichier();
@@ -774,6 +849,14 @@ public class SamTrainController {
 
 
     //Api pour la partie historique
+    /**
+     * Récupère les informations des trains & SAM005 & 50592 pour un site donné et une période spécifiées.
+     * @param "site" Le nom du site.
+     * @param "startDateFichier" La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @param "FinDateFichier" La date spécifiée (au format ISO DATE, ex : 2023-07-06).
+     * @return Une réponse contenant une liste de maps représentant les infos de train & SAM005 & 50592.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/dataBetween")
 public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         @RequestParam("site") String site,
@@ -793,7 +876,7 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
         Set<Date> processedDates = new HashSet<>(); // Stocke les dates déjà traitées
         Set<String> processedTimes = new HashSet<>(); // Stocke les heures et minutes déjà traitées
 
-
+// le cas où train & SAM005 & 50592 sont présents
         for (Train train : trains) {
 
             Map<String, Object> trainMap = new HashMap<>();
@@ -1080,8 +1163,6 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
 
         // Traiter les cas où 50592 n'est pas égal à train
-
-
             for (M_50592 m50592 : m50592s) {
             Map<String, Object> samTrainMap = new HashMap<>();
                 Date dateKey = m50592.getDateFichier();
@@ -1558,6 +1639,17 @@ public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetween(
 
 
     //Api pour statistique
+    /**
+     * Récupère le pourcentage des trains passés, des trains avec SAM005(OK & NOK ) et les trains avec 50592(OK & NOK) pour un site donné ,un type Mr donné , statut de sam (&/ou) statut de 50592 donné durant une périide spécifiée.
+     * @param site Le nom du site.
+     * @param typemr Le nom du type Mr.
+     * @param statutsam Le statut de sam.
+     * @param statut50592 Le statut de 50592.
+     * @param startDateFichier La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @param FinDateFichier La date spécifiée (au format ISO DATE, ex : 2023-07-06)
+     * @return Une réponse contenant une liste de maps représentant les pourcentage des trains selon le chois de paramètres specifiés.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/dataBetweenstatistique")
     public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetweenstatistique(
             @RequestParam("site") String site,
@@ -2042,14 +2134,6 @@ if(!indexOccultationCountMap.isEmpty()){
 
 
 
-
-
-
-
-
-
-
-
 if(!totalPourcentageMapSamnok.isEmpty()){
     result.add(totalPourcentageMapSamnok);
 }
@@ -2067,8 +2151,6 @@ if(!totalPourcentageMap50592nok.isEmpty()){
 
 
 
-
-
         if (result.isEmpty()) {
             // Le résultat est vide, vous pouvez renvoyer une réponse spécifique
             return ResponseEntity.noContent().build();
@@ -2079,19 +2161,35 @@ if(!totalPourcentageMap50592nok.isEmpty()){
     }
 
 // api pour recuperer tous les types mr
+    /**
+     * Récupère tous les types mr et leur catégories pour un site donné durant une période spécifiée.
+     * @param site Le nom du site.
+     * @param startDateFichier La date spécifiée (au format ISO DATE, ex : 2023-06-06).
+     * @param FinDateFichier La date spécifiée (au format ISO DATE, ex : 2023-07-06)
+     * @return Une réponse contenant une liste de maps représentant les pourcentage des trains selon le chois de paramètres specifiés.
+     * @throws IOException En cas d'erreur lors de la manipulation des fichiers ou des propriétés.
+     */
     @GetMapping("/dataBetweenrMr")
     public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierBetweenRapportmr(
             @RequestParam("site") String site,
             @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
+        logger.info("Fetching data for site: {}, start date: {}, end date: {}", site, startDate, endDate);
+
+        // Convert LocalDate to Date
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
-        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
 
+        // Fetch trains within the specified site and date range
+        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
+        logger.info("Found {} trains for site: {}, start date: {}, end date: {}", trains.size(), site, startDate, endDate);
+
+        // Map to store category counts and category counts by type
         Map<String, Integer> categoryCounts = new HashMap<>();
         Map<String, Map<String, Integer>> categoryCountsByType = new HashMap<>();
 
+        // Iterate over trains and MRs to calculate counts
         for (Train train : trains) {
             for (Result  results  : train.getResults()) {
             String trainNumber = results.getEngine();
@@ -2111,7 +2209,7 @@ if(!totalPourcentageMap50592nok.isEmpty()){
             }
         }
     }
-
+        // Prepare the final result
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (Map.Entry<String, Map<String, Integer>> categoryEntry : categoryCountsByType.entrySet()) {
@@ -2139,10 +2237,13 @@ if(!totalPourcentageMap50592nok.isEmpty()){
             resultMap.put("count", otherCount);
             result.add(resultMap);
         }
+        // Check if the result is empty and return the appropriate response
         if (result.isEmpty()) {
-            // Le résultat est vide, vous pouvez renvoyer une réponse spécifique
+            logger.info("No data found for site: {}, start date: {}, end date: {}", site, startDate, endDate);
             return ResponseEntity.noContent().build();
         }
+
+        logger.info("Returning data for site: {}, start date: {}, end date: {}", site, startDate, endDate);
         return ResponseEntity.ok(result);
     }
 
@@ -2163,194 +2264,5 @@ if(!totalPourcentageMap50592nok.isEmpty()){
 
 
 
-//
-//                    for (Sam sam : sams) {
-//                        if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours()
-//                                && train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes()
-//                                && train.getDateFichier().equals(sam.getDateFichier())) {
-//                            List<Integer> nbOccultations = sam.getNbOccultations();
-//                            Integer nbEssieux = sam.getNbEssieux();
-//                            if (nbOccultations != null && nbOccultations.size() > 0) {
-//                                List<Integer> indexes = new ArrayList<>(); // modification
-//                                for (int i = 0; i < nbOccultations.size(); i++) { // modification
-//                                    if (!nbOccultations.get(i).equals(nbEssieux)) {
-//                                        indexes.add(i); // modification
-//                                    }
-//                                }
-//                                if (!indexes.isEmpty()) { // modification
-//                                    for (Integer index : indexes) { // modification
-//                                        int key = index + 1; // modification
-//                                        if (counters.containsKey(key)) {
-//                                            Map<String, Integer> map = counters.get(key);
-//                                            int count = map.getOrDefault(nbOccultations.get(index).toString(), 0);
-//                                            map.put(nbOccultations.get(index).toString(), count + 1);
-//                                            indexTotals.put(key, indexTotals.getOrDefault(key, 0) + count + 1); // ajout
-//                                        } else {
-//                                            Map<String, Integer> map = new HashMap<>();
-//                                            map.put(nbOccultations.get(index).toString(), 1);
-//                                            counters.put(key, map);
-//                                            indexTotals.put(key, indexTotals.getOrDefault(key, 0) + 1); // ajout
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//
-//                    }
-//
-//                    if (!counters.isEmpty()) {
-//
-//                        Map<String, Object> trainMap = new HashMap<>();
-//                        trainMap.put("NumTrain", train.getNumTrain());
-//                        trainMap.put("Counters", counters);
-//                        trainMap.put("IndexTotals", indexTotals); // ajout
-//
-//                        result.add(trainMap);
-//                    }
-
-
-
-
-
-
-
-//    private int lastMonthOfQuarter(int month) {
-//        if (month <= 0 || month > 12) {
-//            throw new IllegalArgumentException("Invalid month: " + month);
-//        }
-//        int quarter = (month - 1) / 3 + 1; // calcul du numéro de trimestre
-//        return quarter * 3; // le dernier mois du trimestre est le mois numéro 3, 6, 9 ou 12
-//    }
-//
-//    @GetMapping("/dataQuarterlySAM")
-//    public ResponseEntity<List<Map<String, Object>>> getBySiteAndQuarterSAM(
-//
-//    ) throws Exception {
-//
-//        LocalDate startDate = LocalDate.of(2023, 1, 1);
-//
-//        List<Map<String, Object>> result = new ArrayList<>();
-//
-//        while (true) {
-//            LocalDate endDate = startDate.plusMonths(3);
-//            if (endDate.getYear() != startDate.getYear()) {
-//                endDate = endDate.withYear(startDate.getYear());
-//            }
-//            System.out.println("Trimestre " + ((endDate.getMonthValue() + 2) / 3) + " " + startDate + " - " + endDate.minusDays(1));
-//
-//
-//            int lastMonth = lastMonthOfQuarter(endDate.getMonthValue()); // on utilise endDate au lieu de startDate
-//            LocalDate endQuarterDate = LocalDate.of(endDate.getYear(), lastMonth, 30).with(TemporalAdjusters.lastDayOfMonth()); // on calcule la fin du trimestre
-//            System.out.println("Fin de trimestre: " + endQuarterDate);
-//
-//
-//            Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//            Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//
-//            List<Train> trains = trainRepository.findAll();
-//
-//            List<Sam> sams = samRepository.findAll();
-//            List<M_50592> m_50592s = m50592Repository.findAll();
-////            List<List<JsonNode>> tempsMsNodesList = getTempsMsBetween(site, startDate, endDate);
-//
-//            for (Sam sam : sams) {
-//for(M_50592 m50592 : m_50592s){
-//                Map<String, Object> trainMap = null;
-//                for (Train train : trains) {
-//                    if (train.getHeureFichier().getHours() == sam.getHeureFichier().getHours() &&
-//                            train.getHeureFichier().getMinutes() == sam.getHeureFichier().getMinutes() &&
-//                            train.getDateFichier().equals(sam.getDateFichier()) && train.getHeureFichier().getHours() == m50592.getHeureFichier().getHours() &&
-//                            train.getHeureFichier().getMinutes() == m50592.getHeureFichier().getMinutes() &&
-//                            train.getDateFichier().equals(m50592.getDateFichier())) {
-//                        trainMap = new HashMap<>();
-//                        trainMap.put("numTrain", train.getNumTrain());
-//                        trainMap.put("dateFichier", train.getDateFichier());
-//                        trainMap.put("heureFichier", train.getHeureFichier());
-////                        trainMap.put("url", train.getUrl());
-//                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
-//                        trainMap.put("datesam", sam.getDateFichier());
-////                        List<JsonNode> tempsList = tempsMsNodesList.get(sams.indexOf(sam));
-////                        trainMap.put("tempsMs", tempsList);
-//
-//                        Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
-//                        if (mr != null) {
-//                            trainMap.put("mr", mr.getMr());
-//                        }
-//                        result.add(trainMap);
-//                        break; // On a trouvé le train correspondant à ce SAM, on passe au prochain SAM
-//                    }
-//                }
-//            }
-//        }
-//
-//            if (endDate.isAfter(LocalDate.now())) {
-//                break;
-//            }
-//            startDate = endDate;
-//        }
-//
-//        if (result.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-//        }
-//        return ResponseEntity.ok(result);
-//    }
-
-
-
-
-
-//    @GetMapping("/dataBetweenDatesamNOK")
-//    public ResponseEntity<List<Map<String, Object>>> getBySiteAndDateFichierNOK(
-//            @RequestParam("site") String site,
-//            @RequestParam("startDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//            @RequestParam("FinDateFichier") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-//    ) {
-//        Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//        Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//
-//        List<Train> trains = trainRepository.findBySiteAndDateFichierBetween(site, start, end);
-//        List<Sam> sams = samRepository.findBySiteAndDateFichierBetween(site, start, end);
-//        List<M_50592> m_50592s = m50592Repository.findBySiteAndDateFichierBetween(site, start, end);
-//
-//        if (sams.isEmpty() && trains.isEmpty() && m_50592s.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        List<Map<String, Object>> result = new ArrayList<>();
-//        for (Sam sam : sams) {
-//            if (sam.getStatutSAM().equals("NOK")) {
-//                for (Train train : trains) {
-//                    if (train.getDateFichier().equals(sam.getDateFichier()) &&
-//                            train.getHeureFichier().equals(sam.getHeureFichier())) {
-//                        Map<String, Object> trainMap = new HashMap<>();
-//                        trainMap.put("id", train.getId());
-//                        trainMap.put("numTrain", train.getNumTrain());
-//                        trainMap.put("dateFichier", train.getDateFichier());
-//                        trainMap.put("heureFichier", train.getHeureFichier());
-//                        trainMap.put("url", train.getStatut());
-//
-//
-//
-//                        trainMap.put("vitesse_moy", sam.getVitesse_moy());
-//                        trainMap.put("id", sam.getId());
-//                        trainMap.put("NbEssieux", sam.getNbEssieux());
-//                        trainMap.put("url", sam.getUrlSam());
-//                        trainMap.put("statutSAM", sam.getStatutSAM());
-//                        trainMap.put("NbOccultations", sam.getNbOccultations());
-//
-//                        Mr mr = mrRepository.findByNumTrain(train.getNumTrain());
-//                        if (mr != null) {
-//                            trainMap.put("mr", mr.getMr());
-//                        }
-//
-//                        result.add(trainMap);
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//
-//        return ResponseEntity.ok(result);
-//    }
 
 }
