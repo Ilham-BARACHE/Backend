@@ -47,8 +47,10 @@ import java.nio.file.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
+
 import org.slf4j.LoggerFactory;
 
 import java.util.logging.ErrorManager;
@@ -61,6 +63,7 @@ public class Main {
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
+
 
         logger.info("Le programme a démarré.");
 
@@ -124,39 +127,34 @@ public class Main {
         }
 
 
+
     }
 
 
-    private boolean isFileOpen(File file) {
-        try {
-            FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE);
-            FileLock lock = channel.tryLock();
-            if (lock != null) {
-                lock.release();
-                channel.close();
-                return false;
-            } else {
-                channel.close();
+
+
+
+
+
+        private boolean isFileOpen(File file) {
+            try {
+                FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE);
+                FileLock lock = channel.tryLock();
+                if (lock != null) {
+                    lock.release();
+                    channel.close();
+                    return false;
+                } else {
+                    channel.close();
+                    return true;
+                }
+            } catch (IOException e) {
                 return true;
+
             }
-        } catch (IOException e) {
-            return true;
+
+
         }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -246,13 +244,19 @@ public class Main {
 
 
 
+
                         // La surveillance est terminée, vérifier si les fichiers peuvent être déplacés
 
 
                             deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
                             logger.info("Les fichiers ont été déplacés avec succès okeyyyy!" + filesToMove);
                             filesToMove.clear(); // Vider la liste filesToMove
-key.reset();
+
+                        deplacerFichiers(filesToMove.toArray(new File[0]), outputFolder);
+                        logger.info("Les fichiers ont été déplacés avec succès !"+filesToMove);
+                        filesToMove.clear(); // Vider la liste filesToMove
+                        key.reset(); // Réinitialiser la clé pour continuer à surveiller les événements
+
                     }
 
                     } catch (RuntimeException e) {
