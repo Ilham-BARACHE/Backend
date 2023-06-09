@@ -9,12 +9,14 @@
         <outputRelativeToContentRoot value="true" />
         <module name="sncf-ihm" />
         <module name="Backend" />
+        <module name="new-backend" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Backend" options="-parameters" />
+      <module name="new-backend" options="-parameters" />
       <module name="sncf-ihm" options="-parameters" />
     </option>
   </component>
