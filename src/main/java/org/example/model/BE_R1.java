@@ -12,28 +12,34 @@ public class BE_R1 {
 
     @ElementCollection
     @JsonProperty("X")
+    @OrderColumn(name = "x_index")
     private List<Double> x;
 
     @ElementCollection
     @JsonProperty("Y")
+    @OrderColumn(name = "y_index")
     private List<Double> y;
 
     @ElementCollection
     @JsonProperty("Z")
+    @OrderColumn(name = "z_index")
     private List<Double> z;
 
 
     @ElementCollection
     @JsonProperty("X_Fond")
+    @OrderColumn(name = "x_Fond_index")
     private List<String> xFond;
 
     @ElementCollection
     @JsonProperty("Y_Fond")
+    @OrderColumn(name = "y_Fond_index")
     private List<String> yFond;
 
 
     @ElementCollection
     @JsonProperty("Z_Fond")
+    @OrderColumn(name = "Z_Fond_index")
     private List<String> zFond;
 
     public BE_R1(List<Double> x, List<Double> y, List<Double> z, List<String> xFond, List<String> yFond, List<String> zFond) {

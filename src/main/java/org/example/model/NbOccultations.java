@@ -3,17 +3,11 @@ package org.example.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Data
-
 public class NbOccultations {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+
 
 
     @JsonProperty("NbOccultations")
@@ -23,13 +17,7 @@ public class NbOccultations {
 
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 
-    public Long getId() {
-        return id;
-    }
 
     public Integer getNbOccultations() {
         return NbOccultations;
@@ -40,8 +28,8 @@ public class NbOccultations {
     }
 
 
-    public NbOccultations(Long id, Integer nbOccultations) {
-        this.id = id;
+    public NbOccultations( Integer nbOccultations) {
+
         NbOccultations = nbOccultations;
     }
 }

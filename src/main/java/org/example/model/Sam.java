@@ -32,6 +32,7 @@ public class Sam  {
     @Column(name = "nb_Occultations")
     @ElementCollection
     @JsonProperty("NbOccultations")
+    @OrderColumn(name = "nbOccultations_index")
     private List<Integer> nb_Occultations;
     @Column(name = "statut_Sam")
     private String statutSAM;
@@ -202,6 +203,9 @@ public class Sam  {
             }
         }
     }
+
+
+
 
     public Date getDateFichier() {
         return dateFichier;

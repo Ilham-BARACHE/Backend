@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
+import javax.persistence.OrderColumn;
 import java.util.List;
 
 @Data
@@ -13,28 +14,34 @@ public class BL_R1 {
 
     @ElementCollection
     @JsonProperty("X")
+    @OrderColumn(name = "x_index")
     private List<Double> xl;
 
     @ElementCollection
     @JsonProperty("Y")
+    @OrderColumn(name = "y_index")
     private List<Double> yl;
 
     @ElementCollection
     @JsonProperty("Z")
+    @OrderColumn(name = "z_index")
     private List<Double> zl;
 
 
     @ElementCollection
     @JsonProperty("X_Fond")
+    @OrderColumn(name = "x_Fond_index")
     private List<String> xFondl;
 
     @ElementCollection
     @JsonProperty("Y_Fond")
+    @OrderColumn(name = "y_Fond_index")
     private List<String> yFondl;
 
 
     @ElementCollection
     @JsonProperty("Z_Fond")
+    @OrderColumn(name = "z_Fond_index")
     private List<String> zFondl;
 
     public  BL_R1(){}
